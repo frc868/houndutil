@@ -4,13 +4,23 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Consumer;
 
+import com.techhounds.houndutil.houndlog.LogGroup;
+import com.techhounds.houndutil.houndlog.LoggingManager;
+import com.techhounds.houndutil.houndlog.loggers.Logger;
+import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.networktables.NetworkTableEntry;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.button.NetworkButton;
 
 public class AutoManager {
     private static AutoManager instance;
@@ -86,9 +96,11 @@ public class AutoManager {
      * Create a Shuffleboard tab with the field and chooser objects.
      */
     public void setupShuffleboardTab() {
-        ShuffleboardTab tab = Shuffleboard.getTab("Autonomous");
-        tab.add("Field", field);
-        tab.add("Auto Chooser", chooser);
+        LoggingManager.getInstance().addGroup(
+                new LogGroup("Autonomous",
+                        new Logger[] {
+                                new SendableLogger("Field", field),
+                                new SendableLogger("Chooser", chooser) }));
     }
 
     /**
@@ -128,9 +140,13 @@ public class AutoManager {
      * is a problem with removing them that will be fixed in NT4.
      */
     public void removeLastRoutine(AutoRoutine last) {
-        System.out.println("removing last " + last.getName());
         last.getTrajectories()
                 .forEach((autoPath) -> {
+                    NetworkTableEntry entry = NetworkTableInstance.getDefault()
+                            .getTable("HoundLog/Autonomous/Field")
+                            .getEntry(autoPath.getName());
+                    entry.delete(); // the hackiest solution ever due to an issue in WPILib where large trajectories
+                                    // will not clear, only necessary until NT4 releases.
                     field.getObject(autoPath.getName()).setTrajectory(new Trajectory());
                 });
     }
