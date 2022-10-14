@@ -1,4 +1,7 @@
 # houndutil
+
+[![CI](https://github.com/frc868/houndutil/actions/workflows/main.yml/badge.svg)](https://github.com/frc868/houndutil/actions/workflows/main.yml)
+
 A utility library for TechHOUNDS. Includes houndlog.
 
 ## How to add this to other projects
