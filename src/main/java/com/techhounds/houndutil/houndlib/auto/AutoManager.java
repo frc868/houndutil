@@ -13,14 +13,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.networktables.NetworkTableEntry;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.shuffleboard.BuiltInWidgets;
-import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
-import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.InstantCommand;
-import edu.wpi.first.wpilibj2.command.button.NetworkButton;
 
 public class AutoManager {
     private static AutoManager instance;
@@ -114,7 +109,7 @@ public class AutoManager {
                 removeLastRoutine(lastRoutine);
             }
             if (resetOdometryConsumer != null) {
-                ArrayList<AutoPath> autoPaths = selectedRoutine.getTrajectories();
+                ArrayList<AutoPath> autoPaths = selectedRoutine.getAutoPaths();
                 // set the robot odometry to the initial pose of the first trajectory in the
                 // routine
                 resetOdometryConsumer.accept(autoPaths.get(0).getTrajectory().getInitialPose());
@@ -129,7 +124,7 @@ public class AutoManager {
      */
     public void displaySelectedRoutine() {
         if (getSelectedRoutine() != null) {
-            getSelectedRoutine().getTrajectories().forEach((autoPath) -> {
+            getSelectedRoutine().getAutoPaths().forEach((autoPath) -> {
                 field.getObject(autoPath.getName()).setTrajectory(autoPath.getTrajectory());
             });
         }
@@ -140,7 +135,7 @@ public class AutoManager {
      * is a problem with removing them that will be fixed in NT4.
      */
     public void removeLastRoutine(AutoRoutine last) {
-        last.getTrajectories()
+        last.getAutoPaths()
                 .forEach((autoPath) -> {
                     NetworkTableEntry entry = NetworkTableInstance.getDefault()
                             .getTable("HoundLog/Autonomous/Field")
@@ -157,7 +152,7 @@ public class AutoManager {
      */
     public void runSelectedRoutine() {
         scheduledCommand = getSelectedRoutine().getCommand().beforeStarting(() -> resetOdometryConsumer
-                .accept(getSelectedRoutine().getTrajectories().get(0).getTrajectory().getInitialPose()));
+                .accept(getSelectedRoutine().getAutoPaths().get(0).getTrajectory().getInitialPose()));
         scheduledCommand.schedule();
     }
 

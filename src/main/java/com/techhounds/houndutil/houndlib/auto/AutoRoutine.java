@@ -6,22 +6,36 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class AutoRoutine {
     private String name;
     private Command command;
-    private ArrayList<AutoPath> trajectories = new ArrayList<AutoPath>();
+    private ArrayList<AutoPath> autoPaths = new ArrayList<AutoPath>();
+
+    /**
+     * Initialize an AutoRoutine. Will grab the {@code AutoPath}s from the
+     * {@code AutoTrajectoryCommand}.
+     * 
+     * @param name    the name of the routine, this will be pushed to
+     *                Shuffleboard
+     * @param command the command to run, containing its trajectories
+     */
+    public AutoRoutine(String name, AutoTrajectoryCommand command) {
+        this.name = name;
+        this.command = command;
+        this.autoPaths = command.getAutoPaths();
+    }
 
     /**
      * Initialize an AutoRoutine.
      * 
-     * @param name         the name of the routine, this will be pushed to
-     *                     Shuffleboard
-     * @param command      the command to run
-     * @param trajectories an ArrayList of trajectories associated with the command,
-     *                     used for Shuffleboard visualization, make zero index the
-     *                     first trajectory
+     * @param name      the name of the routine, this will be pushed to
+     *                  Shuffleboard
+     * @param command   the command to run
+     * @param autoPaths an ArrayList of trajectories associated with the command,
+     *                  used for Shuffleboard visualization, make zero index the
+     *                  first trajectory
      */
-    public AutoRoutine(String name, Command command, ArrayList<AutoPath> trajectories) {
+    public AutoRoutine(String name, Command command, ArrayList<AutoPath> autoPaths) {
         this.name = name;
         this.command = command;
-        this.trajectories = trajectories;
+        this.autoPaths = autoPaths;
     }
 
     /**
@@ -49,12 +63,12 @@ public class AutoRoutine {
     }
 
     /**
-     * Get the trajectories associated with this routine.
+     * Get the {@code AutoPath}s associated with this routine.
      * 
-     * @return the trajectories associated with this routine
+     * @return the autoPaths associated with this routine
      */
-    public ArrayList<AutoPath> getTrajectories() {
-        return trajectories;
+    public ArrayList<AutoPath> getAutoPaths() {
+        return autoPaths;
     }
 
 }
