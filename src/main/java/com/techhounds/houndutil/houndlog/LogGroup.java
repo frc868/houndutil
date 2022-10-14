@@ -19,7 +19,7 @@ public class LogGroup implements Loggable {
      * 
      * @param loggers the loggers to assign to this LogGroup
      */
-    public LogGroup(Logger[] loggers) {
+    public LogGroup(Logger... loggers) {
         this.loggers = loggers;
         this.subsystem = loggers[0].getSubsystem();
     }
@@ -30,7 +30,7 @@ public class LogGroup implements Loggable {
      * @param subsystem
      * @param loggers
      */
-    public LogGroup(String subsystem, Logger[] loggers) {
+    public LogGroup(String subsystem, Logger... loggers) {
         this.loggers = loggers;
         setLoggerSubsystems(subsystem);
         this.subsystem = subsystem;

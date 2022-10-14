@@ -6,7 +6,6 @@ import java.util.function.Consumer;
 
 import com.techhounds.houndutil.houndlog.LogGroup;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.loggers.Logger;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
 
 import edu.wpi.first.math.geometry.Pose2d;
@@ -93,9 +92,8 @@ public class AutoManager {
     public void setupShuffleboardTab() {
         LoggingManager.getInstance().addGroup(
                 new LogGroup("Autonomous",
-                        new Logger[] {
-                                new SendableLogger("Field", field),
-                                new SendableLogger("Chooser", chooser) }));
+                        new SendableLogger("Field", field),
+                        new SendableLogger("Chooser", chooser)));
     }
 
     /**
