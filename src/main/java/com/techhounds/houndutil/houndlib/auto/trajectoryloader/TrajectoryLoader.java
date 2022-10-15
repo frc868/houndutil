@@ -39,7 +39,8 @@ public class TrajectoryLoader {
                 if (settings == null) {
                     settings = new TrajectorySettings(trajName); // to set default maxV and maxA
                 }
-                Trajectory trajectory = PathPlanner.loadPath(trajName, settings.maxVelocity, settings.maxAcceleration);
+                Trajectory trajectory = PathPlanner.loadPath(trajName, settings.maxVelocity, settings.maxAcceleration,
+                        settings.isReversed);
                 autoPaths.put(trajName, new AutoPath(trajName, trajectory));
             });
         } catch (IOException ex) {

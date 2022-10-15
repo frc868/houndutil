@@ -2,9 +2,9 @@ package com.techhounds.houndutil.houndlib.auto.trajectoryloader;
 
 public class TrajectorySettings {
     public String name;
-    public double maxVelocity;
-    public double maxAcceleration;
-    public boolean isReversed;
+    public double maxVelocity = 1.0;
+    public double maxAcceleration = 1.0;
+    public boolean isReversed = false;
 
     public TrajectorySettings(String name) {
         this.name = name;
