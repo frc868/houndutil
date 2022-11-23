@@ -138,8 +138,8 @@ public class AutoManager {
                     NetworkTableEntry entry = NetworkTableInstance.getDefault()
                             .getTable("HoundLog/Autonomous/Field")
                             .getEntry(autoPath.getName());
-                    entry.delete(); // the hackiest solution ever due to an issue in WPILib where large trajectories
-                                    // will not clear, only necessary until NT4 releases.
+                    entry.unpublish(); // the hackiest solution ever due to an issue in WPILib where large trajectories
+                                       // will not clear, only necessary until NT4 releases.
                     field.getObject(autoPath.getName()).setTrajectory(new Trajectory());
                 });
     }
