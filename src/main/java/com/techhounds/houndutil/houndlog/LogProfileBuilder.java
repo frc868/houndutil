@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlog;
 
 import com.ctre.phoenix.sensors.CANCoder;
+import com.ctre.phoenix.sensors.Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 
@@ -111,7 +112,6 @@ public class LogProfileBuilder {
                 new LogItem<Double>(LogType.NUMBER, "Pitch", () -> (double) obj.getPitch(), LogLevel.MAIN),
                 new LogItem<Double>(LogType.NUMBER, "Roll", () -> (double) obj.getRoll(), LogLevel.MAIN),
                 new LogItem<Double>(LogType.NUMBER, "Yaw", () -> (double) obj.getYaw(), LogLevel.MAIN),
-                new LogItem<Double>(LogType.NUMBER, "Angle", () -> (double) obj.getPitch(), LogLevel.MAIN),
                 new LogItem<Double>(LogType.NUMBER, "Angle Rotation Rate", obj::getRate, LogLevel.MAIN),
                 new LogItem<Double>(LogType.NUMBER, "X Axis Acceleration", () -> (double) obj.getWorldLinearAccelX(),
                         LogLevel.MAIN),
@@ -133,6 +133,28 @@ public class LogProfileBuilder {
                 new LogItem<Double>(LogType.NUMBER, "Update Count", obj::getUpdateCount, LogLevel.DEBUG),
                 new LogItem<String>(LogType.STRING, "Firmware Version", obj::getFirmwareVersion, LogLevel.DEBUG)
 
+        };
+    }
+
+    /**
+     * Builds Pigeon 2 log items.
+     * 
+     * @param obj the navx to use
+     * @return the array of LogItems
+     */
+    public static LogItem<?>[] buildPigeon2LogItems(Pigeon2 obj) {
+
+        return new LogItem<?>[] {
+                new LogItem<Double>(LogType.NUMBER, "Pitch", obj::getPitch, LogLevel.MAIN),
+                new LogItem<Double>(LogType.NUMBER, "Roll", obj::getRoll, LogLevel.MAIN),
+                new LogItem<Double>(LogType.NUMBER, "Yaw", obj::getYaw, LogLevel.MAIN),
+                new LogItem<Double>(LogType.NUMBER, "Absolute Compass Heading", obj::getAbsoluteCompassHeading,
+                        LogLevel.INFO),
+                new LogItem<Integer>(LogType.NUMBER, "Uptime", obj::getUpTime, LogLevel.INFO),
+                new LogItem<Double>(LogType.NUMBER, "Temperature", obj::getTemp, LogLevel.INFO),
+                new LogItem<String>(LogType.STRING, "Last Error", obj.getLastError()::toString, LogLevel.DEBUG),
+                new LogItem<Integer>(LogType.NUMBER, "Device ID", obj::getDeviceID, LogLevel.DEBUG),
+                new LogItem<Integer>(LogType.NUMBER, "Firmware Version", obj::getFirmwareVersion, LogLevel.DEBUG),
         };
     }
 
