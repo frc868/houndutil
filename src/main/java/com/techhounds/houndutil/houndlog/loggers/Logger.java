@@ -2,9 +2,6 @@ package com.techhounds.houndutil.houndlog.loggers;
 
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
-import edu.wpi.first.wpilibj.DriverStation;
-import com.techhounds.houndutil.houndlog.LogItem;
-import com.techhounds.houndutil.houndlog.LoggingManager;
 
 /**
  * The base representation of a logger. Since this is abstract, it will not be
@@ -59,58 +56,6 @@ public abstract class Logger implements Loggable {
      */
     public NetworkTable getLogTable() {
         return NetworkTableInstance.getDefault().getTable("HoundLog");
-    }
-
-    /**
-     * Logs a specific item by calling the functions listed to log and convert the
-     * results to the correct type.
-     * 
-     * Also checks the level of the LogItem.
-     * 
-     * @param item the {@link LogItem} to log
-     */
-    public void logItem(LogItem<?> item) {
-        boolean run = false;
-        switch (item.getLevel()) {
-            case DEBUG:
-                run = LoggingManager.getDebugMode();
-                break;
-            case INFO:
-                run = DriverStation.isTest();
-                break;
-            case MAIN:
-                run = true;
-                break;
-        }
-        if (run) {
-            try {
-                switch (item.getType()) {
-                    case STRING:
-                        getDataTable().getEntry(item.getKey()).setString((String) item.getFunc().call());
-                        break;
-                    case NUMBER:
-                        getDataTable().getEntry(item.getKey()).setDouble((double) item.getFunc().call());
-                        break;
-                    case BOOLEAN:
-                        getDataTable().getEntry(item.getKey()).setBoolean((boolean) item.getFunc().call());
-                        break;
-                    case STRING_ARRAY:
-                        getDataTable().getEntry(item.getKey()).setStringArray((String[]) item.getFunc().call());
-                        break;
-                    case NUMBER_ARRAY:
-                        getDataTable().getEntry(item.getKey()).setDoubleArray((double[]) item.getFunc().call());
-                        break;
-                    case BOOLEAN_ARRAY:
-                        getDataTable().getEntry(item.getKey()).setBooleanArray((boolean[]) item.getFunc().call());
-                        break;
-                    default:
-                        getDataTable().getEntry(item.getKey()).setString("Unspecified type.");
-                        break;
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
     }
 
     /**

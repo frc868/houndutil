@@ -1,7 +1,7 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
 import edu.wpi.first.networktables.NetworkTable;
-import com.techhounds.houndutil.houndlog.LogItem;
+import com.techhounds.houndutil.houndlog.logitems.LogItem;
 import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 
 /**
@@ -42,6 +42,9 @@ public class DeviceLogger<T> extends Logger {
         this.deviceName = deviceName;
         this.items = items;
 
+        for (LogItem<?> i : items) {
+            i.setDataTable(getDataTable());
+        }
     }
 
     /**
@@ -57,6 +60,10 @@ public class DeviceLogger<T> extends Logger {
         this.obj = obj;
         this.deviceName = deviceName;
         this.items = items;
+
+        for (LogItem<?> i : items) {
+            i.setDataTable(getDataTable());
+        }
     }
 
     /**
@@ -81,7 +88,7 @@ public class DeviceLogger<T> extends Logger {
     @Override
     public void run() {
         for (LogItem<?> item : items) {
-            logItem(item);
+            item.run();
         }
     }
 }
