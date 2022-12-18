@@ -1,5 +1,6 @@
 package com.techhounds.houndutil.houndlog;
 
+import com.techhounds.houndutil.houndlog.enums.LogLevel;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
 
@@ -11,7 +12,6 @@ import com.techhounds.houndutil.houndlog.loggers.Logger;
  */
 public class LogGroup implements Loggable {
     private Logger[] loggers;
-    private String subsystem;
 
     /**
      * Instantiates a new LogGroup. Gets the subsystem name from the first Logger in
@@ -21,7 +21,6 @@ public class LogGroup implements Loggable {
      */
     public LogGroup(Logger... loggers) {
         this.loggers = loggers;
-        this.subsystem = loggers[0].getSubsystem();
     }
 
     /**
@@ -33,16 +32,6 @@ public class LogGroup implements Loggable {
     public LogGroup(String subsystem, Logger... loggers) {
         this.loggers = loggers;
         setLoggerSubsystems(subsystem);
-        this.subsystem = subsystem;
-    }
-
-    /**
-     * Gets the subsystem name.
-     * 
-     * @return the subsystem name;
-     */
-    public String getSubsystem() {
-        return subsystem;
     }
 
     /**
@@ -51,21 +40,29 @@ public class LogGroup implements Loggable {
      * @param subsystem the name of the subsystem to set.
      */
     public void setLoggerSubsystems(String subsystem) {
-        this.subsystem = subsystem;
         for (Logger logger : loggers) {
             logger.setSubsystem(subsystem);
         }
     }
 
+    @Override
     public void init() {
         for (Logger logger : loggers) {
             logger.init();
         }
     }
 
+    @Override
     public void run() {
         for (Logger logger : loggers) {
             logger.run();
+        }
+    }
+
+    @Override
+    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+        for (Logger logger : loggers) {
+            logger.changeLevel(newLevel, oldLevel);
         }
     }
 }

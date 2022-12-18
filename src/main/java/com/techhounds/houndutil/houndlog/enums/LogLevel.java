@@ -9,14 +9,24 @@ public enum LogLevel {
     /**
      * LogValues set at this level will only run when debug mode is on
      */
-    DEBUG,
+    DEBUG(2),
     /**
      * LogValues set at this level will only run when the bot is set in test mode
      * (does not have to enabled)
      */
-    INFO,
+    INFO(1),
     /**
      * LogValues set at this level will run all the time.
      */
-    MAIN
+    MAIN(0);
+
+    private int value;
+
+    LogLevel(int value) {
+        this.value = value;
+    }
+
+    public int getValue() {
+        return value;
+    }
 }

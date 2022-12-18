@@ -1,7 +1,8 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
+import com.techhounds.houndutil.houndlog.enums.LogLevel;
+
 import edu.wpi.first.networktables.NetworkTable;
-import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
@@ -17,18 +18,18 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
  * 
  */
 public class SendableLogger extends Logger {
+    private String subsystem;
     private String key;
     private Sendable sendable;
 
     public SendableLogger(String subsystem, String key, Sendable sendable) {
-        super(subsystem);
+        this.subsystem = subsystem;
         this.key = key;
         this.sendable = sendable;
     }
 
     public SendableLogger(String key, Sendable sendable) {
-        this.key = key;
-        this.sendable = sendable;
+        this("Not set", key, sendable);
     }
 
     /**
@@ -40,18 +41,22 @@ public class SendableLogger extends Logger {
      */
     private void publishSendable(NetworkTable logTable) {
         SendableBuilderImpl builder = new SendableBuilderImpl();
-        builder.setTable(getDataTable());
+        builder.setTable(logTable);
         SendableRegistry.publish(sendable, builder);
         builder.startListeners();
-        getDataTable().getStringTopic(".name").publish().set(key);
+        logTable.getStringTopic(".name").publish().set(key);
     }
 
     /**
      * Gets the table associated with the subsystem + Sendable.
      */
+    protected NetworkTable getTable() {
+        return getBaseTable().getSubTable(subsystem).getSubTable(key);
+    }
+
     @Override
-    protected NetworkTable getDataTable() {
-        return getLogTable().getSubTable(subsystem).getSubTable(key);
+    public void setSubsystem(String subsystem) {
+        this.subsystem = subsystem;
     }
 
     /**
@@ -60,8 +65,7 @@ public class SendableLogger extends Logger {
      */
     @Override
     public void init() {
-        NetworkTable logTable = NetworkTableInstance.getDefault().getTable("HoundLog");
-        publishSendable(logTable);
+        publishSendable(getTable());
     }
 
     /**
@@ -70,5 +74,10 @@ public class SendableLogger extends Logger {
     @Override
     public void run() {
         SendableRegistry.update(sendable);
+    }
+
+    @Override
+    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+
     }
 }

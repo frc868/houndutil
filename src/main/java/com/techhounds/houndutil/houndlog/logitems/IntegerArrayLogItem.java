@@ -43,17 +43,19 @@ public class IntegerArrayLogItem extends LogItem<int[]> {
     /**
      * Initializes the publisher. The data table is required to be set.
      */
-    public void initPublisher() {
-        if (getDataTable() == null) {
+    @Override
+    public void publish() {
+        if (getTable() == null) {
             System.err.println("The data table has to be set to initialize \"" + key + "\".");
+            return;
         }
 
-        try {
-            publisher = getDataTable().getIntegerArrayTopic(key).publish();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        inited = true;
+        publisher = getTable().getIntegerArrayTopic(key).publish();
+    }
+
+    @Override
+    public void unpublish() {
+        publisher.close();
     }
 
     /**
@@ -65,15 +67,15 @@ public class IntegerArrayLogItem extends LogItem<int[]> {
      * @param item the {@link LogItem} to log
      */
     public void run() {
-        if (!inited) {
-            initPublisher();
-        }
-        if (super.getToRun()) {
+        if (isLogging) {
+            if (publisher == null) {
+                this.publish();
+            }
             try {
-                // FIXME weird thing about WPILib beta? int array publisher takes in a long
-                // array
+                // WPILib uses 64-bit integers for NT so we have to convert to long array
+                // TODO maybe convert the whole class into one that logs longs if we ever need
+                // to
                 publisher.set(Arrays.stream(func.call()).asLongStream().toArray());
-
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -3,8 +3,11 @@ package com.techhounds.houndutil.houndlog;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.techhounds.houndutil.houndlog.enums.LogLevel;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
+
+import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * A singleton manager for logging to avoid some of the pitfalls with using the
@@ -21,6 +24,8 @@ public class LoggingManager {
     private static LoggingManager instance;
     private List<Loggable> loggables = new ArrayList<Loggable>();
     private static boolean DEBUG_MODE = false;
+
+    private static LogLevel LEVEL = LogLevel.MAIN;
 
     /**
      * Returns a singleton of LoggingManager.
@@ -105,6 +110,39 @@ public class LoggingManager {
     }
 
     /**
+     * Handles any changes in LogLevel that might occur (i.e. a switch from teleop to test, or enabling debug mode).
+     */
+    public void handleLevelChanges() {
+        LogLevel oldLevel = LoggingManager.LEVEL;
+        LogLevel newLevel;
+
+
+        newLevel = LogLevel.MAIN;
+
+        if (DriverStation.isTest()) {
+            newLevel = LogLevel.INFO;
+        }
+
+        if (LoggingManager.getDebugMode()) {
+            newLevel = LogLevel.DEBUG;
+        }
+
+        if (!newLevel.equals(oldLevel)) {
+            changeLevel(newLevel, oldLevel);
+        }
+    }
+
+    /**
+     * Runs the {@code changeLevel()} method on each loggable.
+     */
+    private void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+        LoggingManager.LEVEL = newLevel;
+        for (Loggable loggable : loggables) {
+            loggable.changeLevel(newLevel, oldLevel);
+        }
+    }
+
+    /**
      * Runs the {@code init()} method on each loggable. Should only be used in
      * {@code robotInit()}.
      */
@@ -119,6 +157,7 @@ public class LoggingManager {
      * {@code robotPeriodic()}.
      */
     public void run() {
+        handleLevelChanges();
         for (Loggable loggable : loggables) {
             loggable.run();
         }

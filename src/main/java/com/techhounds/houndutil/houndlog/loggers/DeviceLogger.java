@@ -1,8 +1,11 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
-import edu.wpi.first.networktables.NetworkTable;
 import com.techhounds.houndutil.houndlog.logitems.LogItem;
+
+import java.util.Arrays;
+
 import com.techhounds.houndutil.houndlog.LogProfileBuilder;
+import com.techhounds.houndutil.houndlog.enums.LogLevel;
 
 /**
  * A logger for a specified object T. This logger will post all items contained
@@ -33,18 +36,15 @@ public class DeviceLogger<T> extends Logger {
      * @param obj        the object to log values for
      * @param subsystem  the name of the subsystem
      * @param deviceName the name of the device
-     * @param items      the list of items to log (can be created manually or
+     * @param items      the list of items to log (can xbe created manually or
      *                   through {@link LogProfileBuilder})
      */
     public DeviceLogger(T obj, String subsystem, String deviceName, LogItem<?>[] items) {
-        super(subsystem);
         this.obj = obj;
         this.deviceName = deviceName;
         this.items = items;
-
-        for (LogItem<?> i : items) {
-            i.setDataTable(getDataTable());
-        }
+        setSubsystem(subsystem);
+        setSubkeys();
     }
 
     /**
@@ -60,18 +60,20 @@ public class DeviceLogger<T> extends Logger {
         this.obj = obj;
         this.deviceName = deviceName;
         this.items = items;
+        setSubkeys();
+    }
 
-        for (LogItem<?> i : items) {
-            i.setDataTable(getDataTable());
+    @Override
+    public void setSubsystem(String subsystem) {
+        for (Logger logger : items) {
+            logger.setSubsystem(subsystem);
         }
     }
 
-    /**
-     * Gets the data table associated with the device.
-     */
-    @Override
-    protected NetworkTable getDataTable() {
-        return getLogTable().getSubTable(subsystem).getSubTable(deviceName);
+    public void setSubkeys() {
+        for (LogItem<?> item : items) {
+            item.setSubkeys(Arrays.asList(deviceName));
+        }
     }
 
     /**
@@ -89,6 +91,13 @@ public class DeviceLogger<T> extends Logger {
     public void run() {
         for (LogItem<?> item : items) {
             item.run();
+        }
+    }
+
+    @Override
+    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+        for (LogItem<?> item : items) {
+            item.changeLevel(newLevel, oldLevel);
         }
     }
 }

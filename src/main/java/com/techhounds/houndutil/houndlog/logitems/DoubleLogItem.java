@@ -42,17 +42,19 @@ public class DoubleLogItem extends LogItem<Double> {
     /**
      * Initializes the publisher. The data table is required to be set.
      */
-    public void initPublisher() {
-        if (getDataTable() == null) {
+    @Override
+    public void publish() {
+        if (getTable() == null) {
             System.err.println("The data table has to be set to initialize \"" + key + "\".");
+            return;
         }
 
-        try {
-            publisher = getDataTable().getDoubleTopic(key).publish();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        inited = true;
+        publisher = getTable().getDoubleTopic(key).publish();
+    }
+
+    @Override
+    public void unpublish() {
+        publisher.close();
     }
 
     /**
@@ -63,11 +65,12 @@ public class DoubleLogItem extends LogItem<Double> {
      * 
      * @param item the {@link LogItem} to log
      */
+    @Override
     public void run() {
-        if (!inited) {
-            initPublisher();
-        }
-        if (super.getToRun()) {
+        if (isLogging) {
+            if (publisher == null) {
+                this.publish();
+            }
             try {
                 publisher.set(func.call());
             } catch (Exception e) {

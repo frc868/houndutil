@@ -42,17 +42,19 @@ public class IntegerLogItem extends LogItem<Integer> {
     /**
      * Initializes the publisher. The data table is required to be set.
      */
-    public void initPublisher() {
-        if (getDataTable() == null) {
+    @Override
+    public void publish() {
+        if (getTable() == null) {
             System.err.println("The data table has to be set to initialize \"" + key + "\".");
+            return;
         }
 
-        try {
-            publisher = getDataTable().getIntegerTopic(key).publish();
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        inited = true;
+        publisher = getTable().getIntegerTopic(key).publish();
+    }
+
+    @Override
+    public void unpublish() {
+        publisher.close();
     }
 
     /**
@@ -63,12 +65,14 @@ public class IntegerLogItem extends LogItem<Integer> {
      * 
      * @param item the {@link LogItem} to log
      */
+    @Override
     public void run() {
-        if (!inited) {
-            initPublisher();
-        }
-        if (super.getToRun()) {
+        if (isLogging) {
+            if (publisher == null) {
+                this.publish();
+            }
             try {
+                // Same as IntegerArrayLogItem, but Java automatically casts from int to long.
                 publisher.set(func.call());
             } catch (Exception e) {
                 e.printStackTrace();
