@@ -5,6 +5,7 @@ import com.ctre.phoenix.sensors.Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
 
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -74,13 +75,17 @@ public class LogProfileBuilder {
                 new BooleanLogItem("Sticky Faults/Has Reset",
                         () -> obj.getStickyFault(CANSparkMax.FaultID.kHasReset), LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/Motor Fault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kMotorFault), LogLevel.INFO),
+                        () -> obj.getStickyFault(CANSparkMax.FaultID.kMotorFault),
+                        LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/Other Fault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOtherFault), LogLevel.INFO),
+                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOtherFault),
+                        LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/Overcurrent",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOvercurrent), LogLevel.INFO),
+                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOvercurrent),
+                        LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/Sensor Fault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kSensorFault), LogLevel.INFO),
+                        () -> obj.getStickyFault(CANSparkMax.FaultID.kSensorFault),
+                        LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/Stalled",
                         () -> obj.getStickyFault(CANSparkMax.FaultID.kStall), LogLevel.INFO),
                 new BooleanLogItem("Sticky Faults/DRV Fault",
@@ -123,11 +128,13 @@ public class LogProfileBuilder {
                 new FloatLogItem("Z Axis Acceleration", obj::getWorldLinearAccelZ, LogLevel.MAIN),
                 new FloatLogItem("Compass Heading", obj::getCompassHeading, LogLevel.MAIN),
                 new BooleanLogItem("Is Calibrating", obj::isCalibrating, LogLevel.MAIN),
-                new BooleanLogItem("Is Magnetometer Calibrated", obj::isMagnetometerCalibrated, LogLevel.MAIN),
+                new BooleanLogItem("Is Magnetometer Calibrated", obj::isMagnetometerCalibrated,
+                        LogLevel.MAIN),
                 new BooleanLogItem("Is Connected", obj::isConnected, LogLevel.MAIN),
                 new BooleanLogItem("Is Moving", obj::isMoving, LogLevel.MAIN),
                 new BooleanLogItem("Is Rotating", obj::isRotating, LogLevel.MAIN),
-                new BooleanLogItem("Is Magnetic Disturbance", obj::isMagneticDisturbance, LogLevel.MAIN),
+                new BooleanLogItem("Is Magnetic Disturbance", obj::isMagneticDisturbance,
+                        LogLevel.MAIN),
                 new FloatLogItem("Temperature", obj::getTempC, LogLevel.MAIN),
                 new DoubleLogItem("Update Count", obj::getUpdateCount, LogLevel.DEBUG),
                 new StringLogItem("Firmware Version", obj::getFirmwareVersion, LogLevel.DEBUG)
@@ -147,6 +154,7 @@ public class LogProfileBuilder {
                 new DoubleLogItem("Pitch", obj::getPitch, LogLevel.MAIN),
                 new DoubleLogItem("Roll", obj::getRoll, LogLevel.MAIN),
                 new DoubleLogItem("Yaw", obj::getYaw, LogLevel.MAIN),
+                new DoubleLogItem("YawRad", () -> Units.degreesToRadians(obj.getYaw()), LogLevel.MAIN),
                 new DoubleLogItem("Absolute Compass Heading", obj::getAbsoluteCompassHeading,
                         LogLevel.INFO),
                 new IntegerLogItem("Uptime", obj::getUpTime, LogLevel.INFO),
@@ -228,7 +236,8 @@ public class LogProfileBuilder {
                 new DoubleLogItem("Unique ID", () -> (double) obj.getVersion().uniqueId,
                         LogLevel.DEBUG),
                 new StringLogItem("Type",
-                        () -> obj.getType() == ModuleType.kRev ? "Rev PDH" : "CTRE PDP", LogLevel.INFO),
+                        () -> obj.getType() == ModuleType.kRev ? "Rev PDH" : "CTRE PDP",
+                        LogLevel.INFO),
                 new BooleanLogItem("Is Switchable Channel On", obj::getSwitchableChannel,
                         LogLevel.DEBUG),
                 new BooleanLogItem("Faults/Channel 0 Breaker Fault",

@@ -8,15 +8,16 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Function;
 
+import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
-import com.techhounds.houndutil.houndlib.auto.AutoPath;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.techhounds.houndutil.houndlib.auto.PPAutoPath;
 
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 
 public class TrajectoryLoader {
-    private static HashMap<String, AutoPath> autoPaths = new HashMap<String, AutoPath>();
+    private static HashMap<String, PPAutoPath> autoPaths = new HashMap<String, PPAutoPath>();
     private static HashMap<String, TrajectorySettings> trajectorySettingsMap = new HashMap<String, TrajectorySettings>();
 
     public static void loadAutoPaths() {
@@ -39,37 +40,50 @@ public class TrajectoryLoader {
                 if (settings == null) {
                     settings = new TrajectorySettings(trajName); // to set default maxV and maxA
                 }
-                Trajectory trajectory = PathPlanner.loadPath(trajName, settings.maxVelocity, settings.maxAcceleration,
-                        settings.isReversed);
-                autoPaths.put(trajName, new AutoPath(trajName, trajectory));
+
+                ArrayList<PathConstraints> constraints = settings.getConstraints();
+                ArrayList<PathPlannerTrajectory> trajectories;
+                PathConstraints firstConstraint = constraints.get(0);
+                if (constraints.size() == 1) {
+                    trajectories = new ArrayList<PathPlannerTrajectory>(
+                            PathPlanner.loadPathGroup(trajName, firstConstraint));
+                } else {
+                    PathConstraints[] otherConstraints = new PathConstraints[constraints.size() - 1];
+                    constraints.subList(1, constraints.size() - 1).toArray(otherConstraints);
+
+                    trajectories = new ArrayList<PathPlannerTrajectory>(
+                            PathPlanner.loadPathGroup(trajName, firstConstraint, otherConstraints));
+                }
+
+                autoPaths.put(trajName, new PPAutoPath(trajName, trajectories));
             });
         } catch (IOException ex) {
             DriverStation.reportError("Unable to open trajectories", ex.getStackTrace());
         }
     }
 
-    public static AutoPath getAutoPath(String name) {
+    public static PPAutoPath getAutoPath(String name) {
         return autoPaths.get(name);
     }
 
-    /**
-     * Creates an {@code ArrayList} of the specified {@code AutoPath}s. Use when
-     * creating an {@code AutoTrajectoryCommand}.
-     * 
-     * @param names
-     * @return
-     */
-    public static ArrayList<AutoPath> getAutoPaths(String... names) {
-        ArrayList<AutoPath> arr = new ArrayList<AutoPath>();
-        for (String name : names) {
-            AutoPath autoPath = autoPaths.get(name);
-            if (autoPath == null) {
-                throw new IllegalArgumentException(name + " does not exist");
-            }
-            arr.add(autoPath);
-        }
-        return arr;
-    }
+    // /**
+    // * Creates an {@code ArrayList} of the specified {@code AutoPath}s. Use when
+    // * creating an {@code AutoTrajectoryCommand}.
+    // *
+    // * @param names
+    // * @return
+    // */
+    // public static ArrayList<PPAutoPath> getAutoPaths(String... names) {
+    // ArrayList<PPAutoPath> arr = new ArrayList<PPAutoPath>();
+    // for (String name : names) {
+    // PPAutoPath autoPath = autoPaths.get(name);
+    // if (autoPath == null) {
+    // throw new IllegalArgumentException(name + " does not exist");
+    // }
+    // arr.add(autoPath);
+    // }
+    // return arr;
+    // }
 
     public static void addSettings(TrajectorySettings... settings) {
         for (TrajectorySettings setting : settings) {

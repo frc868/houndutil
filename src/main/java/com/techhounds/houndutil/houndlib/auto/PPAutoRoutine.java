@@ -1,41 +1,39 @@
 package com.techhounds.houndutil.houndlib.auto;
 
-import java.util.ArrayList;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class AutoRoutine {
+public class PPAutoRoutine {
     private String name;
     private Command command;
-    private ArrayList<AutoPath> autoPaths = new ArrayList<AutoPath>();
+    private PPAutoPath autoPath;
 
     /**
-     * Initialize an AutoRoutine. Will grab the {@code AutoPath}s from the
+     * Initialize an AutoRoutine. Will grab the {@code AutoPath} from the
      * {@code AutoTrajectoryCommand}.
      * 
      * @param name    the name of the routine, this will be pushed to
      *                Shuffleboard
      * @param command the command to run, containing its trajectories
      */
-    public AutoRoutine(String name, AutoTrajectoryCommand command) {
+    public PPAutoRoutine(String name, PPAutoTrajectoryCommand command) {
         this.name = name;
         this.command = command;
-        this.autoPaths = command.getAutoPaths();
+        this.autoPath = command.getAutoPath();
     }
 
     /**
      * Initialize an AutoRoutine.
      * 
-     * @param name      the name of the routine, this will be pushed to
-     *                  Shuffleboard
-     * @param command   the command to run
-     * @param autoPaths an ArrayList of trajectories associated with the command,
-     *                  used for Shuffleboard visualization, make zero index the
-     *                  first trajectory
+     * @param name     the name of the routine, this will be pushed to
+     *                 Shuffleboard
+     * @param command  the command to run
+     * @param autoPath the trajectories associated with the command,
+     *                 used for Shuffleboard visualization
      */
-    public AutoRoutine(String name, Command command, ArrayList<AutoPath> autoPaths) {
+    public PPAutoRoutine(String name, Command command, PPAutoPath autoPath) {
         this.name = name;
         this.command = command;
-        this.autoPaths = autoPaths;
+        this.autoPath = autoPath;
     }
 
     /**
@@ -44,7 +42,7 @@ public class AutoRoutine {
      * @param name    the name of the routine, this will be pushed to Shuffleboard
      * @param command the command to run
      */
-    public AutoRoutine(String name, Command command) {
+    public PPAutoRoutine(String name, Command command) {
         this.name = name;
         this.command = command;
     }
@@ -63,12 +61,12 @@ public class AutoRoutine {
     }
 
     /**
-     * Get the {@code AutoPath}s associated with this routine.
+     * Get the {@code autoPath} associated with this routine.
      * 
      * @return the autoPaths associated with this routine
      */
-    public ArrayList<AutoPath> getAutoPaths() {
-        return autoPaths;
+    public PPAutoPath getAutoPath() {
+        return autoPath;
     }
 
 }
