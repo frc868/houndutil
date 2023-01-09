@@ -11,7 +11,7 @@ import com.pathplanner.lib.PathPlannerTrajectory;
  * 
  * @author dr
  */
-public class PPAutoPath {
+public class AutoPath {
     private String name;
     private ArrayList<PathPlannerTrajectory> trajectories = new ArrayList<PathPlannerTrajectory>();
 
@@ -21,7 +21,7 @@ public class PPAutoPath {
      * @param name       the name of the AutoPath
      * @param trajectory the trajectory to use
      */
-    public PPAutoPath(String name, ArrayList<PathPlannerTrajectory> trajectories) {
+    public AutoPath(String name, ArrayList<PathPlannerTrajectory> trajectories) {
         this.name = name;
         this.trajectories = trajectories;
     }
@@ -32,7 +32,7 @@ public class PPAutoPath {
      * @param name       the name of the AutoPath
      * @param trajectory the trajectory to use
      */
-    public PPAutoPath(String name, PathPlannerTrajectory... trajectories) {
+    public AutoPath(String name, PathPlannerTrajectory... trajectories) {
         this(name, new ArrayList<PathPlannerTrajectory>(Arrays.asList(trajectories)));
     }
 

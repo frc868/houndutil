@@ -2,20 +2,20 @@ package com.techhounds.houndutil.houndlib.auto;
 
 import edu.wpi.first.wpilibj2.command.Command;
 
-public class PPAutoRoutine {
+public class AutoRoutine {
     private String name;
     private Command command;
-    private PPAutoPath autoPath;
+    private AutoPath autoPath;
 
     /**
-     * Initialize an AutoRoutine. Will grab the {@code AutoPath} from the
+     * Initialize an AutoRoutine. Will grab the {@code PPAutoPath} from the
      * {@code AutoTrajectoryCommand}.
      * 
      * @param name    the name of the routine, this will be pushed to
      *                Shuffleboard
      * @param command the command to run, containing its trajectories
      */
-    public PPAutoRoutine(String name, PPAutoTrajectoryCommand command) {
+    public AutoRoutine(String name, AutoTrajectoryCommand command) {
         this.name = name;
         this.command = command;
         this.autoPath = command.getAutoPath();
@@ -30,7 +30,7 @@ public class PPAutoRoutine {
      * @param autoPath the trajectories associated with the command,
      *                 used for Shuffleboard visualization
      */
-    public PPAutoRoutine(String name, Command command, PPAutoPath autoPath) {
+    public AutoRoutine(String name, Command command, AutoPath autoPath) {
         this.name = name;
         this.command = command;
         this.autoPath = autoPath;
@@ -42,7 +42,7 @@ public class PPAutoRoutine {
      * @param name    the name of the routine, this will be pushed to Shuffleboard
      * @param command the command to run
      */
-    public PPAutoRoutine(String name, Command command) {
+    public AutoRoutine(String name, Command command) {
         this.name = name;
         this.command = command;
     }
@@ -65,7 +65,7 @@ public class PPAutoRoutine {
      * 
      * @return the autoPaths associated with this routine
      */
-    public PPAutoPath getAutoPath() {
+    public AutoPath getAutoPath() {
         return autoPath;
     }
 

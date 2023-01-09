@@ -11,13 +11,13 @@ import java.util.function.Function;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
-import com.techhounds.houndutil.houndlib.auto.PPAutoPath;
+import com.techhounds.houndutil.houndlib.auto.AutoPath;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;
 
 public class TrajectoryLoader {
-    private static HashMap<String, PPAutoPath> autoPaths = new HashMap<String, PPAutoPath>();
+    private static HashMap<String, AutoPath> autoPaths = new HashMap<String, AutoPath>();
     private static HashMap<String, TrajectorySettings> trajectorySettingsMap = new HashMap<String, TrajectorySettings>();
 
     public static void loadAutoPaths() {
@@ -55,14 +55,14 @@ public class TrajectoryLoader {
                             PathPlanner.loadPathGroup(trajName, firstConstraint, otherConstraints));
                 }
 
-                autoPaths.put(trajName, new PPAutoPath(trajName, trajectories));
+                autoPaths.put(trajName, new AutoPath(trajName, trajectories));
             });
         } catch (IOException ex) {
             DriverStation.reportError("Unable to open trajectories", ex.getStackTrace());
         }
     }
 
-    public static PPAutoPath getAutoPath(String name) {
+    public static AutoPath getAutoPath(String name) {
         return autoPaths.get(name);
     }
 

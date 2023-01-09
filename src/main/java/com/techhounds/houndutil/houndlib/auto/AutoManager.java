@@ -17,9 +17,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 public class AutoManager {
     private static AutoManager instance;
-    private HashMap<String, PPAutoRoutine> routines = new HashMap<String, PPAutoRoutine>();
-    private PPAutoRoutine lastRoutine;
-    private SendableChooser<PPAutoRoutine> chooser = new SendableChooser<PPAutoRoutine>();
+    private HashMap<String, AutoRoutine> routines = new HashMap<String, AutoRoutine>();
+    private AutoRoutine lastRoutine;
+    private SendableChooser<AutoRoutine> chooser = new SendableChooser<AutoRoutine>();
     private Field2d field = new Field2d();
     private Command scheduledCommand;
     private Consumer<Pose2d> resetOdometryConsumer;
@@ -53,7 +53,7 @@ public class AutoManager {
      * 
      * @param routine the routine to add
      */
-    public void addRoutine(PPAutoRoutine routine) {
+    public void addRoutine(AutoRoutine routine) {
         routines.put(routine.getName(), routine);
         chooser.addOption(routine.getName(), routine);
     }
@@ -63,7 +63,7 @@ public class AutoManager {
      * 
      * @return the selected autonomous routine
      */
-    public PPAutoRoutine getSelectedRoutine() {
+    public AutoRoutine getSelectedRoutine() {
         return chooser.getSelected();
     }
 
@@ -101,13 +101,13 @@ public class AutoManager {
      * should be put in {@code disabledPeriodic()}.
      */
     public void updateShuffleboard() {
-        PPAutoRoutine selectedRoutine = getSelectedRoutine();
+        AutoRoutine selectedRoutine = getSelectedRoutine();
         if (getSelectedRoutine() != lastRoutine) {
             if (lastRoutine != null) {
                 removeLastRoutine(lastRoutine);
             }
             if (resetOdometryConsumer != null) {
-                PPAutoPath autoPath = selectedRoutine.getAutoPath();
+                AutoPath autoPath = selectedRoutine.getAutoPath();
                 // set the robot odometry to the initial pose of the first trajectory in the
                 // routine
                 resetOdometryConsumer.accept(autoPath.getTrajectories().get(0).getInitialPose());
@@ -134,7 +134,7 @@ public class AutoManager {
      * Remove the last routine's trajectories from the field object. Currently there
      * is a problem with removing them that will be fixed in NT4.
      */
-    public void removeLastRoutine(PPAutoRoutine last) {
+    public void removeLastRoutine(AutoRoutine last) {
         ArrayList<PathPlannerTrajectory> trajectories = last.getAutoPath().getTrajectories();
         for (int i = 0; i < trajectories.size(); i++) {
             field.getObject(last.getAutoPath().getName() + "_" + i)
