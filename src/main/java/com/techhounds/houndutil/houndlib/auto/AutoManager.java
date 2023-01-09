@@ -23,6 +23,7 @@ public class AutoManager {
     private Field2d field = new Field2d();
     private Command scheduledCommand;
     private Consumer<Pose2d> resetOdometryConsumer;
+    private HashMap<String, Command> eventMap = new HashMap<String, Command>();
 
     /**
      * Initialize the AutoManager.
@@ -169,5 +170,16 @@ public class AutoManager {
         if (scheduledCommand != null) {
             scheduledCommand.cancel();
         }
+    }
+
+    public void addEvent(String key, Command command) {
+        eventMap.put(key, command);
+    }
+
+    public HashMap<String, Command> getEventMap() {
+        if (eventMap.size() == 0) {
+            throw new NullPointerException("You must add events to the event map!");
+        }
+        return eventMap;
     }
 }
