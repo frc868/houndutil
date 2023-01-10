@@ -14,6 +14,7 @@ import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 public class AutoManager {
     private static AutoManager instance;
@@ -156,8 +157,11 @@ public class AutoManager {
             throw new NullPointerException("An auto routine must be chosen.");
         }
 
-        // System.out.println(getSelectedRoutine().getCommand());
-        // System.out.println(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose());
+        // the next line after this makes the autoroutine command a composition, and
+        // commands that are in a composition cannot be recomposed, which is what this
+        // would do if auto is run multiple times. this fixes it by removing the
+        // composition from the scheduler.
+        CommandScheduler.getInstance().removeComposedCommand(getSelectedRoutine().getCommand());
         scheduledCommand = getSelectedRoutine().getCommand().beforeStarting(() -> resetOdometryConsumer
                 .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose()));
         scheduledCommand.schedule();
