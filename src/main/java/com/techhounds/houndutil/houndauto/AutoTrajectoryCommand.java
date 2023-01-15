@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.auto;
+package com.techhounds.houndutil.houndauto;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;

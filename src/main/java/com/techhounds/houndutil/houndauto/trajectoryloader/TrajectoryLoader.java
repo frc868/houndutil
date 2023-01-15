@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.auto.trajectoryloader;
+package com.techhounds.houndutil.houndauto.trajectoryloader;
 
 import java.io.IOException;
 import java.nio.file.DirectoryStream;
@@ -11,7 +11,7 @@ import java.util.function.Function;
 import com.pathplanner.lib.PathConstraints;
 import com.pathplanner.lib.PathPlanner;
 import com.pathplanner.lib.PathPlannerTrajectory;
-import com.techhounds.houndutil.houndlib.auto.AutoPath;
+import com.techhounds.houndutil.houndauto.AutoPath;
 
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Filesystem;

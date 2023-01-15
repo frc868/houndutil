@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.auto;
+package com.techhounds.houndutil.houndauto;
 
 import java.util.ArrayList;
 import java.util.HashMap;

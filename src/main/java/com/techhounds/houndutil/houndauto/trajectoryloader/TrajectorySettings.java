@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.auto.trajectoryloader;
+package com.techhounds.houndutil.houndauto.trajectoryloader;
 
 import java.util.ArrayList;
 
