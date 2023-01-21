@@ -15,7 +15,7 @@ public class KitBotRobot extends TimedRobot {
 
     public KitBotRobot(int leftMotorId, int rightMotorId) {
         leftMotor = new CANSparkMax(leftMotorId, MotorType.kBrushless);
-        rightMotor = new CANSparkMax(leftMotorId, MotorType.kBrushless);
+        rightMotor = new CANSparkMax(rightMotorId, MotorType.kBrushless);
         rightMotor.setInverted(true);
         drive = new DifferentialDrive(leftMotor, rightMotor);
     }
