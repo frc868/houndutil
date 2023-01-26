@@ -52,6 +52,7 @@ public class TunableNumber extends LogItem<Double> {
     }
 
     public double get() {
+        run();
         return value;
     }
 
