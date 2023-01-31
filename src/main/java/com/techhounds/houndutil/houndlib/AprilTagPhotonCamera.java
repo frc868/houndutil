@@ -5,8 +5,8 @@ import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
-import org.photonvision.PhotonPoseEstimator;
-import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+
+import com.techhounds.houndutil.houndlib.PhotonPoseEstimator.PoseStrategy;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
@@ -23,8 +23,10 @@ public class AprilTagPhotonCamera {
                     .loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
 
             photonCamera = new PhotonCamera(name);
+
             photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, photonCamera,
                     robotToCam);
+            photonPoseEstimator.setMaximumPoseAmbiguityThreshold(0.1);
         } catch (IOException e) {
             e.printStackTrace();
         }
