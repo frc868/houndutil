@@ -26,7 +26,7 @@ public class AprilTagPhotonCamera {
 
             photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.CLOSEST_TO_REFERENCE_POSE, photonCamera,
                     robotToCam);
-            photonPoseEstimator.setMaximumPoseAmbiguityThreshold(0.1);
+            photonPoseEstimator.setMaximumPoseAmbiguityThreshold(0.15);
         } catch (IOException e) {
             e.printStackTrace();
         }
