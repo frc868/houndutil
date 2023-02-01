@@ -18,6 +18,7 @@ public class TunableNumber extends LogItem<Double> {
         value = initialValue;
         setSubsystem(subsystem);
 
+        this.consumer = consumer;
         entry = getTable().getDoubleTopic(key).getEntry(value); // sets the default to value
         entry.set(value);
         LoggingManager.getInstance().addLogger(this); // adds itself to the manager so everything works
@@ -59,5 +60,4 @@ public class TunableNumber extends LogItem<Double> {
     public void setConsumer(DoubleConsumer consumer) {
         this.consumer = consumer;
     }
-
 }

@@ -20,10 +20,11 @@ public class HoundRobot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        LoggingManager.getInstance().init();
+        AutoManager.getInstance().setupShuffleboardTab();
 
         // sets the LoggingManager to run every 100ms and on an offset of 10ms from the
         // main thread
+        LoggingManager.getInstance().init();
         addPeriodic(LoggingManager.getInstance()::run, 0.1, 0.010);
 
         LiveWindow.disableAllTelemetry();
@@ -53,8 +54,12 @@ public class HoundRobot extends TimedRobot {
     }
 
     @Override
-    public void teleopInit() {
+    public void autonomousExit() {
         AutoManager.getInstance().endRoutine();
+    }
+
+    @Override
+    public void teleopInit() {
     }
 
     @Override
