@@ -11,6 +11,7 @@ import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -154,17 +155,18 @@ public class AutoManager {
         }
 
         if (this.getSelectedRoutine() == null) {
-            throw new NullPointerException("An auto routine must be chosen.");
-        }
+            DriverStation.reportError("[houndauto] An auto routine must be chosen.", false);
+        } else {
 
-        // the next line after this makes the autoroutine command a composition, and
-        // commands that are in a composition cannot be recomposed, which is what this
-        // would do if auto is run multiple times. this fixes it by removing the
-        // composition from the scheduler.
-        CommandScheduler.getInstance().removeComposedCommand(getSelectedRoutine().getCommand());
-        scheduledCommand = getSelectedRoutine().getCommand().beforeStarting(() -> resetOdometryConsumer
-                .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose()));
-        scheduledCommand.schedule();
+            // the line after this makes the autoroutine command a composition, and
+            // commands that are in a composition cannot be recomposed, which is what this
+            // would do if auto is run multiple times. this fixes it by removing the
+            // composition from the scheduler.
+            CommandScheduler.getInstance().removeComposedCommand(getSelectedRoutine().getCommand());
+            scheduledCommand = getSelectedRoutine().getCommand().beforeStarting(() -> resetOdometryConsumer
+                    .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose()));
+            scheduledCommand.schedule();
+        }
     }
 
     /**
