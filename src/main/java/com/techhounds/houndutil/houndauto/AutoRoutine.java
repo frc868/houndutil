@@ -1,10 +1,10 @@
 package com.techhounds.houndutil.houndauto;
 
-import edu.wpi.first.wpilibj2.command.Command;
+import java.util.function.Supplier;
 
 public class AutoRoutine {
     private String name;
-    private Command command;
+    private Supplier<AutoTrajectoryCommand> command;
     private AutoPath autoPath;
 
     /**
@@ -15,37 +15,37 @@ public class AutoRoutine {
      *                Shuffleboard
      * @param command the command to run, containing its trajectories
      */
-    public AutoRoutine(String name, AutoTrajectoryCommand command) {
+    public AutoRoutine(String name, Supplier<AutoTrajectoryCommand> command) {
         this.name = name;
         this.command = command;
-        this.autoPath = command.getAutoPath();
+        this.autoPath = command.get().getAutoPath();
     }
 
-    /**
-     * Initialize an AutoRoutine.
-     * 
-     * @param name     the name of the routine, this will be pushed to
-     *                 Shuffleboard
-     * @param command  the command to run
-     * @param autoPath the trajectories associated with the command,
-     *                 used for Shuffleboard visualization
-     */
-    public AutoRoutine(String name, Command command, AutoPath autoPath) {
-        this.name = name;
-        this.command = command;
-        this.autoPath = autoPath;
-    }
+    // /**
+    // * Initialize an AutoRoutine.
+    // *
+    // * @param name the name of the routine, this will be pushed to
+    // * Shuffleboard
+    // * @param command the command to run
+    // * @param autoPath the trajectories associated with the command,
+    // * used for Shuffleboard visualization
+    // */
+    // public AutoRoutine(String name, Command command, AutoPath autoPath) {
+    // this.name = name;
+    // this.command = command;
+    // this.autoPath = autoPath;
+    // }
 
-    /**
-     * Initialize an AutoRoutine.
-     * 
-     * @param name    the name of the routine, this will be pushed to Shuffleboard
-     * @param command the command to run
-     */
-    public AutoRoutine(String name, Command command) {
-        this.name = name;
-        this.command = command;
-    }
+    // /**
+    // * Initialize an AutoRoutine.
+    // *
+    // * @param name the name of the routine, this will be pushed to Shuffleboard
+    // * @param command the command to run
+    // */
+    // public AutoRoutine(String name, Command command) {
+    // this.name = name;
+    // this.command = command;
+    // }
 
     public String getName() {
         return name;
@@ -56,7 +56,7 @@ public class AutoRoutine {
      * 
      * @return the command associated with this autonomous routine
      */
-    public Command getCommand() {
+    public Supplier<AutoTrajectoryCommand> getCommand() {
         return command;
     }
 

@@ -5,6 +5,9 @@ import java.util.Arrays;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+
 /**
  * A wrapper for a PathPlanner trajectory that includes a name and can take in a
  * group of paths.
@@ -13,7 +16,8 @@ import com.pathplanner.lib.PathPlannerTrajectory;
  */
 public class AutoPath {
     private String name;
-    private ArrayList<PathPlannerTrajectory> trajectories = new ArrayList<PathPlannerTrajectory>();
+    private ArrayList<PathPlannerTrajectory> blueTrajectories = new ArrayList<PathPlannerTrajectory>();
+    private ArrayList<PathPlannerTrajectory> redTrajectories = new ArrayList<PathPlannerTrajectory>();
 
     /**
      * Initializes the AutoPath.
@@ -23,7 +27,11 @@ public class AutoPath {
      */
     public AutoPath(String name, ArrayList<PathPlannerTrajectory> trajectories) {
         this.name = name;
-        this.trajectories = trajectories;
+        this.blueTrajectories = trajectories;
+
+        for (PathPlannerTrajectory trajectory : trajectories) {
+            redTrajectories.add(TrajectoryReflector.reflectiveTransformTrajectory(trajectory, 16.54));
+        }
     }
 
     /**
@@ -46,11 +54,15 @@ public class AutoPath {
     }
 
     /**
-     * Gets the trajectory associated with this AutoPath.
+     * Gets the trajectories associated with this AutoPath.
      * 
-     * @return the trajectory associated with this AutoPath
+     * @return the trajectories associated with this AutoPath
      */
     public ArrayList<PathPlannerTrajectory> getTrajectories() {
-        return trajectories;
+        if (DriverStation.getAlliance() == Alliance.Red) {
+            return redTrajectories;
+        } else {
+            return blueTrajectories;
+        }
     }
 }

@@ -16,6 +16,7 @@ import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import edu.wpi.first.wpilibj2.command.ProxyCommand;
 
 public class AutoManager {
     private static AutoManager instance;
@@ -162,10 +163,12 @@ public class AutoManager {
             // commands that are in a composition cannot be recomposed, which is what this
             // would do if auto is run multiple times. this fixes it by removing the
             // composition from the scheduler.
-            CommandScheduler.getInstance().removeComposedCommand(getSelectedRoutine().getCommand());
-            scheduledCommand = getSelectedRoutine().getCommand().beforeStarting(() -> resetOdometryConsumer
-                    .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose()));
-            scheduledCommand.schedule();
+            CommandScheduler.getInstance().removeComposedCommand(scheduledCommand);
+
+            ProxyCommand proxiedCommand = new ProxyCommand(() -> getSelectedRoutine().getCommand().get().beforeStarting(
+                    () -> resetOdometryConsumer
+                            .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose())));
+            proxiedCommand.schedule();
         }
     }
 
