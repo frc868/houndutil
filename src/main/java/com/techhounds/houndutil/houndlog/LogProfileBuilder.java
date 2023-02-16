@@ -46,7 +46,7 @@ public class LogProfileBuilder {
                 new DoubleLogItem("Open Loop Ramp Rate", obj::getOpenLoopRampRate, LogLevel.DEBUG),
                 new DoubleLogItem("Speed", obj::get, LogLevel.MAIN),
                 new DoubleLogItem("Applied Output", obj::getAppliedOutput, LogLevel.MAIN),
-                new DoubleLogItem("Bus Voltage", obj::getBusVoltage, LogLevel.MAIN),
+                new DoubleLogItem("Bus Voltage", obj::getBusVoltage, LogLevel.INFO),
                 new DoubleLogItem("Motor Temperature", obj::getMotorTemperature, LogLevel.MAIN),
                 new DoubleLogItem("Output Current", obj::getOutputCurrent, LogLevel.MAIN),
                 new IntegerLogItem("Device ID", obj::getDeviceId, LogLevel.DEBUG),
