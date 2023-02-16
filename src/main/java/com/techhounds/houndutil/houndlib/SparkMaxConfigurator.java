@@ -5,9 +5,17 @@ import com.revrobotics.CANSparkMax;
 public class SparkMaxConfigurator {
     private final CANSparkMax sparkMax;
 
-    public SparkMaxConfigurator(CANSparkMax sparkMax) {
+    private SparkMaxConfigurator(CANSparkMax sparkMax) {
         this.sparkMax = sparkMax;
-        this.sparkMax.restoreFactoryDefaults();
+    }
+
+    public static SparkMaxConfigurator configure(CANSparkMax sparkMax) {
+        return SparkMaxConfigurator.configure(sparkMax, true);
+    }
+
+    public static SparkMaxConfigurator configure(CANSparkMax sparkMax, boolean restoreFactoryDefaults) {
+        sparkMax.restoreFactoryDefaults();
+        return new SparkMaxConfigurator(sparkMax);
     }
 
     public SparkMaxConfigurator withInverted(boolean isInverted) {
