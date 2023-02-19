@@ -28,6 +28,8 @@ public class AutoManager {
     private Consumer<Pose2d> resetOdometryConsumer;
     private HashMap<String, Command> eventMap = new HashMap<String, Command>();
 
+    private Runnable updatePoseEstimatorCallback = null;
+
     /**
      * Initialize the AutoManager.
      * Set up the Shuffleboard tab and display a trajectory if one is already set in
@@ -190,5 +192,15 @@ public class AutoManager {
             throw new NullPointerException("You must add events to the event map!");
         }
         return eventMap;
+    }
+
+    public void setPoseEstimatorCallback(Runnable callback) {
+        this.updatePoseEstimatorCallback = callback;
+    }
+
+    public void updatePoseEstimator() {
+        if (updatePoseEstimatorCallback != null) {
+            this.updatePoseEstimatorCallback.run();
+        }
     }
 }
