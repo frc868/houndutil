@@ -5,9 +5,9 @@ import java.util.Optional;
 
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
-
-import com.techhounds.houndutil.houndlib.PhotonPoseEstimator.PoseStrategy;
-
+import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.targeting.PhotonPipelineResult;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -26,7 +26,6 @@ public class AprilTagPhotonCamera {
 
             photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.MULTI_TAG_PNP, photonCamera,
                     robotToCam);
-            photonPoseEstimator.setMaximumPoseAmbiguityThreshold(0.15);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,7 +38,9 @@ public class AprilTagPhotonCamera {
      *         field, and the time of the observation.
      */
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
+        PhotonPipelineResult result = photonCamera.getLatestResult();
+        result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.15);
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-        return photonPoseEstimator.update();
+        return photonPoseEstimator.update(result);
     }
 }
