@@ -105,7 +105,7 @@ public class LogProfileBuilder {
                 new DoubleLogItem("Absolute Position", obj::getAbsolutePosition, LogLevel.MAIN),
                 new DoubleLogItem("Position", obj::getPosition, LogLevel.MAIN),
                 new DoubleLogItem("Velocity", obj::getVelocity, LogLevel.MAIN),
-                new DoubleLogItem("Bus Voltage", obj::getBusVoltage, LogLevel.MAIN),
+                new DoubleLogItem("Bus Voltage", obj::getBusVoltage, LogLevel.INFO),
                 new IntegerLogItem("Device ID", obj::getDeviceID, LogLevel.DEBUG),
                 new StringLogItem("Magnetic Field Strength", obj.getMagnetFieldStrength()::name,
                         LogLevel.INFO),
