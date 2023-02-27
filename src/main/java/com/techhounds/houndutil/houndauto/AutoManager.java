@@ -115,7 +115,7 @@ public class AutoManager {
                 AutoPath autoPath = selectedRoutine.getAutoPath();
                 // set the robot odometry to the initial pose of the first trajectory in the
                 // routine
-                resetOdometryConsumer.accept(autoPath.getTrajectories().get(0).getInitialPose());
+                resetOdometryConsumer.accept(autoPath.getTrajectories().get(0).getInitialHolonomicPose());
             }
             displaySelectedRoutine();
             lastRoutine = selectedRoutine;
@@ -128,10 +128,12 @@ public class AutoManager {
     public void displaySelectedRoutine() {
         if (getSelectedRoutine() != null) {
             ArrayList<PathPlannerTrajectory> trajectories = getSelectedRoutine().getAutoPath().getTrajectories();
-            for (int i = 0; i < trajectories.size(); i++) {
-                field.getObject(getSelectedRoutine().getAutoPath().getName() + "_" + i)
-                        .setTrajectory(trajectories.get(i));
+            Trajectory fullTrajectory = trajectories.get(0);
+            for (int i = 1; i < trajectories.size(); i++) {
+                fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
             }
+            field.getObject("Autonomous Routine")
+                    .setTrajectory(fullTrajectory);
         }
     }
 
@@ -169,7 +171,8 @@ public class AutoManager {
 
             ProxyCommand proxiedCommand = new ProxyCommand(() -> getSelectedRoutine().getCommand().get().beforeStarting(
                     () -> resetOdometryConsumer
-                            .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0).getInitialPose())));
+                            .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0)
+                                    .getInitialHolonomicPose())));
             proxiedCommand.schedule();
         }
     }
