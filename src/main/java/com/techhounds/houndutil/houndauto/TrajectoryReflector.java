@@ -120,4 +120,14 @@ public class TrajectoryReflector {
             return new PathPlannerTrajectory();
         }
     }
+
+    public static Pose2d reflectiveTransformPose(Pose2d pose, double fieldLength) {
+        Translation2d transformedTranslation = new Translation2d(
+                fieldLength - pose.getTranslation().getX(), pose.getTranslation().getY());
+
+        // The instantaneous heading of the trajectory needs to be negated
+        Rotation2d transformedHeading = pose.getRotation().plus(Rotation2d.fromDegrees(180));
+
+        return new Pose2d(transformedTranslation, transformedHeading);
+    }
 }
