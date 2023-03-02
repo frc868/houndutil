@@ -108,14 +108,12 @@ public class AutoManager {
     public void updateShuffleboard() {
         AutoRoutine selectedRoutine = getSelectedRoutine();
         if (getSelectedRoutine() != lastRoutine) {
-            if (lastRoutine != null) {
-                removeLastRoutine(lastRoutine);
-            }
             if (resetOdometryConsumer != null) {
-                AutoPath autoPath = selectedRoutine.getAutoPath();
-                // set the robot odometry to the initial pose of the first trajectory in the
-                // routine
-                resetOdometryConsumer.accept(autoPath.getTrajectories().get(0).getInitialHolonomicPose());
+                try {
+                    resetOdometryConsumer.accept(selectedRoutine.getCommand().get().getInitialPosition());
+                } catch (Exception e) {
+                    DriverStation.reportError("Error resetting odometry: " + e.getMessage(), true);
+                }
             }
             displaySelectedRoutine();
             lastRoutine = selectedRoutine;
@@ -126,26 +124,18 @@ public class AutoManager {
      * Display the selected routine's trajectories on the field object.
      */
     public void displaySelectedRoutine() {
-        if (getSelectedRoutine() != null) {
-            ArrayList<PathPlannerTrajectory> trajectories = getSelectedRoutine().getAutoPath().getTrajectories();
+        if (getSelectedRoutine() != null && getSelectedRoutine().getCommand().get().getAutoPath().isPresent()) {
+            System.out.println(getSelectedRoutine().getName());
+            System.out.println(getSelectedRoutine().getCommand().get().getName());
+
+            ArrayList<PathPlannerTrajectory> trajectories = getSelectedRoutine().getCommand().get().getAutoPath()
+                    .orElseThrow().getTrajectories();
             Trajectory fullTrajectory = trajectories.get(0);
             for (int i = 1; i < trajectories.size(); i++) {
                 fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
             }
             field.getObject("Autonomous Routine")
                     .setTrajectory(fullTrajectory);
-        }
-    }
-
-    /**
-     * Remove the last routine's trajectories from the field object. Currently there
-     * is a problem with removing them that will be fixed in NT4.
-     */
-    public void removeLastRoutine(AutoRoutine last) {
-        ArrayList<PathPlannerTrajectory> trajectories = last.getAutoPath().getTrajectories();
-        for (int i = 0; i < trajectories.size(); i++) {
-            field.getObject(last.getAutoPath().getName() + "_" + i)
-                    .setTrajectory(new Trajectory());
         }
     }
 
@@ -171,8 +161,7 @@ public class AutoManager {
 
             ProxyCommand proxiedCommand = new ProxyCommand(() -> getSelectedRoutine().getCommand().get().beforeStarting(
                     () -> resetOdometryConsumer
-                            .accept(getSelectedRoutine().getAutoPath().getTrajectories().get(0)
-                                    .getInitialHolonomicPose())));
+                            .accept(getSelectedRoutine().getCommand().get().getInitialPosition())));
             proxiedCommand.schedule();
         }
     }
