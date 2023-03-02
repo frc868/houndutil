@@ -105,9 +105,9 @@ public class AutoManager {
      * Updates the Shuffleboard visualization with the new selected auton path. This
      * should be put in {@code disabledPeriodic()}.
      */
-    public void updateShuffleboard() {
+    public void updateShuffleboard(boolean ignoreLastTrajCheck) {
         AutoRoutine selectedRoutine = getSelectedRoutine();
-        if (getSelectedRoutine() != lastRoutine) {
+        if (getSelectedRoutine() != lastRoutine || ignoreLastTrajCheck) {
             if (resetOdometryConsumer != null) {
                 try {
                     resetOdometryConsumer.accept(selectedRoutine.getCommand().get().getInitialPosition());

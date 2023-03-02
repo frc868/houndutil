@@ -42,7 +42,7 @@ public class HoundRobot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
-        AutoManager.getInstance().updateShuffleboard();
+        AutoManager.getInstance().updateShuffleboard(false);
     }
 
     @Override
