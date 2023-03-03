@@ -26,7 +26,7 @@ public class HoundRobot extends TimedRobot {
         // main thread
         LoggingManager.getInstance().init();
         addPeriodic(LoggingManager.getInstance()::run, 0.1, 0.010);
-        addPeriodic(AutoManager.getInstance()::updatePoseEstimator, 0.5, 0.010);
+        addPeriodic(AutoManager.getInstance()::updatePoseEstimator, 0.1, 0.010);
 
         LiveWindow.disableAllTelemetry();
     }
