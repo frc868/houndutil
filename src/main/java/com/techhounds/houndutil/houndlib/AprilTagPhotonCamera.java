@@ -40,6 +40,7 @@ public class AprilTagPhotonCamera {
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(Pose2d prevEstimatedRobotPose) {
         PhotonPipelineResult result = photonCamera.getLatestResult();
         result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.1);
+        result.targets.removeIf((target) -> target.getFiducialId() > 8);
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         return photonPoseEstimator.update(result);
     }
