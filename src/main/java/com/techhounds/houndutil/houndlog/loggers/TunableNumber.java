@@ -16,7 +16,7 @@ public class TunableNumber extends LogItem<Double> {
     public TunableNumber(String subsystem, String key, double initialValue, DoubleConsumer consumer) {
         super(key, null, LogLevel.MAIN);
         value = initialValue;
-        setSubsystem(subsystem);
+        setSubsystem(subsystem + "/Tunables");
 
         this.consumer = consumer;
         entry = getTable().getDoubleTopic(key).getEntry(value); // sets the default to value
