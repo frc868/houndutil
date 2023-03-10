@@ -72,7 +72,7 @@ public class DeviceLogger<T> extends Logger {
 
     public void setSubkeys() {
         for (LogItem<?> item : items) {
-            item.setSubkeys(Arrays.asList(this.obj.getClass().getSimpleName() + ": " + deviceName));
+            item.setSubkeys(Arrays.asList(deviceName));
         }
     }
 
