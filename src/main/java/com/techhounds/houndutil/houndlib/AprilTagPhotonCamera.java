@@ -16,6 +16,7 @@ import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 
 public class AprilTagPhotonCamera {
@@ -54,7 +55,7 @@ public class AprilTagPhotonCamera {
         PhotonPipelineResult result = photonCamera.getLatestResult();
         result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.1);
         result.targets.removeIf((target) -> target.getFiducialId() > 8);
-        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 4.0);
+        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 5.0);
 
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         Optional<EstimatedRobotPose> estimatedRobotPose = photonPoseEstimator.update(result);
@@ -63,6 +64,9 @@ public class AprilTagPhotonCamera {
             currentDetectedAprilTags = getPosesFromTargets(estimatedRobotPose.get().targetsUsed, prevEstimatedRobotPose,
                     robotToCam);
             currentDetectedRobotPose = estimatedRobotPose.get().estimatedPose;
+        } else {
+            currentDetectedAprilTags = List.of();
+            currentDetectedRobotPose = new Pose3d(-100, -100, 100, new Rotation3d());
         }
 
         return estimatedRobotPose;
