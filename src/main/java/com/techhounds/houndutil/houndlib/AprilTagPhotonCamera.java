@@ -27,6 +27,7 @@ public class AprilTagPhotonCamera {
 
     private Pose3d currentDetectedRobotPose = new Pose3d();
     private List<Pose3d> currentDetectedAprilTags = new ArrayList<Pose3d>();
+    private boolean hasPose = false;
 
     public AprilTagPhotonCamera(String name, Transform3d robotToCam) {
         try {
@@ -53,9 +54,9 @@ public class AprilTagPhotonCamera {
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
         PhotonPipelineResult result = photonCamera.getLatestResult();
-        result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.1);
+        result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
         result.targets.removeIf((target) -> target.getFiducialId() > 8);
-        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 5.0);
+        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 2);
 
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         Optional<EstimatedRobotPose> estimatedRobotPose = photonPoseEstimator.update(result);
@@ -64,9 +65,11 @@ public class AprilTagPhotonCamera {
             currentDetectedAprilTags = getPosesFromTargets(estimatedRobotPose.get().targetsUsed, prevEstimatedRobotPose,
                     robotToCam);
             currentDetectedRobotPose = estimatedRobotPose.get().estimatedPose;
+            hasPose = true;
         } else {
             currentDetectedAprilTags = List.of();
             currentDetectedRobotPose = new Pose3d(-100, -100, 100, new Rotation3d());
+            hasPose = false;
         }
 
         return estimatedRobotPose;
@@ -95,4 +98,7 @@ public class AprilTagPhotonCamera {
         return currentDetectedRobotPose;
     }
 
+    public boolean hasPose() {
+        return hasPose;
+    }
 }
