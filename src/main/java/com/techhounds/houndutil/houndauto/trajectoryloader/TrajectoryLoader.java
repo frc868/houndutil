@@ -49,7 +49,7 @@ public class TrajectoryLoader {
                             PathPlanner.loadPathGroup(trajName, firstConstraint));
                 } else {
                     PathConstraints[] otherConstraints = new PathConstraints[constraints.size() - 1];
-                    constraints.subList(1, constraints.size() - 1).toArray(otherConstraints);
+                    constraints.subList(1, constraints.size()).toArray(otherConstraints);
 
                     trajectories = new ArrayList<PathPlannerTrajectory>(
                             PathPlanner.loadPathGroup(trajName, firstConstraint, otherConstraints));

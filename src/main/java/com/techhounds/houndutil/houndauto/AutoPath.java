@@ -2,6 +2,7 @@ package com.techhounds.houndutil.houndauto;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import com.pathplanner.lib.PathPlannerTrajectory;
 
@@ -64,5 +65,20 @@ public class AutoPath {
         } else {
             return blueTrajectories;
         }
+    }
+
+    public AutoPath usingMask(List<Boolean> mask) {
+        if (mask.size() != blueTrajectories.size()) {
+            throw new IllegalArgumentException("Mask must be the same length as trajectory array");
+        }
+
+        ArrayList<PathPlannerTrajectory> newTrajectories = new ArrayList<PathPlannerTrajectory>();
+        for (int i = 0; i < mask.size(); i++) {
+            if (mask.get(i)) {
+                newTrajectories.add(blueTrajectories.get(i));
+            }
+        }
+
+        return new AutoPath(name, newTrajectories);
     }
 }

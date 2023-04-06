@@ -7,16 +7,21 @@ import java.util.function.Consumer;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.techhounds.houndutil.houndlog.LogGroup;
 import com.techhounds.houndutil.houndlog.LoggingManager;
+import com.techhounds.houndutil.houndlog.enums.LogLevel;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
+import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import edu.wpi.first.wpilibj2.command.ProxyCommand;
+import edu.wpi.first.wpilibj2.command.Commands;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class AutoManager {
     private static AutoManager instance;
@@ -30,6 +35,8 @@ public class AutoManager {
 
     private Runnable updatePoseEstimatorCallback = null;
 
+    private Timer timer = new Timer();
+
     /**
      * Initialize the AutoManager.
      * Set up the Shuffleboard tab and display a trajectory if one is already set in
@@ -38,7 +45,6 @@ public class AutoManager {
     private AutoManager() {
         lastRoutine = chooser.getSelected();
         setupShuffleboardTab();
-        displaySelectedRoutine();
     }
 
     /**
@@ -97,8 +103,13 @@ public class AutoManager {
     public void setupShuffleboardTab() {
         LoggingManager.getInstance().addGroup("Autonomous",
                 new LogGroup(
+                        new DoubleLogItem("Timer", timer::get, LogLevel.MAIN),
                         new SendableLogger("Field", field),
-                        new SendableLogger("Chooser", chooser)));
+                        new SendableLogger("Chooser", chooser),
+                        new SendableLogger("Generate Routine",
+                                Commands.runOnce(this::displaySelectedRoutine)
+                                        .withName("Generate Routine")
+                                        .ignoringDisable(true))));
     }
 
     /**
@@ -124,18 +135,33 @@ public class AutoManager {
      * Display the selected routine's trajectories on the field object.
      */
     public void displaySelectedRoutine() {
-        if (getSelectedRoutine() != null && getSelectedRoutine().getCommand().get().getAutoPath().isPresent()) {
-            System.out.println(getSelectedRoutine().getName());
-            System.out.println(getSelectedRoutine().getCommand().get().getName());
-
-            ArrayList<PathPlannerTrajectory> trajectories = getSelectedRoutine().getCommand().get().getAutoPath()
-                    .orElseThrow().getTrajectories();
-            Trajectory fullTrajectory = trajectories.get(0);
-            for (int i = 1; i < trajectories.size(); i++) {
-                fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
+        if (getSelectedRoutine() != null) {
+            try {
+                getSelectedRoutine().getCommand().get();
+            } catch (Exception e) {
+                DriverStation.reportError(
+                        "[houndauto] Failure creating autonomous command! This is likely due to a configuration error. "
+                                + e.getMessage(),
+                        true);
+                return;
             }
-            field.getObject("Autonomous Routine")
-                    .setTrajectory(fullTrajectory);
+            if (getSelectedRoutine().getCommand().get().getAutoPath().isPresent()) {
+                if (resetOdometryConsumer != null) {
+                    try {
+                        resetOdometryConsumer.accept(getSelectedRoutine().getCommand().get().getInitialPosition());
+                    } catch (Exception e) {
+                        DriverStation.reportError("Error resetting odometry: " + e.getMessage(), true);
+                    }
+                }
+                ArrayList<PathPlannerTrajectory> trajectories = getSelectedRoutine().getCommand().get().getAutoPath()
+                        .orElseThrow().getTrajectories();
+                Trajectory fullTrajectory = trajectories.get(0);
+                for (int i = 1; i < trajectories.size(); i++) {
+                    fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
+                }
+                field.getObject("Autonomous Routine")
+                        .setTrajectory(fullTrajectory);
+            }
         }
     }
 
@@ -158,11 +184,18 @@ public class AutoManager {
             // would do if auto is run multiple times. this fixes it by removing the
             // composition from the scheduler.
             CommandScheduler.getInstance().removeComposedCommand(scheduledCommand);
+            AutoTrajectoryCommand command = getSelectedRoutine().getCommand().get();
 
-            ProxyCommand proxiedCommand = new ProxyCommand(() -> getSelectedRoutine().getCommand().get().beforeStarting(
-                    () -> resetOdometryConsumer
-                            .accept(getSelectedRoutine().getCommand().get().getInitialPosition())));
-            proxiedCommand.schedule();
+            // ProxyCommand proxiedCommand = new ProxyCommand(() ->
+            // getSelectedRoutine().getCommand().get().beforeStarting(
+            // () -> resetOdometryConsumer
+            // .accept(getSelectedRoutine().getCommand().get().getInitialPosition())));
+            timer.reset();
+            timer.start();
+            CommandBase toRun = command
+                    .beforeStarting(() -> resetOdometryConsumer.accept(command.getInitialPosition()));
+            toRun.schedule();
+            new Trigger(toRun::isFinished).onTrue(Commands.runOnce(timer::stop).ignoringDisable(true));
         }
     }
 
@@ -170,6 +203,7 @@ public class AutoManager {
      * Ends the selected routine. This should be run in {@code teleopInit()}.
      */
     public void endRoutine() {
+        timer.stop();
         if (scheduledCommand != null) {
             scheduledCommand.cancel();
         }
