@@ -186,10 +186,6 @@ public class AutoManager {
             CommandScheduler.getInstance().removeComposedCommand(scheduledCommand);
             AutoTrajectoryCommand command = getSelectedRoutine().getCommand().get();
 
-            // ProxyCommand proxiedCommand = new ProxyCommand(() ->
-            // getSelectedRoutine().getCommand().get().beforeStarting(
-            // () -> resetOdometryConsumer
-            // .accept(getSelectedRoutine().getCommand().get().getInitialPosition())));
             timer.reset();
             timer.start();
             CommandBase toRun = command
