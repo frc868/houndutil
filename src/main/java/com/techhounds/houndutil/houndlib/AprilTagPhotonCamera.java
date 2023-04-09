@@ -56,7 +56,7 @@ public class AprilTagPhotonCamera {
         PhotonPipelineResult result = photonCamera.getLatestResult();
         result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
         result.targets.removeIf((target) -> target.getFiducialId() > 8);
-        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 2);
+        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 4);
 
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         Optional<EstimatedRobotPose> estimatedRobotPose = photonPoseEstimator.update(result);
