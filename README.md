@@ -2,7 +2,7 @@
 
 [![CI](https://github.com/frc868/houndutil/actions/workflows/main.yml/badge.svg)](https://github.com/frc868/houndutil/actions/workflows/main.yml)
 
-A utility library for TechHOUNDS. Includes houndlog.
+A utility library for TechHOUNDS. Includes houndlog, houndauto, and houndlib.
 
 ## How to add this to other projects
 
