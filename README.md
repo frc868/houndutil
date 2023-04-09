@@ -6,7 +6,7 @@ A utility library for TechHOUNDS. Includes houndlog.
 
 ## How to add this to other projects
 
-It's a little complicated because you need to edit `build.gradle` and `settings.gradle`.
+Open your robot project, and edit `build.gradle` and `settings.gradle`.
 
 In `build.gradle`, add this line:
 
