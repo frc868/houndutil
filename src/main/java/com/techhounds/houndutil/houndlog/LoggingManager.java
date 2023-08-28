@@ -14,10 +14,6 @@ import edu.wpi.first.wpilibj.DriverStation;
  * periodic methods of each subsystem (like the inability to use Test mode,
  * verbosity, etc).
  * 
- * @apiNote The group of logging classes under {@code frc.houndutil.houndlog} is
- *          designed to be dropped straight into any robot project, not just
- *          this one.
- * 
  * @author dr
  */
 public class LoggingManager {
@@ -37,6 +33,19 @@ public class LoggingManager {
             instance = new LoggingManager();
         }
         return instance;
+    }
+
+    /**
+     * Register subsystems to check for log annotations.
+     * 
+     * @param subsystems the subsystems to register
+     */
+    public void registerRobotContainer(Object robotContainer) {
+        try {
+            LogAnnotationHandler.handleLoggedObject(robotContainer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -110,12 +119,12 @@ public class LoggingManager {
     }
 
     /**
-     * Handles any changes in LogLevel that might occur (i.e. a switch from teleop to test, or enabling debug mode).
+     * Handles any changes in LogLevel that might occur (i.e. a switch from teleop
+     * to test, or enabling debug mode).
      */
-    public void handleLevelChanges() {
+    private void handleLevelChanges() {
         LogLevel oldLevel = LoggingManager.LEVEL;
         LogLevel newLevel;
-
 
         newLevel = LogLevel.MAIN;
 
@@ -138,12 +147,12 @@ public class LoggingManager {
     private void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
         LoggingManager.LEVEL = newLevel;
         for (Loggable loggable : loggables) {
-            loggable.changeLevel(newLevel, oldLevel);
+            loggable.handleLevelChange(newLevel, oldLevel);
         }
     }
 
     /**
-     * Runs the {@code init()} method on each loggable. Should only be used in
+     * Runs the {@code init()} method on each loggable. Put this in
      * {@code robotInit()}.
      */
     public void init() {
@@ -153,7 +162,7 @@ public class LoggingManager {
     }
 
     /**
-     * Runs the {@code run()} method on each loggable. Should only be used in
+     * Runs the {@code run()} method on each loggable. Put this in
      * {@code robotPeriodic()}.
      */
     public void run() {

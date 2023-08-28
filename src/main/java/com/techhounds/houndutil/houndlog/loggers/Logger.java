@@ -18,16 +18,20 @@ public abstract class Logger implements Loggable {
     }
 
     /**
-     * Inits the logger. This is useful for things that need to be inited, like a
-     * SendableLogger.
+     * Runs the initialization sequence for the logger. This is run on robotInit,
+     * and should be used for loggers that require initial setup.
      */
     public abstract void init();
 
     /**
-     * Runs the logger. This can really do anything, but should be used to run
-     * {@code logItem()} on every item you want to log.
+     * Runs the logger. This should publish the value(s) to NT.
      */
     public abstract void run();
 
+    /**
+     * Sets the subsystem for this logger.
+     * 
+     * @param subsystem
+     */
     public abstract void setSubsystem(String subsystem);
 }

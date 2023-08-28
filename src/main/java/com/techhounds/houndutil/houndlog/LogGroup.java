@@ -5,7 +5,8 @@ import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
 
 /**
- * Defines a group of {@link Logger}s to log. This is useful when used in
+ * Defines a group of {@link Logger}s to log. This is useful when used
+ * in
  * a subsystem where you only want to call one {@code logger.run()} method.
  * 
  * @author dr
@@ -60,9 +61,9 @@ public class LogGroup implements Loggable {
     }
 
     @Override
-    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
         for (Logger logger : loggers) {
-            logger.changeLevel(newLevel, oldLevel);
+            logger.handleLevelChange(newLevel, oldLevel);
         }
     }
 }

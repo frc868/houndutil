@@ -1,35 +1,61 @@
 package com.techhounds.houndutil.houndauto;
 
+import java.util.List;
+import java.util.Optional;
+import java.util.function.Function;
 import java.util.function.Supplier;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj2.command.CommandBase;
 
 public class AutoRoutine {
     private String name;
-    private Supplier<AutoTrajectoryCommand> command;
+    private List<AutoSetting> autoSettings;
+    private Supplier<AutoPath> autoPathSupplier;
+    private Supplier<Pose2d> blueInitialPoseSupplier;
+    private Supplier<Pose2d> redInitialPoseSupplier;
+
+    private Function<AutoPath, CommandBase> commandGetter;
 
     /**
-     * Initialize an AutoRoutine. Will grab the {@code PPAutoPath} from the
-     * {@code AutoTrajectoryCommand}.
+     * Initialize an AutoRoutine.
      * 
-     * @param name    the name of the routine, this will be pushed to
-     *                Shuffleboard
-     * @param command the command to run, containing its trajectories
+     * @param name            the name of the routine, this will be pushed to
+     *                        Shuffleboard
+     * @param commandSupplier the command to run, containing its trajectories
      */
-    public AutoRoutine(String name, Supplier<AutoTrajectoryCommand> command) {
+    public AutoRoutine(String name, List<AutoSetting> autoSettings,
+            Supplier<AutoPath> autoPathSupplier, Supplier<Pose2d> blueInitialPoseSupplier,
+            Function<AutoPath, CommandBase> commandGetter) {
         this.name = name;
-        this.command = command;
+        this.commandGetter = commandGetter;
+        this.autoPathSupplier = autoPathSupplier;
+        this.autoSettings = autoSettings;
+        this.blueInitialPoseSupplier = blueInitialPoseSupplier;
+        this.redInitialPoseSupplier = () -> TrajectoryReflector.reflectiveTransformPose(blueInitialPoseSupplier.get(),
+                16.54);
     }
 
     public String getName() {
         return name;
     }
 
-    /**
-     * Get the command associated with this autonomous routine.
-     * 
-     * @return the command associated with this autonomous routine
-     */
-    public Supplier<AutoTrajectoryCommand> getCommand() {
-        return command;
+    public List<AutoSetting> getAutoSettings() {
+        return autoSettings;
     }
 
+    public Optional<AutoPath> getAutoPath() {
+        return autoPathSupplier != null ? Optional.of(autoPathSupplier.get()) : Optional.empty();
+    }
+
+    public Pose2d getInitialPosition() {
+        return (DriverStation.getAlliance() == Alliance.Blue) ? blueInitialPoseSupplier.get()
+                : redInitialPoseSupplier.get();
+    }
+
+    public CommandBase getCommand(AutoPath autoPath) {
+        return commandGetter.apply(autoPath);
+    }
 }

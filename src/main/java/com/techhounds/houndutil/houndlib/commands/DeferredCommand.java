@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib;
+package com.techhounds.houndutil.houndlib.commands;
 
 import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 

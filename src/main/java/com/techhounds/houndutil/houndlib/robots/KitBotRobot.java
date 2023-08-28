@@ -7,7 +7,7 @@ import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.loggers.TunableNumber;
+import com.techhounds.houndutil.houndlog.logitems.TunableNumber;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -27,10 +27,8 @@ public class KitBotRobot extends HoundRobot {
         rightMotor.setInverted(true);
         drive = new DifferentialDrive(leftMotor, rightMotor);
         LoggingManager.getInstance().addGroup("Drivetrain", new LogGroup(
-                new DeviceLogger<CANSparkMax>(leftMotor,
-                        "Left Motor", LogProfileBuilder.buildCANSparkMaxLogItems(leftMotor)),
-                new DeviceLogger<CANSparkMax>(leftMotor,
-                        "Right Motor", LogProfileBuilder.buildCANSparkMaxLogItems(rightMotor)),
+                new DeviceLogger("Left Motor", LogProfileBuilder.buildCANSparkMaxLogItems(leftMotor)),
+                new DeviceLogger("Right Motor", LogProfileBuilder.buildCANSparkMaxLogItems(rightMotor)),
                 new SendableLogger("Drive", drive)));
     }
 

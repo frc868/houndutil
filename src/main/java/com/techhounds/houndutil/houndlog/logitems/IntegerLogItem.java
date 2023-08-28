@@ -1,54 +1,55 @@
 package com.techhounds.houndutil.houndlog.logitems;
 
-import java.util.concurrent.Callable;
+import java.util.function.Supplier;
 
 import com.techhounds.houndutil.houndlog.enums.LogLevel;
 
 import edu.wpi.first.networktables.IntegerPublisher;
 
 /**
- * Defines a log item. This is using generics because the type of the log item
- * can change ({@code String}, {@code double}, {@code bool}, {@code Sendable},
- * etc).
+ * The LogItem for integers.
  * 
  * @author dr
  */
-public class IntegerLogItem extends LogItem<Integer> {
+public class IntegerLogItem extends AbstractLogItem<Integer> {
+    /** The publisher for this logger. */
     private IntegerPublisher publisher;
 
     /**
-     * Constructs a {@code LogItem}.
+     * Constructs a LogItem for integers.
      * 
-     * @param type  the type of log to create
-     * @param key   the key of the value to log
-     * @param func  the function to call to get the value
-     * @param level the level at which to place the LogItem
+     * @param subsystem     the subsystem to assign this LogItem to
+     * @param key           the key of the value to log
+     * @param valueSupplier the supplier for the value
+     * @param level         the level at which to place the LogItem
      */
-    public IntegerLogItem(String key, Callable<Integer> func, LogLevel level) {
+    public IntegerLogItem(String subsystem, String key, Supplier<Integer> func, LogLevel level) {
+        super(subsystem, key, func, level);
+    }
+
+    /**
+     * Constructs a LogItem for integers.
+     * 
+     * @param key           the key of the value to log
+     * @param valueSupplier the supplier for the value
+     * @param level         the level at which to place the LogItem
+     */
+    public IntegerLogItem(String key, Supplier<Integer> func, LogLevel level) {
         super(key, func, level);
     }
 
     /**
-     * Constructs a {@code LogItem}.
+     * Constructs a LogItem for integers.
      * 
-     * @param type the type of log to create
-     * @param key  the key of the value to log
-     * @param func the function to call to get the value
+     * @param key           the key of the value to log
+     * @param valueSupplier the supplier for the value
      */
-    public IntegerLogItem(String key, Callable<Integer> func) {
-        this(key, func, LogLevel.INFO);
+    public IntegerLogItem(String key, Supplier<Integer> func) {
+        super(key, func);
     }
 
-    /**
-     * Initializes the publisher. The data table is required to be set.
-     */
     @Override
     public void publish() {
-        if (getTable() == null) {
-            System.err.println("The data table has to be set to initialize \"" + key + "\".");
-            return;
-        }
-
         publisher = getTable().getIntegerTopic(key).publish();
     }
 
@@ -57,23 +58,13 @@ public class IntegerLogItem extends LogItem<Integer> {
         publisher.close();
     }
 
-    /**
-     * Logs a specific item by calling the functions listed to log and convert the
-     * results to the correct type.
-     * 
-     * Also checks the level of the LogItem.
-     * 
-     * @param item the {@link LogItem} to log
-     */
-    @Override
     public void run() {
         if (isLogging) {
             if (publisher == null) {
                 this.publish();
             }
             try {
-                // Same as IntegerArrayLogItem, but Java automatically casts from int to long.
-                publisher.set(func.call());
+                publisher.set(valueSupplier.get());
             } catch (Exception e) {
                 e.printStackTrace();
             }

@@ -1,22 +1,30 @@
 package com.techhounds.houndutil.houndlog;
 
+import java.lang.reflect.Field;
+
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxAbsoluteEncoder;
 
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.PowerDistribution.ModuleType;
+
 import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.logitems.AbstractLogItem;
 import com.techhounds.houndutil.houndlog.logitems.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.logitems.FloatLogItem;
 import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
-import com.techhounds.houndutil.houndlog.logitems.LogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
+import com.techhounds.houndutil.houndlog.logitems.TunableNumber;
 
 /**
  * A helper class that will automatically create an array of {@link LogItem}s
@@ -33,8 +41,8 @@ public class LogProfileBuilder {
      * @param obj the CANSparkMax object to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildCANSparkMaxLogItems(CANSparkMax obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildCANSparkMaxLogItems(CANSparkMax obj) {
+        return new AbstractLogItem<?>[] {
                 new DoubleLogItem("Encoder Distance", obj.getEncoder()::getPosition, LogLevel.MAIN),
                 new DoubleLogItem("Encoder Distance Conversion Factor",
                         obj.getEncoder()::getPositionConversionFactor, LogLevel.DEBUG),
@@ -100,8 +108,8 @@ public class LogProfileBuilder {
      * @param obj the CANSparkMax object to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildCANCoderLogItems(CANCoder obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildCANCoderLogItems(CANCoder obj) {
+        return new AbstractLogItem<?>[] {
                 new DoubleLogItem("Absolute Position", obj::getAbsolutePosition, LogLevel.MAIN),
                 new DoubleLogItem("Position", obj::getPosition, LogLevel.MAIN),
                 new DoubleLogItem("Velocity", obj::getVelocity, LogLevel.MAIN),
@@ -113,13 +121,30 @@ public class LogProfileBuilder {
     }
 
     /**
+     * Builds CANSparkMax log items.
+     * 
+     * @param obj the CANSparkMax object to use
+     * @return the array of LogItems
+     */
+    public static AbstractLogItem<?>[] buildSparkMaxAbsoluteEncoderLogItems(SparkMaxAbsoluteEncoder obj) {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("Position", obj::getPosition, LogLevel.MAIN),
+                new DoubleLogItem("Velocity", obj::getVelocity, LogLevel.MAIN),
+                new DoubleLogItem("Zero Offset", obj::getZeroOffset, LogLevel.MAIN),
+                new BooleanLogItem("Is Inverted", obj::getInverted, LogLevel.INFO),
+                new DoubleLogItem("Position Conversion Factor", obj::getPositionConversionFactor, LogLevel.INFO),
+                new DoubleLogItem("Velocity Conversion Factor", obj::getVelocityConversionFactor, LogLevel.INFO),
+        };
+    }
+
+    /**
      * Builds navX log items.
      * 
      * @param obj the navx to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildNavXLogItems(AHRS obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildNavXLogItems(AHRS obj) {
+        return new AbstractLogItem<?>[] {
                 new FloatLogItem("Pitch", obj::getPitch, LogLevel.MAIN),
                 new FloatLogItem("Roll", obj::getRoll, LogLevel.MAIN),
                 new FloatLogItem("Yaw", obj::getYaw, LogLevel.MAIN),
@@ -149,9 +174,9 @@ public class LogProfileBuilder {
      * @param obj the navx to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildPigeon2LogItems(Pigeon2 obj) {
+    public static AbstractLogItem<?>[] buildPigeon2LogItems(Pigeon2 obj) {
 
-        return new LogItem<?>[] {
+        return new AbstractLogItem<?>[] {
                 new DoubleLogItem("Pitch", obj::getPitch, LogLevel.MAIN),
                 new DoubleLogItem("Roll", obj::getRoll, LogLevel.MAIN),
                 new DoubleLogItem("Yaw", obj::getYaw, LogLevel.MAIN),
@@ -172,8 +197,8 @@ public class LogProfileBuilder {
      * @param obj the {@link DoubleSolenoid} to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildDoubleSolenoidLogItems(DoubleSolenoid obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildDoubleSolenoidLogItems(DoubleSolenoid obj) {
+        return new AbstractLogItem<?>[] {
                 new BooleanLogItem("Position", () -> obj.get() == DoubleSolenoid.Value.kForward,
                         LogLevel.MAIN),
                 new DoubleLogItem("Forward Channel", () -> (double) obj.getFwdChannel(),
@@ -193,8 +218,8 @@ public class LogProfileBuilder {
      * @param obj the PDH instance to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildPDHLogItems(PowerDistribution obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildPDHLogItems(PowerDistribution obj) {
+        return new AbstractLogItem<?>[] {
                 new DoubleLogItem("Voltage", obj::getVoltage, LogLevel.MAIN),
                 new DoubleLogItem("Temperature", obj::getTemperature, LogLevel.MAIN),
                 new DoubleLogItem("Total Current (A)", obj::getTotalCurrent, LogLevel.MAIN),
@@ -360,8 +385,8 @@ public class LogProfileBuilder {
      * @param obj the PH instance to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] buildPneumaticHubLogItems(PneumaticHub obj) {
-        return new LogItem<?>[] {
+    public static AbstractLogItem<?>[] buildPneumaticHubLogItems(PneumaticHub obj) {
+        return new AbstractLogItem<?>[] {
                 new DoubleLogItem("Input Voltage", obj::getInputVoltage, LogLevel.MAIN),
                 new DoubleLogItem("5V Regulated Voltage", obj::get5VRegulatedVoltage, LogLevel.MAIN),
                 new DoubleLogItem("Module Number", () -> (double) obj.getModuleNumber(),
@@ -460,4 +485,85 @@ public class LogProfileBuilder {
         };
     }
 
+    /**
+     * Builds PIDController log items.
+     * 
+     * @param obj the {@link PIDController} to use
+     * @return the array of LogItems
+     */
+    public static AbstractLogItem<?>[] buildPIDControllerLogItems(PIDController obj) {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("Setpoint", () -> obj.getSetpoint(),
+                        LogLevel.MAIN),
+                new BooleanLogItem("At Setpoint", () -> obj.atSetpoint(),
+                        LogLevel.MAIN),
+                new BooleanLogItem("Is Continuous Input Enabled", () -> obj.isContinuousInputEnabled(),
+                        LogLevel.INFO),
+                new DoubleLogItem("Position Error", () -> obj.getPositionError(),
+                        LogLevel.MAIN),
+                new DoubleLogItem("Velocity Error", () -> obj.getVelocityError(),
+                        LogLevel.INFO),
+                new TunableNumber("Tunables/kP", obj.getP(), (d) -> obj.setP(d)),
+                new TunableNumber("Tunables/kI", obj.getI(), (d) -> obj.setI(d)),
+                new TunableNumber("Tunables/kD", obj.getD(), (d) -> obj.setD(d)),
+                new TunableNumber("Tunables/Position Tolerance", obj.getPositionTolerance(),
+                        (d) -> obj.setTolerance(d)),
+                new TunableNumber("Tunables/Velocity Tolerance", obj.getVelocityTolerance(),
+                        (d) -> obj.setTolerance(obj.getPositionTolerance(), d)),
+        };
+    }
+
+    private static TrapezoidProfile.Constraints getConstraints(ProfiledPIDController obj) {
+        try {
+            Field f = ProfiledPIDController.class.getDeclaredField("m_constraints");
+            f.setAccessible(true);
+            return (TrapezoidProfile.Constraints) f.get(obj);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new TrapezoidProfile.Constraints(0, 0);
+        }
+
+    }
+
+    /**
+     * Builds ProfiledPIDController log items.
+     * 
+     * @param obj the {@link PIDController} to use
+     * @return the array of LogItems
+     */
+    public static AbstractLogItem<?>[] buildProfiledPIDControllerLogItems(ProfiledPIDController obj) {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("Setpoint Position", () -> obj.getSetpoint().position,
+                        LogLevel.MAIN),
+                new DoubleLogItem("Setpoint Velocity", () -> obj.getSetpoint().velocity,
+                        LogLevel.MAIN),
+                new BooleanLogItem("At Setpoint", () -> obj.atSetpoint(),
+                        LogLevel.MAIN),
+                new DoubleLogItem("Goal Position", () -> obj.getGoal().position,
+                        LogLevel.MAIN),
+                new DoubleLogItem("Goal Velocity", () -> obj.getGoal().velocity,
+                        LogLevel.MAIN),
+                new BooleanLogItem("At Goal", () -> obj.atGoal(),
+                        LogLevel.MAIN),
+                new DoubleLogItem("Position Error", () -> obj.getPositionError(),
+                        LogLevel.MAIN),
+                new DoubleLogItem("Velocity Error", () -> obj.getVelocityError(),
+                        LogLevel.INFO),
+                new TunableNumber("Tunables/kP", obj.getP(), (d) -> obj.setP(d)),
+                new TunableNumber("Tunables/kI", obj.getI(), (d) -> obj.setI(d)),
+                new TunableNumber("Tunables/kD", obj.getD(), (d) -> obj.setD(d)),
+                new TunableNumber("Tunables/Position Tolerance", obj.getPositionTolerance(),
+                        (d) -> obj.setTolerance(d)),
+                new TunableNumber("Tunables/Velocity Tolerance", obj.getVelocityTolerance(),
+                        (d) -> obj.setTolerance(obj.getPositionTolerance(), d)),
+                new TunableNumber("Tunables/Velocity Constraint",
+                        getConstraints(obj).maxVelocity,
+                        (d) -> obj.setConstraints(
+                                new TrapezoidProfile.Constraints(d, getConstraints(obj).maxAcceleration))),
+                new TunableNumber("Tunables/Acceleration Constraint",
+                        getConstraints(obj).maxAcceleration,
+                        (d) -> obj.setConstraints(
+                                new TrapezoidProfile.Constraints(getConstraints(obj).maxVelocity, d))),
+        };
+    }
 }

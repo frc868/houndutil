@@ -19,5 +19,5 @@ public interface Loggable {
      */
     public void run();
 
-    public void changeLevel(LogLevel newLevel, LogLevel oldLevel);
+    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel);
 }

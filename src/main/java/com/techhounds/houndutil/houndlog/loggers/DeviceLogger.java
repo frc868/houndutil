@@ -1,6 +1,6 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
-import com.techhounds.houndutil.houndlog.logitems.LogItem;
+import com.techhounds.houndutil.houndlog.logitems.AbstractLogItem;
 
 import java.util.Arrays;
 
@@ -8,17 +8,12 @@ import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 import com.techhounds.houndutil.houndlog.enums.LogLevel;
 
 /**
- * A logger for a specified object T. This logger will post all items contained
+ * A logger for a specific object. This logger will post all items contained
  * in {@code items} to SmartDashboard.
  * 
  * @author dr
  */
-public class DeviceLogger<T> extends Logger {
-    /**
-     * The object we are logging.
-     */
-    public T obj;
-
+public class DeviceLogger extends Logger {
     /**
      * The name of the device to log.
      */
@@ -26,9 +21,9 @@ public class DeviceLogger<T> extends Logger {
 
     /**
      * An array of items to log. Using the unspecified generic form since this list
-     * contains several types of {@link LogItem}.
+     * contains several types of {@link AbstractLogItem}.
      */
-    protected LogItem<?>[] items;
+    protected AbstractLogItem<?>[] items;
 
     /**
      * Instantiate a DeviceLogger object.
@@ -39,8 +34,7 @@ public class DeviceLogger<T> extends Logger {
      * @param items      the list of items to log (can xbe created manually or
      *                   through {@link LogProfileBuilder})
      */
-    public DeviceLogger(T obj, String subsystem, String deviceName, LogItem<?>[] items) {
-        this.obj = obj;
+    public DeviceLogger(String subsystem, String deviceName, AbstractLogItem<?>[] items) {
         this.deviceName = deviceName;
         this.items = items;
         setSubsystem(subsystem);
@@ -56,8 +50,7 @@ public class DeviceLogger<T> extends Logger {
      * @param items      the list of items to log (can be created manually or
      *                   through {@link LogProfileBuilder})
      */
-    public DeviceLogger(T obj, String deviceName, LogItem<?>[] items) {
-        this.obj = obj;
+    public DeviceLogger(String deviceName, AbstractLogItem<?>[] items) {
         this.deviceName = deviceName;
         this.items = items;
         setSubkeys();
@@ -71,7 +64,7 @@ public class DeviceLogger<T> extends Logger {
     }
 
     public void setSubkeys() {
-        for (LogItem<?> item : items) {
+        for (AbstractLogItem<?> item : items) {
             item.setSubkeys(Arrays.asList(deviceName));
         }
     }
@@ -89,15 +82,15 @@ public class DeviceLogger<T> extends Logger {
      */
     @Override
     public void run() {
-        for (LogItem<?> item : items) {
+        for (AbstractLogItem<?> item : items) {
             item.run();
         }
     }
 
     @Override
-    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
-        for (LogItem<?> item : items) {
-            item.changeLevel(newLevel, oldLevel);
+    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
+        for (AbstractLogItem<?> item : items) {
+            item.handleLevelChange(newLevel, oldLevel);
         }
     }
 }

@@ -77,7 +77,7 @@ public class SendableLogger extends Logger {
     }
 
     @Override
-    public void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
+    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
 
     }
 }
