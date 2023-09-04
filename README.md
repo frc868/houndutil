@@ -6,9 +6,17 @@ A utility library for TechHOUNDS. Includes houndlog, houndauto, and houndlib.
 
 ## How to add this to other projects
 
-Open your robot project, and edit `build.gradle` and `settings.gradle`.
+Open your robot project, and open a terminal in its folder. Run:
 
-In `build.gradle`, add this line:
+```sh
+git submodule add https://github.com/frc868/houndutil
+```
+
+This will clone and add the houndutil submodule to your repository.
+
+Now, edit `build.gradle` and `settings.gradle`.
+
+In `build.gradle`, add:
 
 ```gradle
 implementation project(":houndutil")
@@ -34,7 +42,7 @@ include ':houndutil'
 rootProject.children[0].buildFileName = "submodule.gradle"
 ```
 
-Now, import `houndutil` items by doing:
+Now, import `houndutil` items by using:
 
 ```java
 import com.techhounds.houndutil.houndlog.LoggingManager;
