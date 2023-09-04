@@ -1,7 +1,5 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
-
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableRegistry;
@@ -74,10 +72,5 @@ public class SendableLogger extends Logger {
     @Override
     public void run() {
         SendableRegistry.update(sendable);
-    }
-
-    @Override
-    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
-
     }
 }

@@ -2,9 +2,11 @@ package com.techhounds.houndutil.houndlog.logitems;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 
 import edu.wpi.first.networktables.FloatArrayPublisher;
+import edu.wpi.first.util.datalog.FloatArrayLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
  * The LogItem for float arrays.
@@ -14,6 +16,7 @@ import edu.wpi.first.networktables.FloatArrayPublisher;
 public class FloatArrayLogItem extends AbstractLogItem<float[]> {
     /** The publisher for this logger. */
     private FloatArrayPublisher publisher;
+    private FloatArrayLogEntry datalogEntry;
 
     /**
      * Constructs a LogItem for float arrays.
@@ -23,7 +26,7 @@ public class FloatArrayLogItem extends AbstractLogItem<float[]> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public FloatArrayLogItem(String subsystem, String key, Supplier<float[]> func, LogLevel level) {
+    public FloatArrayLogItem(String subsystem, String key, Supplier<float[]> func, LogType level) {
         super(subsystem, key, func, level);
     }
 
@@ -34,7 +37,7 @@ public class FloatArrayLogItem extends AbstractLogItem<float[]> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public FloatArrayLogItem(String key, Supplier<float[]> func, LogLevel level) {
+    public FloatArrayLogItem(String key, Supplier<float[]> func, LogType level) {
         super(key, func, level);
     }
 
@@ -58,8 +61,14 @@ public class FloatArrayLogItem extends AbstractLogItem<float[]> {
         publisher.close();
     }
 
+    @Override
+    public void createDatalogEntry() {
+        datalogEntry = new FloatArrayLogEntry(DataLogManager.getLog(), getFullName());
+    }
+
+    @Override
     public void run() {
-        if (isLogging) {
+        if (this.type == LogType.NT) {
             if (publisher == null) {
                 this.publish();
             }
@@ -68,6 +77,15 @@ public class FloatArrayLogItem extends AbstractLogItem<float[]> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (this.type == LogType.DATALOG) {
+            if (datalogEntry == null) {
+                this.createDatalogEntry();
+            }
+
+            float[] value = valueSupplier.get();
+            if (this.previousValue == null || value != this.previousValue)
+                datalogEntry.append(value);
+            this.previousValue = value;
         }
     }
 }

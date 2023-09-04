@@ -2,9 +2,11 @@ package com.techhounds.houndutil.houndlog.logitems;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 
 import edu.wpi.first.networktables.BooleanPublisher;
+import edu.wpi.first.util.datalog.BooleanLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
  * The LogItem for booleans.
@@ -14,6 +16,7 @@ import edu.wpi.first.networktables.BooleanPublisher;
 public class BooleanLogItem extends AbstractLogItem<Boolean> {
     /** The publisher for this logger. */
     private BooleanPublisher publisher;
+    private BooleanLogEntry datalogEntry;
 
     /**
      * Constructs a LogItem for booleans.
@@ -23,7 +26,7 @@ public class BooleanLogItem extends AbstractLogItem<Boolean> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public BooleanLogItem(String subsystem, String key, Supplier<Boolean> func, LogLevel level) {
+    public BooleanLogItem(String subsystem, String key, Supplier<Boolean> func, LogType level) {
         super(subsystem, key, func, level);
     }
 
@@ -34,7 +37,7 @@ public class BooleanLogItem extends AbstractLogItem<Boolean> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public BooleanLogItem(String key, Supplier<Boolean> func, LogLevel level) {
+    public BooleanLogItem(String key, Supplier<Boolean> func, LogType level) {
         super(key, func, level);
     }
 
@@ -58,8 +61,14 @@ public class BooleanLogItem extends AbstractLogItem<Boolean> {
         publisher.close();
     }
 
+    @Override
+    public void createDatalogEntry() {
+        datalogEntry = new BooleanLogEntry(DataLogManager.getLog(), getFullName());
+    }
+
+    @Override
     public void run() {
-        if (isLogging) {
+        if (this.type == LogType.NT) {
             if (publisher == null) {
                 this.publish();
             }
@@ -68,6 +77,15 @@ public class BooleanLogItem extends AbstractLogItem<Boolean> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (this.type == LogType.DATALOG) {
+            if (datalogEntry == null) {
+                this.createDatalogEntry();
+            }
+
+            boolean value = valueSupplier.get();
+            if (this.previousValue == null || value != this.previousValue)
+                datalogEntry.append(value);
+            this.previousValue = value;
         }
     }
 }

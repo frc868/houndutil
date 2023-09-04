@@ -2,9 +2,11 @@ package com.techhounds.houndutil.houndlog.logitems;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 
 import edu.wpi.first.networktables.DoublePublisher;
+import edu.wpi.first.util.datalog.DoubleLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
  * The LogItem for doubles.
@@ -14,6 +16,7 @@ import edu.wpi.first.networktables.DoublePublisher;
 public class DoubleLogItem extends AbstractLogItem<Double> {
     /** The publisher for this logger. */
     private DoublePublisher publisher;
+    private DoubleLogEntry datalogEntry;
 
     /**
      * Constructs a LogItem for doubles.
@@ -23,7 +26,7 @@ public class DoubleLogItem extends AbstractLogItem<Double> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public DoubleLogItem(String subsystem, String key, Supplier<Double> valueSupplier, LogLevel level) {
+    public DoubleLogItem(String subsystem, String key, Supplier<Double> valueSupplier, LogType level) {
         super(subsystem, key, valueSupplier, level);
     }
 
@@ -34,7 +37,7 @@ public class DoubleLogItem extends AbstractLogItem<Double> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public DoubleLogItem(String key, Supplier<Double> valueSupplier, LogLevel level) {
+    public DoubleLogItem(String key, Supplier<Double> valueSupplier, LogType level) {
         super(key, valueSupplier, level);
     }
 
@@ -58,8 +61,14 @@ public class DoubleLogItem extends AbstractLogItem<Double> {
         publisher.close();
     }
 
+    @Override
+    public void createDatalogEntry() {
+        datalogEntry = new DoubleLogEntry(DataLogManager.getLog(), getFullName());
+    }
+
+    @Override
     public void run() {
-        if (isLogging) {
+        if (this.type == LogType.NT) {
             if (publisher == null) {
                 this.publish();
             }
@@ -68,6 +77,15 @@ public class DoubleLogItem extends AbstractLogItem<Double> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (this.type == LogType.DATALOG) {
+            if (datalogEntry == null) {
+                this.createDatalogEntry();
+            }
+
+            double value = valueSupplier.get();
+            if (this.previousValue == null || value != this.previousValue)
+                datalogEntry.append(value);
+            this.previousValue = value;
         }
     }
 }

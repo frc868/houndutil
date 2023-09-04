@@ -5,7 +5,6 @@ import com.techhounds.houndutil.houndlog.logitems.AbstractLogItem;
 import java.util.Arrays;
 
 import com.techhounds.houndutil.houndlog.LogProfileBuilder;
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
 
 /**
  * A logger for a specific object. This logger will post all items contained
@@ -84,13 +83,6 @@ public class DeviceLogger extends Logger {
     public void run() {
         for (AbstractLogItem<?> item : items) {
             item.run();
-        }
-    }
-
-    @Override
-    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
-        for (AbstractLogItem<?> item : items) {
-            item.handleLevelChange(newLevel, oldLevel);
         }
     }
 }

@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 import com.pathplanner.lib.PathPlannerTrajectory;
 import com.techhounds.houndutil.houndlog.LogGroup;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
 import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
@@ -115,17 +115,17 @@ public class AutoManager {
     public void setupShuffleboardTab() {
         LoggingManager.getInstance().addGroup("Autonomous",
                 new LogGroup(
-                        new DoubleLogItem("Timer", timer::get, LogLevel.MAIN),
+                        new DoubleLogItem("Timer", timer::get, LogType.NT),
                         new SendableLogger("Field", field),
                         new SendableLogger("Chooser", chooser),
                         new SendableLogger("Auto Setting Value #1", autoSettingChoosers[0]),
                         new SendableLogger("Auto Setting Value #2", autoSettingChoosers[1]),
                         new SendableLogger("Auto Setting Value #3", autoSettingChoosers[2]),
                         new SendableLogger("Auto Setting Value #4", autoSettingChoosers[3]),
-                        new StringLogItem("Auto Setting #1", () -> autoSettingChoosers[0].getName(), LogLevel.MAIN),
-                        new StringLogItem("Auto Setting #2", () -> autoSettingChoosers[1].getName(), LogLevel.MAIN),
-                        new StringLogItem("Auto Setting #3", () -> autoSettingChoosers[2].getName(), LogLevel.MAIN),
-                        new StringLogItem("Auto Setting #4", () -> autoSettingChoosers[3].getName(), LogLevel.MAIN),
+                        new StringLogItem("Auto Setting #1", () -> autoSettingChoosers[0].getName(), LogType.NT),
+                        new StringLogItem("Auto Setting #2", () -> autoSettingChoosers[1].getName(), LogType.NT),
+                        new StringLogItem("Auto Setting #3", () -> autoSettingChoosers[2].getName(), LogType.NT),
+                        new StringLogItem("Auto Setting #4", () -> autoSettingChoosers[3].getName(), LogType.NT),
                         new SendableLogger("Generate Routine",
                                 Commands.runOnce(this::generateSelectedRoutine)
                                         .withName("Generate Routine")

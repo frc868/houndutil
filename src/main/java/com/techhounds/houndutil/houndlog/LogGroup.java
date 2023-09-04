@@ -1,6 +1,5 @@
 package com.techhounds.houndutil.houndlog;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
 
@@ -57,13 +56,6 @@ public class LogGroup implements Loggable {
     public void run() {
         for (Logger logger : loggers) {
             logger.run();
-        }
-    }
-
-    @Override
-    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
-        for (Logger logger : loggers) {
-            logger.handleLevelChange(newLevel, oldLevel);
         }
     }
 }

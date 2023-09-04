@@ -4,7 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
 
 import edu.wpi.first.networktables.NetworkTable;
@@ -45,10 +45,9 @@ public abstract class AbstractLogItem<T> extends Logger {
     /**
      * The level at which to log this item at.
      */
-    protected LogLevel level;
+    protected LogType type;
 
-    /** Describes whether this log item is "enabled". */
-    protected boolean isLogging;
+    protected T previousValue;
 
     /**
      * Constructs a {@code LogItem}.
@@ -58,12 +57,11 @@ public abstract class AbstractLogItem<T> extends Logger {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public AbstractLogItem(String subsystem, String key, Supplier<T> valueSupplier, LogLevel level) {
+    public AbstractLogItem(String subsystem, String key, Supplier<T> valueSupplier, LogType level) {
         this.subsystem = subsystem;
         this.key = key;
         this.valueSupplier = valueSupplier;
-        this.level = level;
-        isLogging = level.equals(LogLevel.MAIN);
+        this.type = level;
     }
 
     /**
@@ -73,7 +71,7 @@ public abstract class AbstractLogItem<T> extends Logger {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public AbstractLogItem(String key, Supplier<T> valueSupplier, LogLevel level) {
+    public AbstractLogItem(String key, Supplier<T> valueSupplier, LogType level) {
         this("Not set", key, valueSupplier, level);
     }
 
@@ -84,7 +82,7 @@ public abstract class AbstractLogItem<T> extends Logger {
      * @param valueSupplier the supplier for the value
      */
     public AbstractLogItem(String key, Supplier<T> valueSupplier) {
-        this("Not set", key, valueSupplier, LogLevel.INFO);
+        this("Not set", key, valueSupplier, LogType.NT);
     }
 
     /**
@@ -101,8 +99,8 @@ public abstract class AbstractLogItem<T> extends Logger {
      * 
      * @return the level
      */
-    public LogLevel getLevel() {
-        return level;
+    public LogType getType() {
+        return type;
     }
 
     /**
@@ -117,6 +115,16 @@ public abstract class AbstractLogItem<T> extends Logger {
             table = table.getSubTable(subkey);
         }
         return table;
+    }
+
+    public String getFullName() {
+        ArrayList<String> keys = new ArrayList<String>();
+        keys.add("NT"); // so that AdvantageScope displays everything together
+        keys.add("HoundLog");
+        keys.add(subsystem);
+        keys.addAll(subkeys);
+        keys.add(key);
+        return String.join("/", keys);
     }
 
     /**
@@ -137,23 +145,8 @@ public abstract class AbstractLogItem<T> extends Logger {
         this.subkeys = subkeys;
     }
 
-    /**
-     * Handles an external level change by changing the {@code isLogging} status of
-     * the log item.
-     * 
-     * @param newLevel the new LogLevel
-     * @param oldLevel the old LogLevel
-     */
-    public void handleLevelChange(LogLevel newLevel, LogLevel oldLevel) {
-        boolean previousIsLogging = this.isLogging;
-
-        isLogging = newLevel.getValue() >= this.level.getValue();
-
-        if (previousIsLogging && !isLogging) {
-            unpublish();
-        } else if (!previousIsLogging && isLogging) {
-            publish();
-        }
+    public T getValue() {
+        return valueSupplier.get();
     }
 
     /**
@@ -178,4 +171,5 @@ public abstract class AbstractLogItem<T> extends Logger {
      */
     public abstract void unpublish();
 
+    public abstract void createDatalogEntry();
 }

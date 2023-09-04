@@ -1,5 +1,7 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix.sensors.AbsoluteSensorRange;
 import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.SensorTimeBase;
@@ -105,15 +107,21 @@ public class NEOCoaxialSwerveModule {
     /** The feedforward controller that controls the drive motor's velocity. */
     private SimpleMotorFeedforward driveFeedforward;
 
-    @Log(name = "Commanded Velocity")
+    @Log(name = "Commanded Velocity", groups = "Control")
     private double commandedVelocity = 0.0;
-    @Log(name = "Commanded Angle")
+    @Log(name = "Commanded Angle", groups = "Control")
     private double commandedAngle = 0.0;
-    @Log(name = "Drive PID Output")
+
+    @Log(name = "Measured Velocity", groups = "Control")
+    private Supplier<Double> measuredVelocity = () -> getState().speedMetersPerSecond;
+    @Log(name = "Measured Angle", groups = "Control")
+    private Supplier<Double> measuredAngle = () -> getState().angle.getRadians();
+
+    @Log(name = "Drive PID Output", groups = "Control")
     private double drivePidOutput = 0.0;
-    @Log(name = "Drive Feedforward Output")
+    @Log(name = "Drive Feedforward Output", groups = "Control")
     private double driveFeedforwardOutput = 0.0;
-    @Log(name = "Turn PID Output")
+    @Log(name = "Turn PID Output", groups = "Control")
     private double turnPIDOutput = 0.0;
 
     private double simDriveEncoderPosition;

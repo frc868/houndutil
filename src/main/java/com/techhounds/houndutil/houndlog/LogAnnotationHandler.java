@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix.sensors.CANCoder;
@@ -15,6 +16,7 @@ import com.revrobotics.CANSparkMax;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
+import com.techhounds.houndutil.houndlog.interfaces.Tunable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
 import com.techhounds.houndutil.houndlog.logitems.BooleanArrayLogItem;
@@ -27,9 +29,12 @@ import com.techhounds.houndutil.houndlog.logitems.IntegerArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
+import com.techhounds.houndutil.houndlog.logitems.TunableBoolean;
+import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
@@ -81,7 +86,8 @@ public class LogAnnotationHandler {
                     try {
                         String[] logGroups = subLogAnnotation.groups();
                         ArrayList<String> updatedSubkeys = new ArrayList<String>(subkeys);
-                        updatedSubkeys.add(name);
+                        if (!name.equals(""))
+                            updatedSubkeys.add(name);
                         updatedSubkeys.addAll(Arrays.asList(logGroups));
 
                         handleLoggedObject(field.get(loggedObject), subLogAnnotation.name(), updatedSubkeys);
@@ -90,6 +96,7 @@ public class LogAnnotationHandler {
                     }
                 } else {
                     field.setAccessible(true);
+
                     Supplier<Object> valueSupplier = () -> {
                         try {
                             return field.get(loggedObject);
@@ -98,9 +105,39 @@ public class LogAnnotationHandler {
                             return null;
                         }
                     };
-                    Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
-                    if (optLogger.isPresent()) {
-                        loggers.add(optLogger.get());
+                    if (field.getAnnotation(Tunable.class) != null) {
+                        Object value = valueSupplier.get();
+                        if (value.getClass() == Double.class) {
+                            DoubleConsumer consumer = (d) -> {
+                                try {
+                                    field.set(loggedObject, d);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            };
+
+                            TunableDouble logger = new TunableDouble(getName(subLogAnnotation),
+                                    (double) valueSupplier.get(), consumer);
+                            loggers.add(logger);
+                        } else if (value.getClass() == Boolean.class) {
+                            BooleanConsumer consumer = (d) -> {
+                                try {
+                                    field.set(loggedObject, d);
+                                } catch (Exception e) {
+                                    e.printStackTrace();
+                                }
+                            };
+
+                            TunableBoolean logger = new TunableBoolean(getName(subLogAnnotation),
+                                    (boolean) valueSupplier.get(), consumer);
+                            loggers.add(logger);
+                        }
+
+                    } else {
+                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
+                        if (optLogger.isPresent()) {
+                            loggers.add(optLogger.get());
+                        }
                     }
                 }
             }
@@ -127,6 +164,13 @@ public class LogAnnotationHandler {
                 new LogGroup(loggers.toArray(new Logger[loggers.size()])));
     }
 
+    public static String getName(Log logAnnotation) {
+        ArrayList<String> nameComponents = new ArrayList<String>();
+        nameComponents.addAll(Arrays.asList(logAnnotation.groups()));
+        nameComponents.add(logAnnotation.name());
+        return String.join("/", nameComponents);
+    }
+
     /**
      * 
      * @param field
@@ -134,14 +178,9 @@ public class LogAnnotationHandler {
      * @return
      */
     public static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation) {
-
         try {
             Object value = valueSupplier.get();
-
-            ArrayList<String> nameComponents = new ArrayList<String>();
-            nameComponents.addAll(Arrays.asList(logAnnotation.groups()));
-            nameComponents.add(logAnnotation.name());
-            String name = String.join("/", nameComponents);
+            String name = getName(logAnnotation);
 
             if (valueSupplier.get() instanceof Supplier) {
                 Map<Class<?>, Supplier<Logger>> supplierClassToLoggerMap = Map.ofEntries(

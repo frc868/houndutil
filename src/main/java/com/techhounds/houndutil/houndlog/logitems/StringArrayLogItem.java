@@ -2,9 +2,11 @@ package com.techhounds.houndutil.houndlog.logitems;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
+import com.techhounds.houndutil.houndlog.enums.LogType;
 
 import edu.wpi.first.networktables.StringArrayPublisher;
+import edu.wpi.first.util.datalog.StringArrayLogEntry;
+import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
  * The LogItem for string arrays.
@@ -14,6 +16,7 @@ import edu.wpi.first.networktables.StringArrayPublisher;
 public class StringArrayLogItem extends AbstractLogItem<String[]> {
     /** The publisher for this logger. */
     private StringArrayPublisher publisher;
+    private StringArrayLogEntry datalogEntry;
 
     /**
      * Constructs a LogItem for String arrays.
@@ -23,7 +26,7 @@ public class StringArrayLogItem extends AbstractLogItem<String[]> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public StringArrayLogItem(String subsystem, String key, Supplier<String[]> func, LogLevel level) {
+    public StringArrayLogItem(String subsystem, String key, Supplier<String[]> func, LogType level) {
         super(subsystem, key, func, level);
     }
 
@@ -34,7 +37,7 @@ public class StringArrayLogItem extends AbstractLogItem<String[]> {
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public StringArrayLogItem(String key, Supplier<String[]> func, LogLevel level) {
+    public StringArrayLogItem(String key, Supplier<String[]> func, LogType level) {
         super(key, func, level);
     }
 
@@ -58,8 +61,14 @@ public class StringArrayLogItem extends AbstractLogItem<String[]> {
         publisher.close();
     }
 
+    @Override
+    public void createDatalogEntry() {
+        datalogEntry = new StringArrayLogEntry(DataLogManager.getLog(), getFullName());
+    }
+
+    @Override
     public void run() {
-        if (isLogging) {
+        if (this.type == LogType.NT) {
             if (publisher == null) {
                 this.publish();
             }
@@ -68,6 +77,15 @@ public class StringArrayLogItem extends AbstractLogItem<String[]> {
             } catch (Exception e) {
                 e.printStackTrace();
             }
+        } else if (this.type == LogType.DATALOG) {
+            if (datalogEntry == null) {
+                this.createDatalogEntry();
+            }
+
+            String[] value = valueSupplier.get();
+            if (this.previousValue == null || value != this.previousValue)
+                datalogEntry.append(value);
+            this.previousValue = value;
         }
     }
 }

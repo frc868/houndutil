@@ -7,7 +7,7 @@ import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.logitems.TunableNumber;
+import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -17,7 +17,7 @@ public class KitBotRobot extends HoundRobot {
     protected CANSparkMax rightMotor;
     private DifferentialDrive drive;
     private XboxController controller = new XboxController(0);
-    private TunableNumber speedLimit = new TunableNumber("Main", "Speed Limit", 0.5);
+    private TunableDouble speedLimit = new TunableDouble("Main", "Speed Limit", 0.5);
 
     public KitBotRobot(int leftMotorId, int rightMotorId) {
         super();

@@ -3,11 +3,8 @@ package com.techhounds.houndutil.houndlog;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.techhounds.houndutil.houndlog.enums.LogLevel;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
-
-import edu.wpi.first.wpilibj.DriverStation;
 
 /**
  * A singleton manager for logging to avoid some of the pitfalls with using the
@@ -19,9 +16,7 @@ import edu.wpi.first.wpilibj.DriverStation;
 public class LoggingManager {
     private static LoggingManager instance;
     private List<Loggable> loggables = new ArrayList<Loggable>();
-    private static boolean DEBUG_MODE = false;
-
-    private static LogLevel LEVEL = LogLevel.MAIN;
+    private Console console = new Console();
 
     /**
      * Returns a singleton of LoggingManager.
@@ -46,24 +41,6 @@ public class LoggingManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Get the current debug mode setting of the LoggingManager.
-     * 
-     * @return the debug mode, true or false.
-     */
-    public static boolean getDebugMode() {
-        return DEBUG_MODE;
-    }
-
-    /**
-     * Set the current debug mode to a value.
-     * 
-     * @param mode the debug mode, true or false.
-     */
-    public static void setDebugMode(boolean mode) {
-        DEBUG_MODE = mode;
     }
 
     /**
@@ -119,39 +96,6 @@ public class LoggingManager {
     }
 
     /**
-     * Handles any changes in LogLevel that might occur (i.e. a switch from teleop
-     * to test, or enabling debug mode).
-     */
-    private void handleLevelChanges() {
-        LogLevel oldLevel = LoggingManager.LEVEL;
-        LogLevel newLevel;
-
-        newLevel = LogLevel.MAIN;
-
-        if (DriverStation.isTest()) {
-            newLevel = LogLevel.INFO;
-        }
-
-        if (LoggingManager.getDebugMode()) {
-            newLevel = LogLevel.DEBUG;
-        }
-
-        if (!newLevel.equals(oldLevel)) {
-            changeLevel(newLevel, oldLevel);
-        }
-    }
-
-    /**
-     * Runs the {@code changeLevel()} method on each loggable.
-     */
-    private void changeLevel(LogLevel newLevel, LogLevel oldLevel) {
-        LoggingManager.LEVEL = newLevel;
-        for (Loggable loggable : loggables) {
-            loggable.handleLevelChange(newLevel, oldLevel);
-        }
-    }
-
-    /**
      * Runs the {@code init()} method on each loggable. Put this in
      * {@code robotInit()}.
      */
@@ -166,7 +110,6 @@ public class LoggingManager {
      * {@code robotPeriodic()}.
      */
     public void run() {
-        handleLevelChanges();
         for (Loggable loggable : loggables) {
             loggable.run();
         }
