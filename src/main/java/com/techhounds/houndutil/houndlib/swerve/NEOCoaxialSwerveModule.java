@@ -310,7 +310,6 @@ public class NEOCoaxialSwerveModule {
                     state.angle.getRadians());
 
             turnMotor.setVoltage(turnPIDOutput);
-
         } else {
             simDriveEncoderVelocity = state.speedMetersPerSecond;
             double distancePer20Ms = state.speedMetersPerSecond / 50.0;

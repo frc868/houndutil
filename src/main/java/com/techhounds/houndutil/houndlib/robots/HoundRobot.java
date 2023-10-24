@@ -1,22 +1,23 @@
 package com.techhounds.houndutil.houndlib.robots;
 
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
-import java.util.function.Supplier;
-
+import java.util.function.Consumer;
 import com.techhounds.houndutil.houndauto.AutoManager;
+import com.techhounds.houndutil.houndlib.TriConsumer;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 
 public class HoundRobot extends TimedRobot {
     public HoundRobot() {
     }
 
-    public HoundRobot(Supplier<Object> robotContainerSupplier) {
-        if (robotContainerSupplier != null)
-            robotContainerSupplier.get(); // calls `new RobotContainer()` basically.
+    public HoundRobot(Consumer<TriConsumer<Runnable, Double, Double>> robotContainerCtor) {
+        if (robotContainerCtor != null)
+            robotContainerCtor.accept((callback, periodSeconds, offsetSeconds) -> {
+                addPeriodic(callback, periodSeconds, offsetSeconds);
+            });
     }
 
     @Override
@@ -27,9 +28,6 @@ public class HoundRobot extends TimedRobot {
         // main thread
         LoggingManager.getInstance().init();
         addPeriodic(LoggingManager.getInstance()::run, 0.1, 0.010);
-        if (RobotBase.isReal())
-            addPeriodic(AutoManager.getInstance()::updatePoseEstimator, 0.1, 0.010);
-
         LiveWindow.disableAllTelemetry();
     }
 

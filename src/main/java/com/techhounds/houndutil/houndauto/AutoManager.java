@@ -45,8 +45,6 @@ public class AutoManager {
             new AutoSettingChooser()
     };
 
-    private Runnable updatePoseEstimatorCallback = null;
-
     private Timer timer = new Timer();
 
     /**
@@ -246,15 +244,5 @@ public class AutoManager {
             throw new NullPointerException("You must add events to the event map!");
         }
         return eventMap;
-    }
-
-    public void setPoseEstimatorCallback(Runnable callback) {
-        this.updatePoseEstimatorCallback = callback;
-    }
-
-    public void updatePoseEstimator() {
-        if (updatePoseEstimatorCallback != null) {
-            this.updatePoseEstimatorCallback.run();
-        }
     }
 }

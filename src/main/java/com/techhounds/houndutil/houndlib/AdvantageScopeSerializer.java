@@ -23,19 +23,40 @@ public class AdvantageScopeSerializer {
         return serializePose3ds(tags.stream().map(tag -> tag.pose).collect(Collectors.toList()));
     }
 
+    public static double[] serializePose3d(Pose3d pose) {
+        double[] poseData = new double[7];
+        poseData[0] = pose.getX();
+        poseData[1] = pose.getY();
+        poseData[2] = pose.getZ();
+        Quaternion tagQuat = pose.getRotation().getQuaternion();
+        poseData[3] = tagQuat.getW();
+        poseData[4] = tagQuat.getX();
+        poseData[5] = tagQuat.getY();
+        poseData[6] = tagQuat.getZ();
+        return poseData;
+    }
+
     public static double[] serializePose3ds(List<Pose3d> poses) {
         double[] poseData = new double[poses.size() * 7];
         for (int i = 0; i < poses.size() * 7; i += 7) {
-            Pose3d tagPose = poses.get(i / 7);
-            poseData[i] = tagPose.getX();
-            poseData[i + 1] = tagPose.getY();
-            poseData[i + 2] = tagPose.getZ();
-            Quaternion tagQuat = tagPose.getRotation().getQuaternion();
+            Pose3d pose = poses.get(i / 7);
+            poseData[i] = pose.getX();
+            poseData[i + 1] = pose.getY();
+            poseData[i + 2] = pose.getZ();
+            Quaternion tagQuat = pose.getRotation().getQuaternion();
             poseData[i + 3] = tagQuat.getW();
             poseData[i + 4] = tagQuat.getX();
             poseData[i + 5] = tagQuat.getY();
             poseData[i + 6] = tagQuat.getZ();
         }
+        return poseData;
+    }
+
+    public static double[] serializePose2d(Pose2d pose) {
+        double[] poseData = new double[3];
+        poseData[0] = pose.getX();
+        poseData[1] = pose.getY();
+        poseData[2] = pose.getRotation().getDegrees();
         return poseData;
     }
 

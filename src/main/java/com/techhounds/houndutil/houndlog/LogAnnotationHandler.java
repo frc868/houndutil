@@ -13,6 +13,7 @@ import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.techhounds.houndutil.houndlib.AdvantageScopeSerializer;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
@@ -34,6 +35,8 @@ import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -254,6 +257,14 @@ public class LogAnnotationHandler {
                     entry(String.class,
                             () -> new StringLogItem(name,
                                     () -> (String) valueSupplier.get(), logAnnotation.logLevel())),
+                    entry(Pose2d.class,
+                            () -> new DoubleArrayLogItem(name,
+                                    () -> AdvantageScopeSerializer.serializePose2d((Pose2d) valueSupplier.get()),
+                                    logAnnotation.logLevel())),
+                    entry(Pose3d.class,
+                            () -> new DoubleArrayLogItem(name,
+                                    () -> AdvantageScopeSerializer.serializePose3d((Pose3d) valueSupplier.get()),
+                                    logAnnotation.logLevel())),
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANSparkMaxLogItems((CANSparkMax) valueSupplier.get()))),
