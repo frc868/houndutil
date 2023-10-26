@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -28,14 +30,29 @@ public class AprilTagPhotonCamera {
     private PhotonPoseEstimator photonPoseEstimator;
     private Transform3d robotToCam;
 
-    private Pose3d detectedRobotPose = new Pose3d();
+    @Log(name = "Estimated Robot Pose")
+    private Pose3d estimatedRobotPose = new Pose3d();
+
     private List<Pose3d> detectedAprilTags = new ArrayList<Pose3d>();
+    @Log(name = "Detected AprilTags")
+    private Supplier<double[]> detectedAprilTagsAS = () -> AdvantageScopeSerializer.serializePose3ds(detectedAprilTags);
+
     @Log(name = "Has Pose")
     private boolean hasPose = false;
+
     @Log(name = "Target Count")
     private int targetCount = 0;
 
-    private List<PhotonTrackedTarget> targets;
+    @Log(name = "Target 1 X Transform")
+    private double target1X = 0;
+    @Log(name = "Target 1 Y Transform")
+    private double target1Y = 0;
+    @Log(name = "Target 1 Theta Transform")
+    private double target1Theta = 0;
+    @Log(name = "Target 1 Ambiguity")
+    private double target1Amb = 0;
+    @Log(name = "Timestamp")
+    private double timestamp = 0;
 
     public AprilTagPhotonCamera(String name, Transform3d robotToCam) {
         try {
@@ -46,7 +63,7 @@ public class AprilTagPhotonCamera {
             this.name = name;
 
             this.robotToCam = robotToCam;
-            photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.MULTI_TAG_PNP, photonCamera,
+            photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.LOWEST_AMBIGUITY, photonCamera,
                     robotToCam);
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,43 +79,33 @@ public class AprilTagPhotonCamera {
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
         PhotonPipelineResult result = photonCamera.getLatestResult();
-        result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
-        result.targets.removeIf((target) -> target.getFiducialId() > 8);
-        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 4);
+        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
+        // result.targets.removeIf((target) -> target.getFiducialId() > 8);
+        // result.targets.removeIf((target) ->
+        // target.getBestCameraToTarget().getTranslation().getNorm() > 4);
         targetCount = result.targets.size();
-        targets = result.targets;
 
         // photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         Optional<EstimatedRobotPose> estimatedRobotPose = photonPoseEstimator.update(result);
 
         if (result.targets.size() > 0) {
-            detectedAprilTags = getPosesFromTargets(result.targets, prevEstimatedRobotPose,
-                    robotToCam);
+            Transform3d bestTransform = result.targets.get(0).getBestCameraToTarget();
+            target1X = bestTransform.getX();
+            target1Y = bestTransform.getY();
+            target1Theta = bestTransform.getRotation().getAngle();
+            target1Amb = result.targets.get(0).getPoseAmbiguity();
+
+            timestamp = result.getTimestampSeconds();
         }
         if (estimatedRobotPose.isPresent()) {
-            detectedRobotPose = estimatedRobotPose.get().estimatedPose;
+            this.estimatedRobotPose = estimatedRobotPose.get().estimatedPose;
+            detectedAprilTags = getPosesFromTargets(result.targets, this.estimatedRobotPose.toPose2d(), robotToCam);
             hasPose = true;
         } else {
-            detectedAprilTags = List.of();
-            detectedRobotPose = new Pose3d(-100, -100, 100, new Rotation3d());
             hasPose = false;
         }
 
         return estimatedRobotPose;
-    }
-
-    @Log(name = "Detected AprilTags")
-    public double[] getAllDetectedAprilTags() {
-        List<Pose3d> poses = new ArrayList<Pose3d>();
-        poses.addAll(detectedAprilTags);
-        return AdvantageScopeSerializer.serializePose3ds(poses);
-    }
-
-    @Log(name = "Detected Robot Pose")
-    public double[] getAllDetectedRobotPoses() {
-        List<Pose3d> poses = new ArrayList<Pose3d>();
-        poses.add(detectedRobotPose);
-        return AdvantageScopeSerializer.serializePose3ds(poses);
     }
 
     private List<Pose3d> getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose2d robotPose,
@@ -116,14 +123,6 @@ public class AprilTagPhotonCamera {
         return name;
     }
 
-    public List<Pose3d> getCurrentlyDetectedAprilTags() {
-        return detectedAprilTags;
-    }
-
-    public Pose3d getCurrentlyDetectedRobotPose() {
-        return detectedRobotPose;
-    }
-
     // public Optional<Pose2d> getAprilTagPoseRelativeToRobot(Pose2d robotPose) {
     // PhotonPipelineResult result = photonCamera.getLatestResult();
     // if (result.getBestTarget() != null) {
@@ -139,8 +138,4 @@ public class AprilTagPhotonCamera {
     // return Optional.empty();
     // }
     // }
-
-    public boolean hasPose() {
-        return hasPose;
-    }
 }
