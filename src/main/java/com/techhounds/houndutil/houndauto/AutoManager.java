@@ -6,7 +6,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
 
-import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
 import com.techhounds.houndutil.houndlog.LogGroup;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.enums.LogType;
@@ -15,6 +16,7 @@ import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
@@ -184,16 +186,16 @@ public class AutoManager {
      * Display the selected routine's trajectories on the field object.
      */
     public void displayAutoPath(AutoPath autoPath) {
-        if (getSelectedRoutine() != null) {
-            ArrayList<PathPlannerTrajectory> trajectories = autoPath.getTrajectories();
-            Trajectory fullTrajectory = trajectories.get(0);
-            for (int i = 1; i < trajectories.size(); i++) {
-                fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
-            }
-            field.getObject("Autonomous Routine")
-                    .setTrajectory(fullTrajectory);
-        }
-
+        // if (getSelectedRoutine() != null) {
+        //     List<PathPlannerPath> path = autoPath.getPaths();
+        //     Trajectory fullTrajectory = new PathPlannerTrajectory(path.get(0), new ChassisSpeeds());
+        //     for (int i = 1; i < trajectories.size(); i++) {
+        //         fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
+        //     }
+        //     field.getObject("Autonomous Routine")
+        //             .setTrajectory(fullTrajectory);
+        // }
+        // TODO
     }
 
     /**

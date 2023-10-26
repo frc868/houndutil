@@ -46,7 +46,7 @@ public class AprilTagPhotonCamera {
             this.name = name;
 
             this.robotToCam = robotToCam;
-            photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.MULTI_TAG_PNP, photonCamera,
+            photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera,
                     robotToCam);
         } catch (IOException e) {
             e.printStackTrace();

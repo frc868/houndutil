@@ -8,9 +8,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.function.Function;
 
-import com.pathplanner.lib.PathConstraints;
-import com.pathplanner.lib.PathPlanner;
-import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.path.PathConstraints;
+import com.pathplanner.lib.path.PathPlannerPath;
+import com.pathplanner.lib.path.PathPlannerTrajectory;
 import com.techhounds.houndutil.houndauto.AutoPath;
 
 import edu.wpi.first.wpilibj.DriverStation;
@@ -34,29 +34,29 @@ public class TrajectoryLoader {
                 String filename = path.getFileName().toString();
                 return filename.substring(0, filename.length() - 5);
             };
-            trajectoryFiles.forEach(path -> {
-                String trajName = stripPath.apply(path);
-                TrajectorySettings settings = trajectorySettingsMap.get(trajName);
-                if (settings == null) {
-                    settings = new TrajectorySettings(trajName); // to set default maxV and maxA
-                }
+            // trajectoryFiles.forEach(path -> {
+            //     String trajName = stripPath.apply(path);
+            //     TrajectorySettings settings = trajectorySettingsMap.get(trajName);
+            //     if (settings == null) {
+            //         settings = new TrajectorySettings(trajName); // to set default maxV and maxA
+            //     }
 
-                ArrayList<PathConstraints> constraints = settings.getConstraints();
-                ArrayList<PathPlannerTrajectory> trajectories;
-                PathConstraints firstConstraint = constraints.get(0);
-                if (constraints.size() == 1) {
-                    trajectories = new ArrayList<PathPlannerTrajectory>(
-                            PathPlanner.loadPathGroup(trajName, firstConstraint));
-                } else {
-                    PathConstraints[] otherConstraints = new PathConstraints[constraints.size() - 1];
-                    constraints.subList(1, constraints.size()).toArray(otherConstraints);
+            //     ArrayList<PathConstraints> constraints = settings.getConstraints();
+            //     ArrayList<PathPlannerTrajectory> trajectories;
+            //     PathConstraints firstConstraint = constraints.get(0);
+            //     if (constraints.size() == 1) {
+            //         trajectories = new ArrayList<PathPlannerTrajectory>(
+            //                 PathPlannerPath.loadPathGroup(trajName, firstConstraint));
+            //     } else {
+            //         PathConstraints[] otherConstraints = new PathConstraints[constraints.size() - 1];
+            //         constraints.subList(1, constraints.size()).toArray(otherConstraints);
 
-                    trajectories = new ArrayList<PathPlannerTrajectory>(
-                            PathPlanner.loadPathGroup(trajName, firstConstraint, otherConstraints));
-                }
+            //         trajectories = new ArrayList<PathPlannerTrajectory>(
+            //                 PathPlanner.loadPathGroup(trajName, firstConstraint, otherConstraints));
+            //     }
 
-                autoPaths.put(trajName, new AutoPath(trajName, trajectories));
-            });
+            //     autoPaths.put(trajName, new AutoPath(trajName, trajectories));
+            // }); // TODO
         } catch (IOException ex) {
             DriverStation.reportError("Unable to open trajectories", ex.getStackTrace());
         }

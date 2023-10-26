@@ -4,7 +4,7 @@ import static edu.wpi.first.util.ErrorMessages.requireNonNullParam;
 
 import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 
@@ -23,7 +23,7 @@ import java.util.function.Supplier;
  * <p>
  * This class is provided by the NewCommands VendorDep
  */
-public class DeferredCommand extends CommandBase {
+public class DeferredCommand extends Command {
     private final Supplier<Command> m_cmdSupplier;
     private Command m_command = Commands.print("[DeferredCommand] Supplied command was null!");
 

@@ -8,7 +8,7 @@ import java.util.function.Supplier;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
-import edu.wpi.first.wpilibj2.command.CommandBase;
+import edu.wpi.first.wpilibj2.command.Command;
 
 public class AutoRoutine {
     private String name;
@@ -17,7 +17,7 @@ public class AutoRoutine {
     private Supplier<Pose2d> blueInitialPoseSupplier;
     private Supplier<Pose2d> redInitialPoseSupplier;
 
-    private Function<AutoPath, CommandBase> commandGetter;
+    private Function<AutoPath, Command> commandGetter;
 
     /**
      * Initialize an AutoRoutine.
@@ -28,14 +28,14 @@ public class AutoRoutine {
      */
     public AutoRoutine(String name, List<AutoSetting> autoSettings,
             Supplier<AutoPath> autoPathSupplier, Supplier<Pose2d> blueInitialPoseSupplier,
-            Function<AutoPath, CommandBase> commandGetter) {
+            Function<AutoPath, Command> commandGetter) {
         this.name = name;
         this.commandGetter = commandGetter;
         this.autoPathSupplier = autoPathSupplier;
         this.autoSettings = autoSettings;
         this.blueInitialPoseSupplier = blueInitialPoseSupplier;
-        this.redInitialPoseSupplier = () -> TrajectoryReflector.reflectiveTransformPose(blueInitialPoseSupplier.get(),
-                16.54);
+        // this.redInitialPoseSupplier = () -> TrajectoryReflector.reflectiveTransformPose(blueInitialPoseSupplier.get(),
+        //         16.54);
     }
 
     public String getName() {
@@ -51,11 +51,13 @@ public class AutoRoutine {
     }
 
     public Pose2d getInitialPosition() {
-        return (DriverStation.getAlliance() == Alliance.Blue) ? blueInitialPoseSupplier.get()
-                : redInitialPoseSupplier.get();
+        // return (DriverStation.getAlliance() == Alliance.Blue) ? blueInitialPoseSupplier.get()
+        //         : redInitialPoseSupplier.get();
+        // TODO
+        return blueInitialPoseSupplier.get();
     }
 
-    public CommandBase getCommand(AutoPath autoPath) {
+    public Command getCommand(AutoPath autoPath) {
         return commandGetter.apply(autoPath);
     }
 }

@@ -4,10 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import com.pathplanner.lib.PathPlannerTrajectory;
-
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import com.pathplanner.lib.path.PathPlannerPath;
 
 /**
  * A wrapper for a PathPlanner trajectory that includes a name and can take in a
@@ -17,8 +14,7 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
  */
 public class AutoPath {
     private String name;
-    private ArrayList<PathPlannerTrajectory> blueTrajectories = new ArrayList<PathPlannerTrajectory>();
-    private ArrayList<PathPlannerTrajectory> redTrajectories = new ArrayList<PathPlannerTrajectory>();
+    private List<PathPlannerPath> pathPlannerPaths;
 
     /**
      * Initializes the AutoPath.
@@ -26,13 +22,9 @@ public class AutoPath {
      * @param name       the name of the AutoPath
      * @param trajectory the trajectory to use
      */
-    public AutoPath(String name, ArrayList<PathPlannerTrajectory> trajectories) {
+    public AutoPath(String name, List<PathPlannerPath> paths) {
         this.name = name;
-        this.blueTrajectories = trajectories;
-
-        for (PathPlannerTrajectory trajectory : trajectories) {
-            redTrajectories.add(TrajectoryReflector.reflectiveTransformTrajectory(trajectory, 16.54));
-        }
+        this.pathPlannerPaths = paths;
     }
 
     /**
@@ -41,8 +33,8 @@ public class AutoPath {
      * @param name       the name of the AutoPath
      * @param trajectory the trajectory to use
      */
-    public AutoPath(String name, PathPlannerTrajectory... trajectories) {
-        this(name, new ArrayList<PathPlannerTrajectory>(Arrays.asList(trajectories)));
+    public AutoPath(String name, PathPlannerPath... paths) {
+        this(name, new ArrayList<PathPlannerPath>(Arrays.asList(paths)));
     }
 
     /**
@@ -59,26 +51,8 @@ public class AutoPath {
      * 
      * @return the trajectories associated with this AutoPath
      */
-    public ArrayList<PathPlannerTrajectory> getTrajectories() {
-        if (DriverStation.getAlliance() == Alliance.Red) {
-            return redTrajectories;
-        } else {
-            return blueTrajectories;
-        }
+    public List<PathPlannerPath> getPaths() {
+        return pathPlannerPaths;
     }
 
-    public AutoPath usingMask(List<Boolean> mask) {
-        if (mask.size() != blueTrajectories.size()) {
-            throw new IllegalArgumentException("Mask must be the same length as trajectory array");
-        }
-
-        ArrayList<PathPlannerTrajectory> newTrajectories = new ArrayList<PathPlannerTrajectory>();
-        for (int i = 0; i < mask.size(); i++) {
-            if (mask.get(i)) {
-                newTrajectories.add(blueTrajectories.get(i));
-            }
-        }
-
-        return new AutoPath(name, newTrajectories);
-    }
 }
