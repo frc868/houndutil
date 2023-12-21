@@ -71,6 +71,7 @@ public class LogAnnotationHandler {
         for (Method method : loggedObject.getClass().getDeclaredMethods()) {
             Log subLogAnnotation = method.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
+                String varName = subLogAnnotation.name() != "" ? subLogAnnotation.name() : method.getName();
                 method.setAccessible(true);
 
                 Supplier<Object> valueSupplier = () -> {
@@ -82,7 +83,7 @@ public class LogAnnotationHandler {
                     }
                 };
 
-                Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
+                Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                 if (optLogger.isPresent()) {
                     loggers.add(optLogger.get());
                 }
@@ -93,6 +94,7 @@ public class LogAnnotationHandler {
             field.setAccessible(true);
             Log subLogAnnotation = field.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
+                String varName = subLogAnnotation.name().equals("") ? field.getName() : subLogAnnotation.name();
                 LoggedObject loggedObjectAnnotation = field.getType().getAnnotation(LoggedObject.class);
                 if (loggedObjectAnnotation != null) {
                     try {
@@ -102,7 +104,7 @@ public class LogAnnotationHandler {
                             updatedSubkeys.add(name);
                         updatedSubkeys.addAll(Arrays.asList(logGroups));
 
-                        handleLoggedObject(field.get(loggedObject), subLogAnnotation.name(), updatedSubkeys);
+                        handleLoggedObject(field.get(loggedObject), varName, updatedSubkeys);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -128,7 +130,7 @@ public class LogAnnotationHandler {
                                 }
                             };
 
-                            TunableDouble logger = new TunableDouble(getName(subLogAnnotation),
+                            TunableDouble logger = new TunableDouble(getName(subLogAnnotation, varName),
                                     (double) valueSupplier.get(), consumer);
                             loggers.add(logger);
                         } else if (value.getClass() == Boolean.class) {
@@ -140,13 +142,13 @@ public class LogAnnotationHandler {
                                 }
                             };
 
-                            TunableBoolean logger = new TunableBoolean(getName(subLogAnnotation),
+                            TunableBoolean logger = new TunableBoolean(getName(subLogAnnotation, varName),
                                     (boolean) valueSupplier.get(), consumer);
                             loggers.add(logger);
                         }
 
                     } else {
-                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
+                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                         if (optLogger.isPresent()) {
                             loggers.add(optLogger.get());
                         }
@@ -158,7 +160,8 @@ public class LogAnnotationHandler {
             if (subSendableLogAnnotation != null) {
                 ArrayList<String> nameComponents = new ArrayList<String>();
                 nameComponents.addAll(Arrays.asList(subSendableLogAnnotation.groups()));
-                nameComponents.add(subSendableLogAnnotation.name());
+                String varName = subSendableLogAnnotation.name().equals("") ? field.getName() : subLogAnnotation.name();
+                nameComponents.add(varName);
                 String formattedName = String.join("/", nameComponents);
 
                 try {
@@ -176,10 +179,10 @@ public class LogAnnotationHandler {
                 new LogGroup(loggers.toArray(new Logger[loggers.size()])));
     }
 
-    public static String getName(Log logAnnotation) {
+    public static String getName(Log logAnnotation, String varName) {
         ArrayList<String> nameComponents = new ArrayList<String>();
         nameComponents.addAll(Arrays.asList(logAnnotation.groups()));
-        nameComponents.add(logAnnotation.name());
+        nameComponents.add(varName);
         return String.join("/", nameComponents);
     }
 
@@ -189,10 +192,11 @@ public class LogAnnotationHandler {
      * @param object the object to get the value from
      * @return
      */
-    public static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation) {
+    public static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
+            String varName) {
         try {
             Object value = valueSupplier.get();
-            String name = getName(logAnnotation);
+            String name = getName(logAnnotation, varName);
 
             if (valueSupplier.get() instanceof Supplier) {
                 Map<Class<?>, Supplier<Logger>> supplierClassToLoggerMap = Map.ofEntries(
