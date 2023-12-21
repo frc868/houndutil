@@ -5,12 +5,19 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.TriConsumer;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 
 public class HoundRobot extends TimedRobot {
     public HoundRobot() {
+    }
+
+    public HoundRobot(Supplier<Object> robotContainerCtor) {
+        if (robotContainerCtor != null)
+            robotContainerCtor.get();
     }
 
     public HoundRobot(Consumer<TriConsumer<Runnable, Double, Double>> robotContainerCtor) {
