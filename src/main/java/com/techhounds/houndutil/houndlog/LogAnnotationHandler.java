@@ -13,7 +13,6 @@ import com.ctre.phoenix.sensors.CANCoder;
 import com.ctre.phoenix.sensors.Pigeon2;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
-import com.techhounds.houndutil.houndlib.AdvantageScopeSerializer;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
@@ -30,6 +29,8 @@ import com.techhounds.houndutil.houndlog.logitems.IntegerArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
+import com.techhounds.houndutil.houndlog.logitems.StructLogItem;
+import com.techhounds.houndutil.houndlog.logitems.StructArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.TunableBoolean;
 import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
@@ -37,6 +38,14 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.Twist3d;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -257,14 +266,6 @@ public class LogAnnotationHandler {
                     entry(String.class,
                             () -> new StringLogItem(name,
                                     () -> (String) valueSupplier.get(), logAnnotation.logLevel())),
-                    entry(Pose2d.class,
-                            () -> new DoubleArrayLogItem(name,
-                                    () -> AdvantageScopeSerializer.serializePose2d((Pose2d) valueSupplier.get()),
-                                    logAnnotation.logLevel())),
-                    entry(Pose3d.class,
-                            () -> new DoubleArrayLogItem(name,
-                                    () -> AdvantageScopeSerializer.serializePose3d((Pose3d) valueSupplier.get()),
-                                    logAnnotation.logLevel())),
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANSparkMaxLogItems((CANSparkMax) valueSupplier.get()))),
@@ -296,7 +297,85 @@ public class LogAnnotationHandler {
                                             (ProfiledPIDController) valueSupplier.get()))),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
-                                    () -> ((DigitalInput) valueSupplier.get()).get())));
+                                    () -> ((DigitalInput) valueSupplier.get()).get())),
+                    entry(Pose2d.class,
+                            () -> new StructLogItem<Pose2d>(name, Pose2d.struct, () -> (Pose2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose2d[].class,
+                            () -> new StructArrayLogItem<Pose2d>(name, Pose2d.struct,
+                                    () -> (Pose2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose3d.class,
+                            () -> new StructLogItem<Pose3d>(name, Pose3d.struct, () -> (Pose3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose3d[].class,
+                            () -> new StructArrayLogItem<Pose3d>(name, Pose3d.struct,
+                                    () -> (Pose3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation2d.class,
+                            () -> new StructLogItem<Rotation2d>(name, Rotation2d.struct,
+                                    () -> (Rotation2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation2d[].class,
+                            () -> new StructArrayLogItem<Rotation2d>(name, Rotation2d.struct,
+                                    () -> (Rotation2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation3d.class,
+                            () -> new StructLogItem<Rotation3d>(name, Rotation3d.struct,
+                                    () -> (Rotation3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation3d[].class,
+                            () -> new StructArrayLogItem<Rotation3d>(name, Rotation3d.struct,
+                                    () -> (Rotation3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform2d.class,
+                            () -> new StructLogItem<Transform2d>(name, Transform2d.struct,
+                                    () -> (Transform2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform2d[].class,
+                            () -> new StructArrayLogItem<Transform2d>(name, Transform2d.struct,
+                                    () -> (Transform2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform3d.class,
+                            () -> new StructLogItem<Transform3d>(name, Transform3d.struct,
+                                    () -> (Transform3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform3d[].class,
+                            () -> new StructArrayLogItem<Transform3d>(name, Transform3d.struct,
+                                    () -> (Transform3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation2d.class,
+                            () -> new StructLogItem<Translation2d>(name, Translation2d.struct,
+                                    () -> (Translation2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation2d[].class,
+                            () -> new StructArrayLogItem<Translation2d>(name, Translation2d.struct,
+                                    () -> (Translation2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation3d.class,
+                            () -> new StructLogItem<Translation3d>(name, Translation3d.struct,
+                                    () -> (Translation3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation3d[].class,
+                            () -> new StructArrayLogItem<Translation3d>(name, Translation3d.struct,
+                                    () -> (Translation3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist2d.class,
+                            () -> new StructLogItem<Twist2d>(name, Twist2d.struct, () -> (Twist2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist2d[].class,
+                            () -> new StructArrayLogItem<Twist2d>(name, Twist2d.struct,
+                                    () -> (Twist2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist3d.class,
+                            () -> new StructLogItem<Twist3d>(name, Twist3d.struct, () -> (Twist3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist3d[].class,
+                            () -> new StructArrayLogItem<Twist3d>(name, Twist3d.struct,
+                                    () -> (Twist3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel()))
+
+            );
 
             Supplier<Logger> supp = classToLoggerMap.get(value.getClass());
             if (supp == null) {

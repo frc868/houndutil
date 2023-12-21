@@ -6,8 +6,6 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class AutoRoutine {
@@ -15,7 +13,6 @@ public class AutoRoutine {
     private List<AutoSetting> autoSettings;
     private Supplier<AutoPath> autoPathSupplier;
     private Supplier<Pose2d> blueInitialPoseSupplier;
-    private Supplier<Pose2d> redInitialPoseSupplier;
 
     private Function<AutoPath, Command> commandGetter;
 
@@ -34,8 +31,9 @@ public class AutoRoutine {
         this.autoPathSupplier = autoPathSupplier;
         this.autoSettings = autoSettings;
         this.blueInitialPoseSupplier = blueInitialPoseSupplier;
-        // this.redInitialPoseSupplier = () -> TrajectoryReflector.reflectiveTransformPose(blueInitialPoseSupplier.get(),
-        //         16.54);
+        // this.redInitialPoseSupplier = () ->
+        // TrajectoryReflector.reflectiveTransformPose(blueInitialPoseSupplier.get(),
+        // 16.54);
     }
 
     public String getName() {
@@ -51,8 +49,9 @@ public class AutoRoutine {
     }
 
     public Pose2d getInitialPosition() {
-        // return (DriverStation.getAlliance() == Alliance.Blue) ? blueInitialPoseSupplier.get()
-        //         : redInitialPoseSupplier.get();
+        // return (DriverStation.getAlliance() == Alliance.Blue) ?
+        // blueInitialPoseSupplier.get()
+        // : redInitialPoseSupplier.get();
         // TODO
         return blueInitialPoseSupplier.get();
     }

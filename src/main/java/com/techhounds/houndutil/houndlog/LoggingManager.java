@@ -16,7 +16,6 @@ import com.techhounds.houndutil.houndlog.loggers.Logger;
 public class LoggingManager {
     private static LoggingManager instance;
     private List<Loggable> loggables = new ArrayList<Loggable>();
-    private Console console = new Console();
 
     /**
      * Returns a singleton of LoggingManager.

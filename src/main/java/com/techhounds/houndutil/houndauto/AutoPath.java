@@ -7,7 +7,7 @@ import java.util.List;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 /**
- * A wrapper for a PathPlanner trajectory that includes a name and can take in a
+ * A wrapper for a set of PathPlanner paths,  that includes a name and can take in a
  * group of paths.
  * 
  * @author dr

@@ -5,6 +5,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Optional;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPlannerTrajectory;
@@ -17,7 +18,6 @@ import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.trajectory.Trajectory;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -186,16 +186,20 @@ public class AutoManager {
      * Display the selected routine's trajectories on the field object.
      */
     public void displayAutoPath(AutoPath autoPath) {
-        // if (getSelectedRoutine() != null) {
-        //     List<PathPlannerPath> path = autoPath.getPaths();
-        //     Trajectory fullTrajectory = new PathPlannerTrajectory(path.get(0), new ChassisSpeeds());
-        //     for (int i = 1; i < trajectories.size(); i++) {
-        //         fullTrajectory = fullTrajectory.concatenate(trajectories.get(i));
-        //     }
-        //     field.getObject("Autonomous Routine")
-        //             .setTrajectory(fullTrajectory);
-        // }
-        // TODO
+        if (getSelectedRoutine() != null) {
+            List<PathPlannerPath> paths = autoPath.getPaths();
+
+            ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
+            for (PathPlannerPath path : paths) {
+                PathPlannerTrajectory trajectory = new PathPlannerTrajectory(path, new ChassisSpeeds());
+
+                poses.addAll(trajectory.getStates().stream()
+                        .map((state) -> new Pose2d(state.positionMeters, state.targetHolonomicRotation))
+                        .collect(Collectors.toList()));
+            }
+
+            field.getObject("Autonomous Routine").setPoses(poses);
+        }
     }
 
     /**
