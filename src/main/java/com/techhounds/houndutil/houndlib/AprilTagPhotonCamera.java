@@ -35,13 +35,13 @@ public class AprilTagPhotonCamera {
     private PhotonPoseEstimator photonPoseEstimator;
     private Transform3d robotToCam;
 
-    @Log(name = "Estimated Robot Pose")
+    @Log
     private Pose3d estimatedRobotPose = new Pose3d();
-    @Log(name = "Detected AprilTags")
+    @Log
     private Pose3d[] detectedAprilTags = new Pose3d[0];
-    @Log(name = "Has Pose")
+    @Log
     private boolean hasPose = false;
-    @Log(name = "Target Count")
+    @Log
     private int targetCount = 0;
 
     public AprilTagPhotonCamera(String name, Transform3d robotToCam) {
