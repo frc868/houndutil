@@ -14,12 +14,12 @@ jobs:
     runs-on: ubuntu-latest
 
     # This grabs the WPILib docker container
-    container: wpilib/roborio-cross-ubuntu:2023-22.04
+    container: wpilib/roborio-cross-ubuntu:2024-22.04
 
     # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
     # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
 
     # Grant execute permission for gradlew
     - name: Grant execute permission for gradlew
