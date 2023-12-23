@@ -14,8 +14,6 @@ import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.enums.LogType;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
 import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
-import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -39,13 +37,6 @@ public class AutoManager {
 
     private Command currentCommand;
     private AutoPath currentAutoPath;
-
-    private AutoSettingChooser[] autoSettingChoosers = new AutoSettingChooser[] {
-            new AutoSettingChooser(),
-            new AutoSettingChooser(),
-            new AutoSettingChooser(),
-            new AutoSettingChooser()
-    };
 
     private Timer timer = new Timer();
 
@@ -115,37 +106,16 @@ public class AutoManager {
     public void setupShuffleboardTab() {
         LoggingManager.getInstance().addGroup("Autonomous",
                 new LogGroup(
-                        new DoubleLogItem("Timer", timer::get, LogType.NT),
-                        new SendableLogger("Field", field),
-                        new SendableLogger("Chooser", chooser),
-                        new SendableLogger("Auto Setting Value #1", autoSettingChoosers[0]),
-                        new SendableLogger("Auto Setting Value #2", autoSettingChoosers[1]),
-                        new SendableLogger("Auto Setting Value #3", autoSettingChoosers[2]),
-                        new SendableLogger("Auto Setting Value #4", autoSettingChoosers[3]),
-                        new StringLogItem("Auto Setting #1", () -> autoSettingChoosers[0].getName(), LogType.NT),
-                        new StringLogItem("Auto Setting #2", () -> autoSettingChoosers[1].getName(), LogType.NT),
-                        new StringLogItem("Auto Setting #3", () -> autoSettingChoosers[2].getName(), LogType.NT),
-                        new StringLogItem("Auto Setting #4", () -> autoSettingChoosers[3].getName(), LogType.NT),
-                        new SendableLogger("Generate Routine",
+                        new DoubleLogItem("autoTimer", timer::get, LogType.NT),
+                        new SendableLogger("field", field),
+                        new SendableLogger("chooser", chooser),
+                        new SendableLogger("generateRoute",
                                 Commands.runOnce(this::generateSelectedRoutine)
                                         .withName("Generate Routine")
                                         .ignoringDisable(true))));
     }
 
-    public void setAutoSettingChoosers(List<AutoSetting> settings) {
-        for (int i = 0; i < settings.size(); i++) {
-            autoSettingChoosers[i].setAutoSetting(settings.get(i));
-        }
-
-        for (int i = settings.size(); i < 4; i++) {
-            autoSettingChoosers[i].clearAutoSetting();
-        }
-    }
-
     public void generateSelectedRoutine() {
-        for (AutoSettingChooser chooser : autoSettingChoosers) {
-            chooser.updateSetting();
-        }
         AutoRoutine selectedRoutine = getSelectedRoutine();
         if (resetOdometryConsumer != null) {
             try {
@@ -177,7 +147,6 @@ public class AutoManager {
      */
     public void periodicUpdate(boolean ignoreLastTrajCheck) {
         if (lastRoutine != getSelectedRoutine()) {
-            setAutoSettingChoosers(getSelectedRoutine().getAutoSettings());
             lastRoutine = getSelectedRoutine();
         }
     }
