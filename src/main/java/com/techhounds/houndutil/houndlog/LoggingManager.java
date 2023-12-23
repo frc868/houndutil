@@ -43,6 +43,19 @@ public class LoggingManager {
     }
 
     /**
+     * Register subsystems to check for log annotations.
+     * 
+     * @param subsystems the subsystems to register
+     */
+    public void registerClass(Class<?> class_, String name, ArrayList<String> subkeys) {
+        try {
+            LogAnnotationHandler.handleLoggedClass(class_, name, subkeys);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
      * Adds a group to the LoggingManager. Sets the subsystem of the group and its
      * loggers as well.
      * 
