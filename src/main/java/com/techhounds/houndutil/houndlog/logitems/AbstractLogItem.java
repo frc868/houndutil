@@ -110,7 +110,10 @@ public abstract class AbstractLogItem<T> extends Logger {
      * @return the item's table
      */
     public NetworkTable getTable() {
-        NetworkTable table = NetworkTableInstance.getDefault().getTable("HoundLog").getSubTable(subsystem);
+        NetworkTable table = NetworkTableInstance.getDefault().getTable("HoundLog");
+        if (!subsystem.equals(""))
+            table = table.getSubTable(subsystem);
+
         for (String subkey : subkeys) {
             table = table.getSubTable(subkey);
         }
@@ -121,7 +124,8 @@ public abstract class AbstractLogItem<T> extends Logger {
         ArrayList<String> keys = new ArrayList<String>();
         keys.add("NT"); // so that AdvantageScope displays everything together
         keys.add("HoundLog");
-        keys.add(subsystem);
+        if (!subsystem.equals(""))
+            keys.add(subsystem);
         keys.addAll(subkeys);
         keys.add(key);
         return String.join("/", keys);
