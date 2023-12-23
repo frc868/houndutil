@@ -9,10 +9,12 @@ import java.util.Optional;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.Pigeon2;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
+import com.revrobotics.SparkMaxAbsoluteEncoder;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
@@ -34,6 +36,8 @@ import com.techhounds.houndutil.houndlog.logitems.StructArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.TunableBoolean;
 import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -46,6 +50,9 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.geometry.Twist3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DigitalInput;
@@ -62,16 +69,37 @@ import static java.util.Map.entry;
  * Contains default logging configurations for objects like a PIDController.
  */
 public class LogAnnotationHandler {
-    public static void handleLoggedObject(Object loggedObject) {
+    protected static void handleLoggedObject(Object loggedObject) {
         handleLoggedObject(loggedObject, "", new ArrayList<String>());
     }
 
-    public static void handleLoggedObject(Object loggedObject, String name, ArrayList<String> subkeys) {
+    protected static void handleLoggedObject(Object loggedObject, String name, ArrayList<String> subkeys) {
+        handleLoggedObjectImpl(
+                loggedObject,
+                loggedObject.getClass().getDeclaredFields(),
+                loggedObject.getClass().getDeclaredMethods(),
+                name, subkeys);
+    }
+
+    protected static void handleLoggedClass(Class<?> loggedClass, String name, ArrayList<String> subkeys) {
+        handleLoggedObjectImpl(
+                null,
+                loggedClass.getDeclaredFields(),
+                loggedClass.getDeclaredMethods(),
+                name, subkeys);
+    }
+
+    private static void handleLoggedObjectImpl(Object loggedObject, Field[] fields, Method[] methods, String name,
+            ArrayList<String> subkeys) {
         ArrayList<Logger> loggers = new ArrayList<Logger>();
-        for (Method method : loggedObject.getClass().getDeclaredMethods()) {
+        for (Method method : methods) {
             Log subLogAnnotation = method.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
-                String varName = subLogAnnotation.name() != "" ? subLogAnnotation.name() : method.getName();
+                String varName = subLogAnnotation.name().equals("") ? method.getName() : subLogAnnotation.name();
+                // if method is named "getDouble", this would change it to "double"
+                if (varName.startsWith("get")) {
+                    varName = varName.substring(3, 4).toLowerCase() + varName.substring(4);
+                }
                 method.setAccessible(true);
 
                 Supplier<Object> valueSupplier = () -> {
@@ -90,7 +118,7 @@ public class LogAnnotationHandler {
             }
         }
 
-        for (Field field : loggedObject.getClass().getDeclaredFields()) {
+        for (Field field : fields) {
             field.setAccessible(true);
             Log subLogAnnotation = field.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
@@ -192,7 +220,7 @@ public class LogAnnotationHandler {
      * @param object the object to get the value from
      * @return
      */
-    public static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
+    private static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
             String varName) {
         try {
             Object value = valueSupplier.get();
@@ -270,12 +298,19 @@ public class LogAnnotationHandler {
                     entry(String.class,
                             () -> new StringLogItem(name,
                                     () -> (String) valueSupplier.get(), logAnnotation.logLevel())),
+                    entry(TalonFX.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildTalonFXLogItems((TalonFX) valueSupplier.get()))),
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANSparkMaxLogItems((CANSparkMax) valueSupplier.get()))),
-                    entry(CANCoder.class,
+                    entry(CANcoder.class,
                             () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildCANCoderLogItems((CANCoder) valueSupplier.get()))),
+                                    LogProfileBuilder.buildCANcoderLogItems((CANcoder) valueSupplier.get()))),
+                    entry(SparkMaxAbsoluteEncoder.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildSparkMaxAbsoluteEncoderLogItems(
+                                            (SparkMaxAbsoluteEncoder) valueSupplier.get()))),
                     entry(AHRS.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildNavXLogItems((AHRS) valueSupplier.get()))),
@@ -377,13 +412,43 @@ public class LogAnnotationHandler {
                     entry(Twist3d[].class,
                             () -> new StructArrayLogItem<Twist3d>(name, Twist3d.struct,
                                     () -> (Twist3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ArmFeedforward.class,
+                            () -> new StructLogItem<ArmFeedforward>(name, ArmFeedforward.struct,
+                                    () -> (ArmFeedforward) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ElevatorFeedforward.class,
+                            () -> new StructLogItem<ElevatorFeedforward>(name, ElevatorFeedforward.struct,
+                                    () -> (ElevatorFeedforward) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ChassisSpeeds.class,
+                            () -> new StructLogItem<ChassisSpeeds>(name, ChassisSpeeds.struct,
+                                    () -> (ChassisSpeeds) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModulePosition.class,
+                            () -> new StructLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
+                                    () -> (SwerveModulePosition) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModuleState.class,
+                            () -> new StructLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
+                                    () -> (SwerveModuleState) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModulePosition[].class,
+                            () -> new StructArrayLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
+                                    () -> (SwerveModulePosition[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModuleState[].class,
+                            () -> new StructArrayLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
+                                    () -> (SwerveModuleState[]) valueSupplier.get(),
                                     logAnnotation.logLevel()))
 
             );
 
             Supplier<Logger> supp = classToLoggerMap.get(value.getClass());
             if (supp == null) {
-                return Optional.empty();
+                // if no match, use toString (helpful for logging enums)
+                return Optional
+                        .of(new StringLogItem(name, () -> valueSupplier.get().toString(), logAnnotation.logLevel()));
             } else {
                 return Optional.of(supp.get());
             }
