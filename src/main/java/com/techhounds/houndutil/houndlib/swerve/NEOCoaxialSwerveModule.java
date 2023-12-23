@@ -1,10 +1,9 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
-import java.util.function.Supplier;
-
-import com.ctre.phoenix.sensors.AbsoluteSensorRange;
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.SensorTimeBase;
+import com.ctre.phoenix6.configs.MagnetSensorConfigs;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
+import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkMaxLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
@@ -19,15 +18,16 @@ import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 
 @LoggedObject
 public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     /** The motor used for driving. */
-    @Log(name = "driveMotor")
+    @Log
     private CANSparkMax driveMotor;
     /** The motor used to control the wheel's steer angle. */
-    @Log(name = "steerMotor")
+    @Log
     private CANSparkMax steerMotor;
 
     /** The encoder on the motor used for driving. */
@@ -35,36 +35,27 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     /** The encoder on the motor used to control the wheels. */
     private RelativeEncoder steerEncoder;
     /** The CANCoder used to tell the steer angle of the wheel. */
-    @Log(name = "Steer CANCoder")
-    private CANCoder steerCanCoder;
+    @Log
+    private CANcoder steerCanCoder;
 
     /** The PID controller that corrects the drive motor's velocity. */
-    @Log(name = "Drive PID Controller")
-    private PIDController drivePIDController;
+    @Log
+    private PIDController drivePidController;
 
     /** The PID controller that controls the steer motor's position. */
-    @Log(name = "Steer PID Controller")
+    @Log
     private PIDController steerPidController;
 
     /** The feedforward controller that controls the drive motor's velocity. */
+    @Log
     private SimpleMotorFeedforward driveFeedforward;
 
-    @Log(name = "Commanded Velocity", groups = "Control")
-    private double commandedVelocity = 0.0;
-    @Log(name = "Commanded Angle", groups = "Control")
-    private double commandedAngle = 0.0;
-
-    @Log(name = "Measured Velocity", groups = "Control")
-    private Supplier<Double> measuredVelocity = () -> getState().speedMetersPerSecond;
-    @Log(name = "Measured Angle", groups = "Control")
-    private Supplier<Double> measuredAngle = () -> getState().angle.getRadians();
-
-    @Log(name = "Drive PID Output", groups = "Control")
-    private double drivePidOutput = 0.0;
-    @Log(name = "Drive Feedforward Output", groups = "Control")
-    private double driveFeedforwardOutput = 0.0;
-    @Log(name = "Turn PID Output", groups = "Control")
-    private double turnPidOutput = 0.0;
+    @Log(groups = "control")
+    private double driveFeedbackVoltage = 0.0;
+    @Log(groups = "control")
+    private double driveFeedforwardVoltage = 0.0;
+    @Log(groups = "control")
+    private double turnFeedbackVoltage = 0.0;
 
     private double simDriveEncoderPosition;
     private double simDriveEncoderVelocity;
@@ -76,14 +67,10 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
      * The offset of the CANCoder from the zero point, in radians. This will be
      * added to any measurements obtained from the CANCoder.
      */
+    @Log
     private double turnCanCoderOffset;
 
-    /**
-     * Whether or not the module is using the absolute encoder for positioning or
-     * the relative encoder on the NEO. The NEOs encoder has a much higher sampling
-     * rate, so it is recommended to use that.
-     */
-    @Log(name = "Is Using Absolute Encoder")
+    @Log
     private boolean isUsingAbsoluteEncoder;
 
     /**
@@ -108,51 +95,48 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
             boolean turnCanCoderInverted,
             double turnCanCoderOffset,
             SwerveConstants swerveConstants) {
-
-        driveMotor = new CANSparkMax(driveMotorChannel, MotorType.kBrushless);
-        SparkMaxConfigurator.configure(driveMotor)
-                .withIdleMode(IdleMode.kBrake)
-                .withInverted(driveMotorInverted)
-                .withCurrentLimit(40)
-                .withPositionConversionFactor(swerveConstants.ENCODER_ROTATIONS_TO_METERS, true)
-                .burnFlash();
+        driveMotor = SparkMaxConfigurator.create(
+                driveMotorChannel, MotorType.kBrushless, driveMotorInverted,
+                (s) -> s.setIdleMode(IdleMode.kBrake),
+                (s) -> s.setSmartCurrentLimit(swerveConstants.DRIVE_CURRENT_LIMIT),
+                (s) -> s.getEncoder().setPositionConversionFactor(swerveConstants.ENCODER_ROTATIONS_TO_METERS),
+                (s) -> s.getEncoder().setVelocityConversionFactor(swerveConstants.ENCODER_ROTATIONS_TO_METERS / 60.0));
 
         driveEncoder = driveMotor.getEncoder();
 
-        steerMotor = new CANSparkMax(turnMotorChannel, MotorType.kBrushless);
-        SparkMaxConfigurator.configure(steerMotor)
-                .withIdleMode(IdleMode.kBrake)
-                .withInverted(turnMotorInverted)
-                .withPositionConversionFactor(swerveConstants.STEER_ENCODER_ROTATIONS_TO_METERS, true)
-                .withCurrentLimit(15).burnFlash();
+        steerMotor = SparkMaxConfigurator.create(
+                turnMotorChannel, MotorType.kBrushless, turnMotorInverted,
+                (s) -> s.setIdleMode(IdleMode.kBrake),
+                (s) -> s.setSmartCurrentLimit(swerveConstants.STEER_CURRENT_LIMIT),
+                (s) -> s.getEncoder().setPositionConversionFactor(swerveConstants.STEER_ENCODER_ROTATIONS_TO_RADIANS),
+                (s) -> s.getEncoder()
+                        .setVelocityConversionFactor(swerveConstants.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0));
 
         steerEncoder = steerMotor.getEncoder();
 
-        steerCanCoder = new CANCoder(canCoderChannel);
+        steerCanCoder = new CANcoder(canCoderChannel);
 
-        // There is an issue with absolute position vs position in CANCoders, namely
-        // that the abs pos is sent a lot less frequently than the normal pos (every
-        // 100ms vs every 10ms). According to this post:
-        // https://www.chiefdelphi.com/t/official-sds-mk3-mk4-code/397109/99, setting
-        // the CANCoder to "Boot to Absolute" will fix this.
-        steerCanCoder.setPositionToAbsolute();
-        steerCanCoder.configSensorDirection(turnCanCoderInverted);
-        steerCanCoder.configAbsoluteSensorRange(AbsoluteSensorRange.Unsigned_0_to_360);
-        steerCanCoder.configFeedbackCoefficient(2 * Math.PI / 4096.0, "rad", SensorTimeBase.PerSecond); // radians/sec
+        MagnetSensorConfigs config = new MagnetSensorConfigs();
+        config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        steerCanCoder.getConfigurator().apply(config);
 
         this.turnCanCoderOffset = turnCanCoderOffset;
         new Thread(() -> {
             try {
                 Thread.sleep(3000);
-                steerEncoder.setPosition(steerCanCoder.getPosition() + turnCanCoderOffset);
+                steerEncoder.setPosition(
+                        Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset);
             } catch (Exception e) {
             }
         }).start();
 
-        drivePIDController = new PIDController(swerveConstants.DRIVE_kP, swerveConstants.DRIVE_kI,
+        drivePidController = new PIDController(swerveConstants.DRIVE_kP, swerveConstants.DRIVE_kI,
                 swerveConstants.DRIVE_kD);
         steerPidController = new PIDController(swerveConstants.STEER_kP, swerveConstants.STEER_kI,
                 swerveConstants.STEER_kD);
+        driveFeedforward = new SimpleMotorFeedforward(swerveConstants.DRIVE_kS, swerveConstants.DRIVE_kV,
+                swerveConstants.DRIVE_kA);
 
         steerPidController.enableContinuousInput(0, 2 * Math.PI);
         steerPidController.enableContinuousInput(0, 2 * Math.PI);
@@ -183,22 +167,24 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     }
 
     @Override
-    @Log(name = "Wheel Angle")
     public Rotation2d getWheelAngle() {
         if (RobotBase.isReal())
             return new Rotation2d(
-                    this.isUsingAbsoluteEncoder ? steerCanCoder.getPosition() + turnCanCoderOffset
+                    this.isUsingAbsoluteEncoder
+                            ? Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset
                             : steerEncoder.getPosition());
         else
             return new Rotation2d(simCurrentAngle);
     }
 
     @Override
+    @Log
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(getDriveMotorPosition(), getWheelAngle());
     }
 
     @Override
+    @Log
     public SwerveModuleState getState() {
         return new SwerveModuleState(getDriveMotorVelocity(), getWheelAngle());
     }
@@ -228,16 +214,17 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
                 / swerveConstants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * 12.0);
 
         if (RobotBase.isReal()) {
-            this.turnPidOutput = steerPidController.calculate(getWheelAngle().getRadians(),
+            this.turnFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians(),
                     state.angle.getRadians());
 
-            steerMotor.setVoltage(turnPidOutput);
+            steerMotor.setVoltage(turnFeedbackVoltage);
         } else {
             simDriveEncoderVelocity = state.speedMetersPerSecond;
             simDriveEncoderPosition += state.speedMetersPerSecond * 0.020; // 20ms loop rate
 
             simCurrentAngle = state.angle.getRadians();
-            steerCanCoder.setPosition(simCurrentAngle);
+
+            steerCanCoder.getSimState().setRawPosition(simCurrentAngle);
         }
     }
 
@@ -245,17 +232,17 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     public void setStateClosedLoop(SwerveModuleState state) {
         state = SwerveModuleState.optimize(state, getWheelAngle());
 
-        this.drivePidOutput = drivePIDController.calculate(driveEncoder.getVelocity(),
+        this.driveFeedbackVoltage = drivePidController.calculate(driveEncoder.getVelocity(),
                 state.speedMetersPerSecond);
-        this.driveFeedforwardOutput = driveFeedforward.calculate(state.speedMetersPerSecond);
+        this.driveFeedforwardVoltage = driveFeedforward.calculate(state.speedMetersPerSecond);
 
-        driveMotor.setVoltage(drivePidOutput + driveFeedforwardOutput);
+        driveMotor.setVoltage(driveFeedbackVoltage + driveFeedforwardVoltage);
 
         if (RobotBase.isReal()) {
-            this.turnPidOutput = steerPidController.calculate(getWheelAngle().getRadians(),
+            this.turnFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians(),
                     state.angle.getRadians());
 
-            steerMotor.setVoltage(turnPidOutput);
+            steerMotor.setVoltage(turnFeedbackVoltage);
         } else {
             simDriveEncoderVelocity = state.speedMetersPerSecond;
             double distancePer20Ms = state.speedMetersPerSecond / 50.0;
