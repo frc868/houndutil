@@ -31,6 +31,8 @@ public interface BaseSwerveDrive {
 
     public SwerveModuleState[] getModuleStates();
 
+    public ChassisSpeeds getChassisSpeeds();
+
     public SwerveDrivePoseEstimator getPoseEstimator();
 
     public void updatePoseEstimator();
