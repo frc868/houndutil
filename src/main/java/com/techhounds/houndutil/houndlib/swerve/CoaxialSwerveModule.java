@@ -25,10 +25,10 @@ public interface CoaxialSwerveModule {
         public double MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
 
         public double ENCODER_ROTATIONS_TO_METERS;
-        public double STEER_ENCODER_ROTATIONS_TO_METERS;
+        public double STEER_ENCODER_ROTATIONS_TO_RADIANS;
 
-        public double DRIVE_CURRENT_LIMIT;
-        public double STEER_CURRENT_LIMIT;
+        public int DRIVE_CURRENT_LIMIT;
+        public int STEER_CURRENT_LIMIT;
     }
 
     public double getDriveMotorPosition();
