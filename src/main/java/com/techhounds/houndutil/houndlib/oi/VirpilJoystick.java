@@ -7,17 +7,19 @@ import edu.wpi.first.wpilibj.event.EventLoop;
 public class VirpilJoystick extends GenericHID {
     public enum Button {
         kRedButton(1),
-        kBlackThumbButton(1),
-        kPinkieButton(1),
-        kTriggerSoftPress(1),
-        kTriggerHardPress(1),
-        kStick(1),
-        kBottomHat(1),
-        kCenterBottomHat(1),
-        kCenterTopHat(1),
-        kTopRightHat(1),
-        kFlipTriggerOut(1),
-        kFlipTriggerIn(1);
+        kBlackThumbButton(2),
+        kPinkieButton(3),
+        kTriggerSoftPress(4),
+        kTriggerHardPress(5),
+        kFlipTriggerOut(6),
+        kFlipTriggerIn(7),
+        kStick(8),
+        kBottomHat(9),
+        kCenterBottomHat(10),
+        kCenterTopHat(11),
+        kTopRightHat(12),
+        kDialSoftPress(13),
+        kDialHardPress(14);
 
         public final int value;
 
@@ -130,6 +132,7 @@ public class VirpilJoystick extends GenericHID {
     public BooleanEvent pinkieButton(EventLoop loop) {
         return new BooleanEvent(loop, this::getPinkieButton);
     }
+
     //
 
     public boolean getTriggerSoftPress() {
@@ -164,6 +167,42 @@ public class VirpilJoystick extends GenericHID {
 
     public BooleanEvent triggerHardPress(EventLoop loop) {
         return new BooleanEvent(loop, this::getTriggerHardPress);
+    }
+
+    //
+
+    public boolean getFlipTriggerOut() {
+        return getRawButton(Button.kFlipTriggerOut.value);
+    }
+
+    public boolean getFlipTriggerOutPressed() {
+        return getRawButtonPressed(Button.kFlipTriggerOut.value);
+    }
+
+    public boolean getFlipTriggerOutReleased() {
+        return getRawButtonReleased(Button.kFlipTriggerOut.value);
+    }
+
+    public BooleanEvent flipTriggerOut(EventLoop loop) {
+        return new BooleanEvent(loop, this::getFlipTriggerOut);
+    }
+
+    //
+
+    public boolean getFlipTriggerIn() {
+        return getRawButton(Button.kFlipTriggerIn.value);
+    }
+
+    public boolean getFlipTriggerInPressed() {
+        return getRawButtonPressed(Button.kFlipTriggerIn.value);
+    }
+
+    public boolean getFlipTriggerInReleased() {
+        return getRawButtonReleased(Button.kFlipTriggerIn.value);
+    }
+
+    public BooleanEvent flipTriggerIn(EventLoop loop) {
+        return new BooleanEvent(loop, this::getFlipTriggerIn);
     }
 
     //
@@ -255,41 +294,6 @@ public class VirpilJoystick extends GenericHID {
     public BooleanEvent topRightHatButton(EventLoop loop) {
         return new BooleanEvent(loop, this::getTopRightHatButton);
     }
-    //
-
-    public boolean getFlipTriggerOut() {
-        return getRawButton(Button.kFlipTriggerOut.value);
-    }
-
-    public boolean getFlipTriggerOutPressed() {
-        return getRawButtonPressed(Button.kFlipTriggerOut.value);
-    }
-
-    public boolean getFlipTriggerOutReleased() {
-        return getRawButtonReleased(Button.kFlipTriggerOut.value);
-    }
-
-    public BooleanEvent flipTriggerOut(EventLoop loop) {
-        return new BooleanEvent(loop, this::getFlipTriggerOut);
-    }
-
-    //
-
-    public boolean getFlipTriggerIn() {
-        return getRawButton(Button.kFlipTriggerIn.value);
-    }
-
-    public boolean getFlipTriggerInPressed() {
-        return getRawButtonPressed(Button.kFlipTriggerIn.value);
-    }
-
-    public boolean getFlipTriggerInReleased() {
-        return getRawButtonReleased(Button.kFlipTriggerIn.value);
-    }
-
-    public BooleanEvent flipTriggerIn(EventLoop loop) {
-        return new BooleanEvent(loop, this::getFlipTriggerIn);
-    }
 
     //
 
@@ -307,5 +311,41 @@ public class VirpilJoystick extends GenericHID {
 
     public int getTopRightHat() {
         return getPOV(HAT.kTopRight.value);
+    }
+
+    //
+
+    public boolean getDialSoftPress() {
+        return getRawButton(Button.kDialSoftPress.value);
+    }
+
+    public boolean getDialSoftPressPressed() {
+        return getRawButtonPressed(Button.kDialSoftPress.value);
+    }
+
+    public boolean getDialSoftPressReleased() {
+        return getRawButtonReleased(Button.kDialSoftPress.value);
+    }
+
+    public BooleanEvent dialSoftPress(EventLoop loop) {
+        return new BooleanEvent(loop, this::getDialSoftPress);
+    }
+
+    //
+
+    public boolean getDialHardPress() {
+        return getRawButton(Button.kDialHardPress.value);
+    }
+
+    public boolean getDialHardPressPressed() {
+        return getRawButtonPressed(Button.kDialHardPress.value);
+    }
+
+    public boolean getDialHardPressReleased() {
+        return getRawButtonReleased(Button.kDialHardPress.value);
+    }
+
+    public BooleanEvent dialHardPress(EventLoop loop) {
+        return new BooleanEvent(loop, this::getDialHardPress);
     }
 }

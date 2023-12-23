@@ -81,6 +81,22 @@ public class CommandVirpilJoystick extends CommandGenericHID {
         return joystick.triggerHardPress(loop).castTo(Trigger::new);
     }
 
+    public Trigger flipTriggerOut() {
+        return flipTriggerOut(CommandScheduler.getInstance().getDefaultButtonLoop());
+    }
+
+    public Trigger flipTriggerOut(EventLoop loop) {
+        return joystick.flipTriggerOut(loop).castTo(Trigger::new);
+    }
+
+    public Trigger flipTriggerIn() {
+        return flipTriggerIn(CommandScheduler.getInstance().getDefaultButtonLoop());
+    }
+
+    public Trigger flipTriggerIn(EventLoop loop) {
+        return joystick.flipTriggerIn(loop).castTo(Trigger::new);
+    }
+
     public Trigger stickButton() {
         return stickButton(CommandScheduler.getInstance().getDefaultButtonLoop());
     }
@@ -119,22 +135,6 @@ public class CommandVirpilJoystick extends CommandGenericHID {
 
     public Trigger topRightHatButton(EventLoop loop) {
         return joystick.topRightHatButton(loop).castTo(Trigger::new);
-    }
-
-    public Trigger flipTriggerOut() {
-        return flipTriggerOut(CommandScheduler.getInstance().getDefaultButtonLoop());
-    }
-
-    public Trigger flipTriggerOut(EventLoop loop) {
-        return joystick.flipTriggerOut(loop).castTo(Trigger::new);
-    }
-
-    public Trigger flipTriggerIn() {
-        return flipTriggerIn(CommandScheduler.getInstance().getDefaultButtonLoop());
-    }
-
-    public Trigger flipTriggerIn(EventLoop loop) {
-        return joystick.flipTriggerIn(loop).castTo(Trigger::new);
     }
 
     public Trigger pov(int pov, int angle) {
