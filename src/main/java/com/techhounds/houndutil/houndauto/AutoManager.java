@@ -3,7 +3,6 @@ package com.techhounds.houndutil.houndauto;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
-import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -31,12 +30,10 @@ public class AutoManager {
     private AutoRoutine lastRoutine;
     private SendableChooser<AutoRoutine> chooser = new SendableChooser<AutoRoutine>();
     private Field2d field = new Field2d();
-    private Command scheduledCommand;
+    private Command baseCommand;
+    private Command currentCommand;
     private Consumer<Pose2d> resetOdometryConsumer;
     private HashMap<String, Command> eventMap = new HashMap<String, Command>();
-
-    private Command currentCommand;
-    private AutoPath currentAutoPath;
 
     private Timer timer = new Timer();
 
@@ -46,7 +43,8 @@ public class AutoManager {
      * the chooser.
      */
     private AutoManager() {
-        lastRoutine = chooser.getSelected();
+        // lastRoutine = chooser.getSelected();
+        chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("Waiting...")));
         setupShuffleboardTab();
     }
 
@@ -104,71 +102,44 @@ public class AutoManager {
      * Create a Shuffleboard tab with the field and chooser objects.
      */
     public void setupShuffleboardTab() {
-        LoggingManager.getInstance().addGroup("Autonomous",
+        LoggingManager.getInstance().addGroup("autonomous",
                 new LogGroup(
                         new DoubleLogItem("autoTimer", timer::get, LogType.NT),
                         new SendableLogger("field", field),
-                        new SendableLogger("chooser", chooser),
-                        new SendableLogger("generateRoute",
-                                Commands.runOnce(this::generateSelectedRoutine)
-                                        .withName("Generate Routine")
-                                        .ignoringDisable(true))));
-    }
-
-    public void generateSelectedRoutine() {
-        AutoRoutine selectedRoutine = getSelectedRoutine();
-        if (resetOdometryConsumer != null) {
-            try {
-                resetOdometryConsumer.accept(selectedRoutine.getInitialPosition());
-            } catch (Exception e) {
-                DriverStation.reportError("Error resetting odometry: " + e.getMessage(), true);
-            }
-
-            Optional<AutoPath> autoPathOpt = selectedRoutine.getAutoPath();
-            if (autoPathOpt.isPresent()) {
-                currentAutoPath = autoPathOpt.orElseThrow();
-                try {
-                    currentCommand = selectedRoutine.getCommand(currentAutoPath);
-                } catch (Exception e) {
-                    DriverStation.reportError(
-                            "[houndauto] Failure creating autonomous command! This is likely due to a configuration error. "
-                                    + e.getMessage(),
-                            true);
-                    return;
-                }
-                displayAutoPath(currentAutoPath);
-            }
-        }
+                        new SendableLogger("chooser", chooser)));
     }
 
     /**
      * Updates the Shuffleboard visualization with the new selected auton path. This
      * should be put in {@code disabledPeriodic()}.
      */
-    public void periodicUpdate(boolean ignoreLastTrajCheck) {
-        if (lastRoutine != getSelectedRoutine()) {
-            lastRoutine = getSelectedRoutine();
+    public void periodicUpdate() {
+        AutoRoutine selectedRoutine = getSelectedRoutine();
+        if (getSelectedRoutine() != lastRoutine) {
+            if (resetOdometryConsumer != null) {
+                resetOdometryConsumer.accept(selectedRoutine.getInitialPose());
+            }
+            if (selectedRoutine.getPathPlannerPaths() != null)
+                displayPaths(selectedRoutine.getPathPlannerPaths());
+            lastRoutine = selectedRoutine;
         }
     }
 
     /**
      * Display the selected routine's trajectories on the field object.
      */
-    public void displayAutoPath(AutoPath autoPath) {
-        if (getSelectedRoutine() != null) {
-            List<PathPlannerPath> paths = autoPath.getPaths();
+    public void displayPaths(List<PathPlannerPath> paths) {
+        ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
+        for (PathPlannerPath path : paths) {
+            PathPlannerTrajectory trajectory = path.getTrajectory(new ChassisSpeeds(),
+                    path.getStartingDifferentialPose().getRotation());
 
-            ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
-            for (PathPlannerPath path : paths) {
-                PathPlannerTrajectory trajectory = new PathPlannerTrajectory(path, new ChassisSpeeds());
-
-                poses.addAll(trajectory.getStates().stream()
-                        .map((state) -> new Pose2d(state.positionMeters, state.targetHolonomicRotation))
-                        .collect(Collectors.toList()));
-            }
-
-            field.getObject("Autonomous Routine").setPoses(poses);
+            poses.addAll(trajectory.getStates().stream()
+                    .map((state) -> new Pose2d(state.positionMeters, state.targetHolonomicRotation))
+                    .collect(Collectors.toList()));
         }
+
+        field.getObject("trajectory").setPoses(poses);
     }
 
     /**
@@ -184,19 +155,21 @@ public class AutoManager {
         if (this.getSelectedRoutine() == null) {
             DriverStation.reportError("[houndauto] An auto routine must be chosen.", false);
         } else {
-
             // the line after this makes the autoroutine command a composition, and
             // commands that are in a composition cannot be recomposed, which is what this
             // would do if auto is run multiple times. this fixes it by removing the
             // composition from the scheduler.
-            CommandScheduler.getInstance().removeComposedCommand(scheduledCommand);
+            CommandScheduler.getInstance().removeComposedCommand(baseCommand);
+
+            baseCommand = getSelectedRoutine().getCommand();
 
             timer.reset();
             timer.start();
-            Command toRun = currentCommand
-                    .beforeStarting(() -> resetOdometryConsumer.accept(getSelectedRoutine().getInitialPosition()));
-            toRun.schedule();
-            new Trigger(toRun::isFinished).onTrue(Commands.runOnce(timer::stop).ignoringDisable(true));
+            currentCommand = baseCommand
+                    .beforeStarting(() -> resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose()))
+                    .withName("auto");
+            currentCommand.schedule();
+            new Trigger(currentCommand::isFinished).onTrue(Commands.runOnce(timer::stop).ignoringDisable(true));
         }
     }
 
@@ -205,8 +178,8 @@ public class AutoManager {
      */
     public void endRoutine() {
         timer.stop();
-        if (scheduledCommand != null) {
-            scheduledCommand.cancel();
+        if (currentCommand != null) {
+            currentCommand.cancel();
         }
     }
 
