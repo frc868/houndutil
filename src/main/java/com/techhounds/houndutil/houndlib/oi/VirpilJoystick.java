@@ -31,9 +31,10 @@ public class VirpilJoystick extends GenericHID {
     public enum Axis {
         kX(0),
         kY(1),
-        kZ(2),
-        kTwist(3),
-        kLever(4);
+        kTwist(2),
+        kStickX(3),
+        kStickY(4),
+        kLever(5);
 
         public final int value;
 
@@ -67,12 +68,16 @@ public class VirpilJoystick extends GenericHID {
         return getRawAxis(Axis.kY.value);
     }
 
-    public double getZ() {
-        return getRawAxis(Axis.kZ.value);
-    }
-
     public double getTwist() {
         return getRawAxis(Axis.kTwist.value);
+    }
+
+    public double getStickX() {
+        return getRawAxis(Axis.kStickX.value);
+    }
+
+    public double getStickY() {
+        return getRawAxis(Axis.kStickY.value);
     }
 
     public double getLever() {

@@ -29,12 +29,16 @@ public class CommandVirpilJoystick extends CommandGenericHID {
         return joystick.getY();
     }
 
-    public double getZ() {
-        return joystick.getZ();
-    }
-
     public double getTwist() {
         return joystick.getTwist();
+    }
+
+    public double getStickX() {
+        return joystick.getStickX();
+    }
+
+    public double getStickY() {
+        return joystick.getStickY();
     }
 
     public double getLever() {
