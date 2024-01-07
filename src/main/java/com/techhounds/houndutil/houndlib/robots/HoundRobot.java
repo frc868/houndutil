@@ -49,7 +49,7 @@ public class HoundRobot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
-        AutoManager.getInstance().periodicUpdate(false);
+        AutoManager.getInstance().periodicUpdate();
     }
 
     @Override
