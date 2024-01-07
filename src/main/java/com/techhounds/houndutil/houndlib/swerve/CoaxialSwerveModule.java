@@ -5,6 +5,7 @@ import com.techhounds.houndutil.houndlib.MotorHoldMode;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.DCMotor;
 
 public interface CoaxialSwerveModule {
     public static class SwerveConstants {
@@ -19,16 +20,24 @@ public interface CoaxialSwerveModule {
         public double STEER_kI;
         public double STEER_kD;
 
+        public double DRIVE_GEARING;
+        public double STEER_GEARING;
+        public double DRIVE_ENCODER_ROTATIONS_TO_METERS;
+        public double STEER_ENCODER_ROTATIONS_TO_RADIANS;
+        public double WHEEL_CIRCUMFERENCE;
+
         public double MAX_DRIVING_VELOCITY_METERS_PER_SECOND;
         public double MAX_DRIVING_ACCELERATION_METERS_PER_SECOND_SQUARED;
         public double MAX_STEER_VELOCITY_RADIANS_PER_SECOND;
         public double MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
 
-        public double ENCODER_ROTATIONS_TO_METERS;
-        public double STEER_ENCODER_ROTATIONS_TO_RADIANS;
-
         public int DRIVE_CURRENT_LIMIT;
         public int STEER_CURRENT_LIMIT;
+
+        public DCMotor DRIVE_GEARBOX_REPR;
+        public DCMotor STEER_GEARBOX_REPR;
+        public double DRIVE_MOI;
+        public double STEER_MOI;
     }
 
     public double getDriveMotorPosition();
