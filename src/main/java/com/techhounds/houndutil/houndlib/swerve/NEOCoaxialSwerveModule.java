@@ -9,7 +9,7 @@ import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
-import com.techhounds.houndutil.houndlib.SparkMaxConfigurator;
+import com.techhounds.houndutil.houndlib.SparkConfigurator;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
@@ -113,7 +113,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
             SwerveConstants swerveConstants) {
         this.SWERVE_CONSTANTS = swerveConstants;
 
-        driveMotor = SparkMaxConfigurator.create(
+        driveMotor = SparkConfigurator.createSparkMax(
                 driveMotorChannel, MotorType.kBrushless, driveMotorInverted,
                 (s) -> s.setIdleMode(IdleMode.kBrake),
                 (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT),
@@ -123,7 +123,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
 
         driveEncoder = driveMotor.getEncoder();
 
-        steerMotor = SparkMaxConfigurator.create(
+        steerMotor = SparkConfigurator.createSparkMax(
                 turnMotorChannel, MotorType.kBrushless, turnMotorInverted,
                 (s) -> s.setIdleMode(IdleMode.kBrake),
                 (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT),
