@@ -62,15 +62,17 @@ public interface BaseSwerveDrive {
 
     public Command controlledRotateCommand(double angle, DriveMode driveMode);
 
+    public Command disableControlledRotateCommand();
+
     public Command wheelLockCommand();
 
     public Command turnWheelsToAngleCommand(double angle);
 
     public Command driveToPoseCommand(Pose2d pose);
 
-    public Command pathFollowingCommand(PathPlannerPath path);
+    public Command followPathCommand(PathPlannerPath path);
 
-    public Command driveDeltaPathFollowingCommand(Transform2d delta, PathConstraints constraints);
+    public Command driveDeltaCommand(Transform2d delta, PathConstraints constraints);
 
     public Command setDriveModeCommand(DriveMode driveMode);
 
