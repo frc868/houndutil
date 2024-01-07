@@ -29,6 +29,15 @@ import edu.wpi.first.wpilibj.RobotBase;
 
 @LoggedObject
 public class AprilTagPhotonCamera {
+    public static class PhotonCameraConstants {
+        public int WIDTH;
+        public int HEIGHT;
+        public double FOV;
+        public double FPS;
+        public double AVG_LATENCY;
+        public double STDDEV_LATENCY;
+    }
+
     private String name;
     private PhotonCamera photonCamera;
     private PhotonCameraSim cameraSim;
@@ -44,7 +53,8 @@ public class AprilTagPhotonCamera {
     @Log
     private int targetCount = 0;
 
-    public AprilTagPhotonCamera(String name, Transform3d robotToCam) {
+    public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
+            double avgErrorPx, double stdDevErrorPx) {
         this.name = name;
         this.robotToCam = robotToCam;
 
@@ -55,11 +65,12 @@ public class AprilTagPhotonCamera {
 
         if (RobotBase.isSimulation()) {
             var cameraProp = new SimCameraProperties();
-            cameraProp.setCalibration(1600, 1200, Rotation2d.fromDegrees(95.39));
-            cameraProp.setCalibError(0.64, 0.22);
-            cameraProp.setFPS(25);
-            cameraProp.setAvgLatencyMs(50);
-            cameraProp.setLatencyStdDevMs(15);
+            cameraProp.setCalibration(constants.WIDTH, constants.HEIGHT,
+                    Rotation2d.fromDegrees(constants.FOV));
+            cameraProp.setCalibError(avgErrorPx, stdDevErrorPx);
+            cameraProp.setFPS(constants.FPS);
+            cameraProp.setAvgLatencyMs(constants.AVG_LATENCY);
+            cameraProp.setLatencyStdDevMs(constants.STDDEV_LATENCY);
             cameraSim = new PhotonCameraSim(photonCamera, cameraProp);
 
             cameraSim.enableDrawWireframe(true);
