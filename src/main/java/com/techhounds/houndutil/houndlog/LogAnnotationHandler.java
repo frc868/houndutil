@@ -14,7 +14,7 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxAbsoluteEncoder;
+import com.revrobotics.SparkAbsoluteEncoder;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
@@ -59,6 +59,7 @@ import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
 import static java.util.Map.entry;
@@ -307,10 +308,10 @@ public class LogAnnotationHandler {
                     entry(CANcoder.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANcoderLogItems((CANcoder) valueSupplier.get()))),
-                    entry(SparkMaxAbsoluteEncoder.class,
+                    entry(SparkAbsoluteEncoder.class,
                             () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildSparkMaxAbsoluteEncoderLogItems(
-                                            (SparkMaxAbsoluteEncoder) valueSupplier.get()))),
+                                    LogProfileBuilder.buildSparkAbsoluteEncoderLogItems(
+                                            (SparkAbsoluteEncoder) valueSupplier.get()))),
                     entry(AHRS.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildNavXLogItems((AHRS) valueSupplier.get()))),
@@ -334,6 +335,10 @@ public class LogAnnotationHandler {
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildProfiledPIDControllerLogItems(
                                             (ProfiledPIDController) valueSupplier.get()))),
+                    entry(DCMotorSim.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildDCMotorSimLogItems(
+                                            (DCMotorSim) valueSupplier.get()))),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
                                     () -> ((DigitalInput) valueSupplier.get()).get())),
