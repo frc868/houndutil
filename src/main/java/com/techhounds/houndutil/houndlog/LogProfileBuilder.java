@@ -7,7 +7,8 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkMaxAbsoluteEncoder;
+import com.revrobotics.CANSparkBase;
+import com.revrobotics.SparkAbsoluteEncoder;
 
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
@@ -16,6 +17,8 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+
 import com.techhounds.houndutil.houndlog.enums.LogType;
 import com.techhounds.houndutil.houndlog.logitems.AbstractLogItem;
 import com.techhounds.houndutil.houndlog.logitems.BooleanArrayLogItem;
@@ -190,7 +193,7 @@ public class LogProfileBuilder {
                 new DoubleLogItem("outputCurrent", obj::getOutputCurrent, LogType.NT),
                 new IntegerLogItem("deviceId", obj::getDeviceId, LogType.DATALOG),
                 new StringLogItem("firmwareVersion", obj::getFirmwareString, LogType.DATALOG),
-                new BooleanLogItem("brakeMode", () -> obj.getIdleMode() == CANSparkMax.IdleMode.kBrake, LogType.NT),
+                new BooleanLogItem("brakeMode", () -> obj.getIdleMode() == CANSparkBase.IdleMode.kBrake, LogType.NT),
                 new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
                 new BooleanLogItem("isFollower", obj::isFollower, LogType.DATALOG),
                 new BooleanLogItem("faults/brownout",
@@ -279,7 +282,7 @@ public class LogProfileBuilder {
      * @param obj the CANSparkMax object to use
      * @return the array of LogItems
      */
-    public static AbstractLogItem<?>[] buildSparkMaxAbsoluteEncoderLogItems(SparkMaxAbsoluteEncoder obj) {
+    public static AbstractLogItem<?>[] buildSparkAbsoluteEncoderLogItems(SparkAbsoluteEncoder obj) {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("position", obj::getPosition, LogType.NT),
                 new DoubleLogItem("velocity", obj::getVelocity, LogType.NT),
@@ -709,6 +712,16 @@ public class LogProfileBuilder {
                         getConstraints(obj).maxAcceleration,
                         (d) -> obj.setConstraints(
                                 new TrapezoidProfile.Constraints(getConstraints(obj).maxVelocity, d))),
+        };
+    }
+
+    public static AbstractLogItem<?>[] buildDCMotorSimLogItems(DCMotorSim obj) {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("angularPositionRad", obj::getAngularPositionRad, LogType.NT),
+                new DoubleLogItem("angularPositionRotations", obj::getAngularPositionRotations, LogType.NT),
+                new DoubleLogItem("angularVelocityRadPerSec", obj::getAngularVelocityRadPerSec, LogType.NT),
+                new DoubleLogItem("angularVelocityRPM", obj::getAngularVelocityRPM, LogType.NT),
+                new DoubleLogItem("currentDrawAmps", obj::getCurrentDrawAmps, LogType.NT),
         };
     }
 }
