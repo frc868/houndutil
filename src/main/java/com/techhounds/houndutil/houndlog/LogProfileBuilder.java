@@ -46,6 +46,7 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildTalonFXLogItems(TalonFX obj) {
+
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
                 new DoubleLogItem("velocity", () -> obj.getVelocity().getValue(), LogType.NT),
@@ -56,6 +57,9 @@ public class LogProfileBuilder {
                 new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(), LogType.NT),
                 new DoubleLogItem("outputCurrent", () -> obj.getTorqueCurrent().getValue(), LogType.NT),
                 new StringLogItem("bridgeOutput", () -> obj.getBridgeOutput().getValue().toString(), LogType.NT),
+                new DoubleLogItem("closedLoopReference", () -> obj.getClosedLoopReference().getValue(), LogType.NT),
+                new DoubleLogItem("closedLoopOutput", () -> obj.getClosedLoopOutput().getValue(), LogType.NT),
+                new DoubleLogItem("closedLoopError", () -> obj.getClosedLoopError().getValue(), LogType.NT),
                 // new BooleanLogItem("faults/bootDuringEnable", () ->
                 // obj.getFault_BootDuringEnable().getValue(),
                 // LogType.DATALOG),
