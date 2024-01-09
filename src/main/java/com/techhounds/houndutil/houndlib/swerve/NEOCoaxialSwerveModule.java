@@ -191,6 +191,11 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     }
 
     @Override
+    public double getDriveMotorVoltage() {
+        return driveMotor.getAppliedOutput();
+    }
+
+    @Override
     public Rotation2d getWheelAngle() {
         if (RobotBase.isReal())
             return new Rotation2d(
@@ -274,9 +279,5 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public void setStateClosedLoop(SwerveModuleState state) {
         setStateInternal(state, false);
-    }
-
-    public double getDriveVoltage() {
-        return driveMotor.getAppliedOutput();
     }
 }
