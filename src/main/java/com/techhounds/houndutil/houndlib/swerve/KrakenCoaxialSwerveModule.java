@@ -5,6 +5,9 @@ import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
+import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
+import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -17,12 +20,10 @@ import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
 import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
@@ -45,8 +46,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private PIDController drivePidController;
 
     /** The PID controller that controls the steer motor's position. */
-    @Log
-    private ProfiledPIDController steerPidController;
+    // @Log
+    // private ProfiledPIDController steerPidController;
 
     /** The feedforward controller that controls the drive motor's velocity. */
     @Log
@@ -56,8 +57,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private DCMotorSim driveMotorSim;
     @Log
     private DCMotorSim steerMotorSim;
-    @Log
-    private SwerveModulePosition lastPosition = getPosition();
 
     @Log(groups = "control")
     private double driveFeedbackVoltage = 0.0;
@@ -66,27 +65,11 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log(groups = "control")
     private double turnFeedbackVoltage = 0.0;
 
-    @Log
-    private double simDriveEncoderPosition = 0.0;
-    @Log
-    private double simDriveEncoderVelocity = 0.0;
-    @Log
-    private double simCurrentAngle = 0.0;
-
     private final SwerveConstants SWERVE_CONSTANTS;
 
-    /**
-     * The offset of the CANCoder from the zero point, in radians. This will be
-     * added to any measurements obtained from the CANCoder.
-     */
-    @Log
-    private double turnCanCoderOffset;
-
-    @Log
-    private boolean isUsingAbsoluteEncoder;
-
-    @Log
-    private double accel = 0;
+    private final VoltageOut driveVoltageRequest = new VoltageOut(0);
+    private final MotionMagicVelocityVoltage driveVelocityRequest = new MotionMagicVelocityVoltage(0);
+    private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0);
 
     /**
      * Initalizes a SwerveModule.
@@ -120,14 +103,27 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         driveConfig.MotorOutput.Inverted = driveMotorInverted ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
         driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
-        driveConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
-        driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        driveConfig.Feedback.SensorToMechanismRatio = SWERVE_CONSTANTS.DRIVE_GEARING;
+        driveConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
+        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
+        driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
+        driveConfig.Slot0.kS = SWERVE_CONSTANTS.DRIVE_kS;
+        driveConfig.Slot0.kV = SWERVE_CONSTANTS.DRIVE_kV;
+        driveConfig.Slot0.kP = SWERVE_CONSTANTS.DRIVE_kP;
+        driveConfig.Slot0.kI = SWERVE_CONSTANTS.DRIVE_kI;
+        driveConfig.Slot0.kD = SWERVE_CONSTANTS.DRIVE_kD;
+        driveConfig.MotionMagic.MotionMagicCruiseVelocity = SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND
+                / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+        driveConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_DRIVING_ACCELERATION_METERS_PER_SECOND_SQUARED
+                / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
         driveConfigurator.apply(driveConfig);
 
         steerCanCoder = new CANcoder(canCoderChannel);
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        config.MagnetOffset = steerCanCoderOffset;
         steerCanCoder.getConfigurator().apply(config);
 
         steerMotor = new TalonFX(steerMotorChannel, canBus);
@@ -140,19 +136,25 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         steerConfig.Feedback.SensorToMechanismRatio = 1.0;
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
-        steerConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
-        steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        steerConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
+        steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        steerConfig.CurrentLimits.SupplyCurrentThreshold = 300;
+        steerConfig.CurrentLimits.SupplyTimeThreshold = 1;
+
+        steerConfig.Slot0.kP = SWERVE_CONSTANTS.STEER_kP;
+        steerConfig.Slot0.kI = SWERVE_CONSTANTS.STEER_kI;
+        steerConfig.Slot0.kD = SWERVE_CONSTANTS.STEER_kD;
+        steerConfig.MotionMagic.MotionMagicCruiseVelocity = SWERVE_CONSTANTS.MAX_STEER_VELOCITY_RADIANS_PER_SECOND
+                / (2 * Math.PI);
+        steerConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED
+                / (2 * Math.PI);
+        steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
         steerConfigurator.apply(steerConfig);
 
         drivePidController = new PIDController(SWERVE_CONSTANTS.DRIVE_kP,
                 SWERVE_CONSTANTS.DRIVE_kI,
                 SWERVE_CONSTANTS.DRIVE_kD);
-        steerPidController = new ProfiledPIDController(
-                SWERVE_CONSTANTS.STEER_kP, SWERVE_CONSTANTS.STEER_kI,
-                SWERVE_CONSTANTS.STEER_kD,
-                new TrapezoidProfile.Constraints(
-                        SWERVE_CONSTANTS.MAX_STEER_VELOCITY_RADIANS_PER_SECOND,
-                        SWERVE_CONSTANTS.MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED));
+
         driveFeedforward = new SimpleMotorFeedforward(SWERVE_CONSTANTS.DRIVE_kS,
                 SWERVE_CONSTANTS.DRIVE_kV,
                 SWERVE_CONSTANTS.DRIVE_kA);
@@ -164,41 +166,33 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 SWERVE_CONSTANTS.STEER_GEARING,
                 SWERVE_CONSTANTS.STEER_MOI);
 
-        steerPidController.enableContinuousInput(0, 2 * Math.PI);
+        // steerPidController.enableContinuousInput(0, 2 * Math.PI);
 
-        if (RobotBase.isSimulation()) {
-            this.simDriveEncoderPosition = 0.0;
-            this.simDriveEncoderVelocity = 0.0;
-            this.simCurrentAngle = 0.0;
-        }
+        // if (RobotBase.isSimulation()) {
+        // this.simDriveEncoderPosition = 0.0;
+        // this.simDriveEncoderVelocity = 0.0;
+        // this.simCurrentAngle = 0.0;
+        // }
     }
 
     @Override
     public double getDriveMotorPosition() {
-        if (RobotBase.isReal())
-            return driveMotor.getPosition().getValue();
-        else
-            return simDriveEncoderPosition;
+        return driveMotor.getPosition().getValue() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
     }
 
     @Override
     public double getDriveMotorVelocity() {
-        if (RobotBase.isReal())
-            return driveMotor.getVelocity().getValue();
-        else
-            return simDriveEncoderVelocity;
+        return driveMotor.getVelocity().getValue();
+    }
+
+    @Override
+    public double getDriveMotorVoltage() {
+        return driveMotor.getMotorVoltage().getValue();
     }
 
     @Override
     public Rotation2d getWheelAngle() {
-        if (RobotBase.isReal())
-            return new Rotation2d(
-                    this.isUsingAbsoluteEncoder
-                            ? Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) +
-                                    turnCanCoderOffset
-                            : steerMotor.getPosition().getValue());
-        else
-            return new Rotation2d(simCurrentAngle);
+        return new Rotation2d(Units.rotationsToRadians(steerMotor.getPosition().getValue()));
     }
 
     @Override
@@ -232,7 +226,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     public void setDriveCurrentLimit(int currentLimit) {
         CurrentLimitsConfigs currentConfigs = new CurrentLimitsConfigs();
         driveMotor.getConfigurator().refresh(currentConfigs);
-        currentConfigs.StatorCurrentLimit = currentLimit;
+        currentConfigs.SupplyCurrentLimit = currentLimit;
         currentConfigs.StatorCurrentLimitEnable = true;
         driveMotor.getConfigurator().apply(currentConfigs);
     }
@@ -245,38 +239,29 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     private void setStateInternal(SwerveModuleState state, boolean openLoop) {
         if (openLoop) {
-            driveMotor.setVoltage(state.speedMetersPerSecond
-                    / SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * 12.0);
+            driveMotor.setControl(driveVoltageRequest.withOutput(
+                    state.speedMetersPerSecond / SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * 12.0));
         } else {
-            this.driveFeedbackVoltage = drivePidController.calculate(getDriveMotorVelocity(),
-                    state.speedMetersPerSecond);
-            this.driveFeedforwardVoltage = driveFeedforward.calculate(state.speedMetersPerSecond);
-
-            driveMotor.setVoltage(driveFeedbackVoltage + driveFeedforwardVoltage);
+            driveMotor.setControl(driveVelocityRequest
+                    .withVelocity(state.speedMetersPerSecond / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE));
         }
 
-        this.turnFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians(),
-                state.angle.getRadians());
-
-        steerMotor.setVoltage(turnFeedbackVoltage);
+        steerMotor.setControl(steerPositionRequest.withPosition(state.angle.getRotations()));
 
         if (RobotBase.isSimulation()) {
-            driveMotorSim.setInputVoltage(
-                    driveMotor.getMotorVoltage().getValue() > 12 ? 12 : driveMotor.getMotorVoltage().getValue());
+            driveMotorSim.setInputVoltage(driveMotor.getSimState().getMotorVoltage());
             driveMotorSim.update(0.020);
 
-            simDriveEncoderVelocity = driveMotorSim.getAngularVelocityRPM() / 60.0
-                    * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
-            simDriveEncoderPosition = driveMotorSim.getAngularPositionRotations()
-                    * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+            driveMotor.getSimState()
+                    .setRotorVelocity(driveMotorSim.getAngularVelocityRPM() * SWERVE_CONSTANTS.DRIVE_GEARING / 60.0);
+            driveMotor.getSimState()
+                    .setRawRotorPosition(driveMotorSim.getAngularPositionRotations() * SWERVE_CONSTANTS.DRIVE_GEARING);
 
-            steerMotorSim.setInputVoltage(
-                    steerMotor.getMotorVoltage().getValue() > 12 ? 12 : steerMotor.getMotorVoltage().getValue());
+            steerMotorSim.setInputVoltage(steerMotor.getSimState().getMotorVoltage());
             steerMotorSim.update(0.020);
 
-            simCurrentAngle = steerMotorSim.getAngularPositionRad();
-
-            steerCanCoder.getSimState().setRawPosition(simCurrentAngle);
+            steerMotor.getSimState().setRawRotorPosition(steerMotorSim.getAngularPositionRotations());
+            steerCanCoder.getSimState().setRawPosition(steerMotorSim.getAngularPositionRotations());
         }
     }
 
