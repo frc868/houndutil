@@ -182,7 +182,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public double getDriveMotorVelocity() {
-        return driveMotor.getVelocity().getValue();
+        return driveMotor.getVelocity().getValue() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
     }
 
     @Override

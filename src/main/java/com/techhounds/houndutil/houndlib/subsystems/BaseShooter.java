@@ -9,8 +9,6 @@ public interface BaseShooter {
 
     void setVoltage(double voltage);
 
-    public Command spinAtCurrentVelocityCommand();
-
     public Command spinAtVelocityCommand(Supplier<Double> goalVelocitySupplier);
 
     public Command setOverridenSpeedCommand(Supplier<Double> speed);
