@@ -80,8 +80,10 @@ public class AprilTagPhotonCamera {
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
         PhotonPipelineResult result = photonCamera.getLatestResult();
-        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
-        // result.targets.removeIf((target) -> target.getFiducialId() > 8);
+        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);w
+        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 7);
+        // result.targets.removeIf((target) ->
+        // target.getBestCameraToTarget().getTranslation().getZ() > 1);
         targetCount = result.targets.size();
 
         photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
@@ -92,7 +94,7 @@ public class AprilTagPhotonCamera {
                     robotToCam);
         } else {
             detectedAprilTags = new Pose3d[0];
-            estimatedRobotPose = new Pose3d(-100, -100, 100, new Rotation3d());
+            estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
         }
 
         if (photonEstimatedRobotPose.isPresent())
@@ -128,13 +130,14 @@ public class AprilTagPhotonCamera {
             return estStdDevs;
         avgDist /= numTags;
         // Decrease std devs if multiple targets are visible
-        if (numTags > 1)
-            estStdDevs = multiTagStdDevs;
-        // Increase std devs based on (average) distance
-        if (avgDist > 4 && numTags == 1)
+        if (avgDist > 4)
             estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
-        else
-            estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 5));
+        else {
+            if (numTags > 1)
+                estStdDevs = multiTagStdDevs.times(1 + (avgDist * avgDist / 5));
+            else
+                estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 5));
+        }
 
         return estStdDevs;
     }
