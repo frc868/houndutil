@@ -6,10 +6,8 @@ import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.revrobotics.RelativeEncoder;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
-import com.techhounds.houndutil.houndlib.SparkConfigurator;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
@@ -33,10 +31,6 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log
     private CANSparkMax steerMotor;
 
-    /** The encoder on the motor used for driving. */
-    private RelativeEncoder driveEncoder;
-    /** The encoder on the motor used to control the wheels. */
-    private RelativeEncoder steerEncoder;
     /** The CANCoder used to tell the steer angle of the wheel. */
     @Log
     private CANcoder steerCanCoder;
@@ -57,8 +51,6 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     private DCMotorSim driveMotorSim;
     @Log
     private DCMotorSim steerMotorSim;
-    @Log
-    private SwerveModulePosition lastPosition = getPosition();
 
     @Log(groups = "control")
     private double driveFeedbackVoltage = 0.0;
@@ -94,7 +86,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
      * 
      * @param name                 the name of the module (used for logging)
      * @param driveMotorChannel    the CAN ID of the drive motor
-     * @param turnMotorChannel     the CAN ID of the turning motor
+     * @param steerMotorChannel    the CAN ID of the turning motor
      * @param canCoderChannel      the CAN ID of the CANCoder
      * @param driveMotorInverted   if the drive motor is inverted
      * @param turnMotorInverted    if the turn motor is inverted
@@ -104,7 +96,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
      */
     public NEOCoaxialSwerveModule(
             int driveMotorChannel,
-            int turnMotorChannel,
+            int steerMotorChannel,
             int canCoderChannel,
             boolean driveMotorInverted,
             boolean turnMotorInverted,
@@ -113,38 +105,37 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
             SwerveConstants swerveConstants) {
         this.SWERVE_CONSTANTS = swerveConstants;
 
-        driveMotor = SparkConfigurator.createSparkMax(
-                driveMotorChannel, MotorType.kBrushless, driveMotorInverted,
-                (s) -> s.setIdleMode(IdleMode.kBrake),
-                (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT),
-                (s) -> s.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS),
-                (s) -> s.getEncoder()
-                        .setVelocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS / 60.0));
+        driveMotor = new CANSparkMax(driveMotorChannel, MotorType.kBrushless);
+        driveMotor.restoreFactoryDefaults();
+        driveMotor.setInverted(driveMotorInverted);
+        driveMotor.setIdleMode(IdleMode.kBrake);
+        driveMotor.setSmartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT);
+        driveMotor.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS);
+        driveMotor.getEncoder()
+                .setVelocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS / 60.0);
+        driveMotor.burnFlash();
 
-        driveEncoder = driveMotor.getEncoder();
-
-        steerMotor = SparkConfigurator.createSparkMax(
-                turnMotorChannel, MotorType.kBrushless, turnMotorInverted,
-                (s) -> s.setIdleMode(IdleMode.kBrake),
-                (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT),
-                (s) -> s.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS),
-                (s) -> s.getEncoder()
-                        .setVelocityConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0));
-
-        steerEncoder = steerMotor.getEncoder();
+        steerMotor = new CANSparkMax(steerMotorChannel, MotorType.kBrushless);
+        steerMotor.restoreFactoryDefaults();
+        steerMotor.setInverted(turnMotorInverted);
+        steerMotor.setIdleMode(IdleMode.kBrake);
+        steerMotor.setSmartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT);
+        steerMotor.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS);
+        steerMotor.getEncoder().setVelocityConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0);
+        steerMotor.burnFlash();
 
         steerCanCoder = new CANcoder(canCoderChannel);
 
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
-        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Unsigned_0To1;
+        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
         steerCanCoder.getConfigurator().apply(config);
 
         this.turnCanCoderOffset = turnCanCoderOffset;
         new Thread(() -> {
             try {
                 Thread.sleep(3000);
-                steerEncoder.setPosition(
+                steerMotor.getEncoder().setPosition(
                         Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset);
             } catch (Exception e) {
             }
@@ -177,7 +168,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public double getDriveMotorPosition() {
         if (RobotBase.isReal())
-            return driveEncoder.getPosition();
+            return driveMotor.getEncoder().getPosition();
         else
             return simDriveEncoderPosition;
     }
@@ -185,7 +176,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public double getDriveMotorVelocity() {
         if (RobotBase.isReal())
-            return driveEncoder.getVelocity();
+            return driveMotor.getEncoder().getVelocity();
         else
             return simDriveEncoderVelocity;
     }
@@ -201,7 +192,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
             return new Rotation2d(
                     this.isUsingAbsoluteEncoder
                             ? Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset
-                            : steerEncoder.getPosition());
+                            : steerMotor.getEncoder().getPosition());
         else
             return new Rotation2d(simCurrentAngle);
     }
