@@ -1,5 +1,7 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
+import java.util.Random;
+
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
@@ -60,26 +62,17 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     private double turnFeedbackVoltage = 0.0;
 
     @Log
-    private double simDriveEncoderPosition = 0.0;
-    @Log
     private double simDriveEncoderVelocity = 0.0;
-    @Log
-    private double simCurrentAngle = 0.0;
 
     private final SwerveConstants SWERVE_CONSTANTS;
 
-    /**
-     * The offset of the CANCoder from the zero point, in radians. This will be
-     * added to any measurements obtained from the CANCoder.
-     */
     @Log
-    private double turnCanCoderOffset;
-
-    @Log
-    private boolean isUsingAbsoluteEncoder;
+    private boolean isUsingAbsoluteEncoder = false;
 
     @Log
     private double lastSpeed = 0;
+
+    private Random randomizer = new Random();
 
     /**
      * Initalizes a SwerveModule.
@@ -129,14 +122,16 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        config.MagnetOffset = turnCanCoderOffset;
         steerCanCoder.getConfigurator().apply(config);
 
-        this.turnCanCoderOffset = turnCanCoderOffset;
+        // this.turnCanCoderOffset = turnCanCoderOffset;
+
         new Thread(() -> {
             try {
-                Thread.sleep(3000);
+                Thread.sleep(2000);
                 steerMotor.getEncoder().setPosition(
-                        Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset);
+                        Units.rotationsToRadians(steerCanCoder.getAbsolutePosition().getValue()));
             } catch (Exception e) {
             }
         }).start();
@@ -159,18 +154,15 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
         steerPidController.enableContinuousInput(0, 2 * Math.PI);
 
         if (RobotBase.isSimulation()) {
-            this.simDriveEncoderPosition = 0.0;
+            // simulates different angles on startup
+            steerCanCoder.getSimState().setRawPosition(randomizer.nextDouble() - 0.5);
             this.simDriveEncoderVelocity = 0.0;
-            this.simCurrentAngle = 0.0;
         }
     }
 
     @Override
     public double getDriveMotorPosition() {
-        if (RobotBase.isReal())
-            return driveMotor.getEncoder().getPosition();
-        else
-            return simDriveEncoderPosition;
+        return driveMotor.getEncoder().getPosition();
     }
 
     @Override
@@ -188,13 +180,10 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public Rotation2d getWheelAngle() {
-        if (RobotBase.isReal())
-            return new Rotation2d(
-                    this.isUsingAbsoluteEncoder
-                            ? Units.rotationsToRadians(steerCanCoder.getPosition().getValue()) + turnCanCoderOffset
-                            : steerMotor.getEncoder().getPosition());
-        else
-            return new Rotation2d(simCurrentAngle);
+        return new Rotation2d(
+                this.isUsingAbsoluteEncoder
+                        ? Units.rotationsToRadians(steerCanCoder.getAbsolutePosition().getValue())
+                        : steerMotor.getEncoder().getPosition());
     }
 
     @Override
@@ -250,15 +239,14 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
 
             simDriveEncoderVelocity = driveMotorSim.getAngularVelocityRPM() / 60.0
                     * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
-            simDriveEncoderPosition = driveMotorSim.getAngularPositionRotations()
-                    * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+            driveMotor.getEncoder().setPosition(driveMotorSim.getAngularPositionRotations()
+                    * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE);
 
             steerMotorSim.setInputVoltage(steerMotor.getAppliedOutput() > 12 ? 12 : steerMotor.getAppliedOutput());
             steerMotorSim.update(0.020);
 
-            simCurrentAngle = steerMotorSim.getAngularPositionRad();
-
-            steerCanCoder.getSimState().setRawPosition(simCurrentAngle);
+            steerMotor.getEncoder().setPosition(steerMotorSim.getAngularPositionRad());
+            steerCanCoder.getSimState().setRawPosition(Units.radiansToRotations(steerMotorSim.getAngularPositionRad()));
         }
     }
 
