@@ -13,6 +13,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
@@ -305,6 +306,9 @@ public class LogAnnotationHandler {
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANSparkMaxLogItems((CANSparkMax) valueSupplier.get()))),
+                    entry(CANSparkFlex.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildCANSparkFlexLogItems((CANSparkFlex) valueSupplier.get()))),
                     entry(CANcoder.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANcoderLogItems((CANcoder) valueSupplier.get()))),
