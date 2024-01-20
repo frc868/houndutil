@@ -9,11 +9,13 @@ import java.util.Optional;
 import java.util.function.DoubleConsumer;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix.sensors.CANCoder;
-import com.ctre.phoenix.sensors.Pigeon2;
+import com.ctre.phoenix6.hardware.CANcoder;
+import com.ctre.phoenix6.hardware.Pigeon2;
+import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
+import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
-import com.techhounds.houndutil.houndlib.AdvantageScopeSerializer;
+import com.revrobotics.SparkAbsoluteEncoder;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
@@ -30,19 +32,36 @@ import com.techhounds.houndutil.houndlog.logitems.IntegerArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
+import com.techhounds.houndutil.houndlog.logitems.StructLogItem;
+import com.techhounds.houndutil.houndlog.logitems.StructArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.TunableBoolean;
 import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
+import edu.wpi.first.math.controller.ArmFeedforward;
+import edu.wpi.first.math.controller.ElevatorFeedforward;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation2d;
+import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.geometry.Twist2d;
+import edu.wpi.first.math.geometry.Twist3d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.kinematics.SwerveModulePosition;
+import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
 import static java.util.Map.entry;
@@ -53,15 +72,37 @@ import static java.util.Map.entry;
  * Contains default logging configurations for objects like a PIDController.
  */
 public class LogAnnotationHandler {
-    public static void handleLoggedObject(Object loggedObject) {
+    protected static void handleLoggedObject(Object loggedObject) {
         handleLoggedObject(loggedObject, "", new ArrayList<String>());
     }
 
-    public static void handleLoggedObject(Object loggedObject, String name, ArrayList<String> subkeys) {
+    protected static void handleLoggedObject(Object loggedObject, String name, ArrayList<String> subkeys) {
+        handleLoggedObjectImpl(
+                loggedObject,
+                loggedObject.getClass().getDeclaredFields(),
+                loggedObject.getClass().getDeclaredMethods(),
+                name, subkeys);
+    }
+
+    protected static void handleLoggedClass(Class<?> loggedClass, String name, ArrayList<String> subkeys) {
+        handleLoggedObjectImpl(
+                null,
+                loggedClass.getDeclaredFields(),
+                loggedClass.getDeclaredMethods(),
+                name, subkeys);
+    }
+
+    private static void handleLoggedObjectImpl(Object loggedObject, Field[] fields, Method[] methods, String name,
+            ArrayList<String> subkeys) {
         ArrayList<Logger> loggers = new ArrayList<Logger>();
-        for (Method method : loggedObject.getClass().getDeclaredMethods()) {
+        for (Method method : methods) {
             Log subLogAnnotation = method.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
+                String varName = subLogAnnotation.name().equals("") ? method.getName() : subLogAnnotation.name();
+                // if method is named "getDouble", this would change it to "double"
+                if (varName.startsWith("get")) {
+                    varName = varName.substring(3, 4).toLowerCase() + varName.substring(4);
+                }
                 method.setAccessible(true);
 
                 Supplier<Object> valueSupplier = () -> {
@@ -73,17 +114,18 @@ public class LogAnnotationHandler {
                     }
                 };
 
-                Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
+                Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                 if (optLogger.isPresent()) {
                     loggers.add(optLogger.get());
                 }
             }
         }
 
-        for (Field field : loggedObject.getClass().getDeclaredFields()) {
+        for (Field field : fields) {
             field.setAccessible(true);
             Log subLogAnnotation = field.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
+                String varName = subLogAnnotation.name().equals("") ? field.getName() : subLogAnnotation.name();
                 LoggedObject loggedObjectAnnotation = field.getType().getAnnotation(LoggedObject.class);
                 if (loggedObjectAnnotation != null) {
                     try {
@@ -93,7 +135,7 @@ public class LogAnnotationHandler {
                             updatedSubkeys.add(name);
                         updatedSubkeys.addAll(Arrays.asList(logGroups));
 
-                        handleLoggedObject(field.get(loggedObject), subLogAnnotation.name(), updatedSubkeys);
+                        handleLoggedObject(field.get(loggedObject), varName, updatedSubkeys);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -119,7 +161,7 @@ public class LogAnnotationHandler {
                                 }
                             };
 
-                            TunableDouble logger = new TunableDouble(getName(subLogAnnotation),
+                            TunableDouble logger = new TunableDouble(getName(subLogAnnotation, varName),
                                     (double) valueSupplier.get(), consumer);
                             loggers.add(logger);
                         } else if (value.getClass() == Boolean.class) {
@@ -131,13 +173,13 @@ public class LogAnnotationHandler {
                                 }
                             };
 
-                            TunableBoolean logger = new TunableBoolean(getName(subLogAnnotation),
+                            TunableBoolean logger = new TunableBoolean(getName(subLogAnnotation, varName),
                                     (boolean) valueSupplier.get(), consumer);
                             loggers.add(logger);
                         }
 
                     } else {
-                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation);
+                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                         if (optLogger.isPresent()) {
                             loggers.add(optLogger.get());
                         }
@@ -149,7 +191,8 @@ public class LogAnnotationHandler {
             if (subSendableLogAnnotation != null) {
                 ArrayList<String> nameComponents = new ArrayList<String>();
                 nameComponents.addAll(Arrays.asList(subSendableLogAnnotation.groups()));
-                nameComponents.add(subSendableLogAnnotation.name());
+                String varName = subSendableLogAnnotation.name().equals("") ? field.getName() : subLogAnnotation.name();
+                nameComponents.add(varName);
                 String formattedName = String.join("/", nameComponents);
 
                 try {
@@ -167,10 +210,10 @@ public class LogAnnotationHandler {
                 new LogGroup(loggers.toArray(new Logger[loggers.size()])));
     }
 
-    public static String getName(Log logAnnotation) {
+    public static String getName(Log logAnnotation, String varName) {
         ArrayList<String> nameComponents = new ArrayList<String>();
         nameComponents.addAll(Arrays.asList(logAnnotation.groups()));
-        nameComponents.add(logAnnotation.name());
+        nameComponents.add(varName);
         return String.join("/", nameComponents);
     }
 
@@ -180,10 +223,11 @@ public class LogAnnotationHandler {
      * @param object the object to get the value from
      * @return
      */
-    public static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation) {
+    private static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
+            String varName) {
         try {
             Object value = valueSupplier.get();
-            String name = getName(logAnnotation);
+            String name = getName(logAnnotation, varName);
 
             if (valueSupplier.get() instanceof Supplier) {
                 Map<Class<?>, Supplier<Logger>> supplierClassToLoggerMap = Map.ofEntries(
@@ -257,24 +301,22 @@ public class LogAnnotationHandler {
                     entry(String.class,
                             () -> new StringLogItem(name,
                                     () -> (String) valueSupplier.get(), logAnnotation.logLevel())),
-                    entry(Pose2d.class,
-                            () -> new DoubleArrayLogItem(name,
-                                    () -> AdvantageScopeSerializer.serializePose2d((Pose2d) valueSupplier.get()),
-                                    logAnnotation.logLevel())),
-                    entry(Pose3d.class,
-                            () -> new DoubleArrayLogItem(name,
-                                    () -> AdvantageScopeSerializer.serializePose3d((Pose3d) valueSupplier.get()),
-                                    logAnnotation.logLevel())),
-                    entry(Pose3d[].class,
-                            () -> new DoubleArrayLogItem(name,
-                                    () -> AdvantageScopeSerializer.serializePose3d((Pose3d) valueSupplier.get()),
-                                    logAnnotation.logLevel())),
+                    entry(TalonFX.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildTalonFXLogItems((TalonFX) valueSupplier.get()))),
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANSparkMaxLogItems((CANSparkMax) valueSupplier.get()))),
-                    entry(CANCoder.class,
+                    entry(CANSparkFlex.class,
                             () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildCANCoderLogItems((CANCoder) valueSupplier.get()))),
+                                    LogProfileBuilder.buildCANSparkFlexLogItems((CANSparkFlex) valueSupplier.get()))),
+                    entry(CANcoder.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildCANcoderLogItems((CANcoder) valueSupplier.get()))),
+                    entry(SparkAbsoluteEncoder.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildSparkAbsoluteEncoderLogItems(
+                                            (SparkAbsoluteEncoder) valueSupplier.get()))),
                     entry(AHRS.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildNavXLogItems((AHRS) valueSupplier.get()))),
@@ -298,13 +340,129 @@ public class LogAnnotationHandler {
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildProfiledPIDControllerLogItems(
                                             (ProfiledPIDController) valueSupplier.get()))),
+                    entry(DCMotorSim.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildDCMotorSimLogItems(
+                                            (DCMotorSim) valueSupplier.get()))),
+                    entry(SingleJointedArmSim.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildSingleJointedArmSimLogItems(
+                                            (SingleJointedArmSim) valueSupplier.get()))),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
-                                    () -> ((DigitalInput) valueSupplier.get()).get())));
+                                    () -> ((DigitalInput) valueSupplier.get()).get())),
+                    entry(Pose2d.class,
+                            () -> new StructLogItem<Pose2d>(name, Pose2d.struct, () -> (Pose2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose2d[].class,
+                            () -> new StructArrayLogItem<Pose2d>(name, Pose2d.struct,
+                                    () -> (Pose2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose3d.class,
+                            () -> new StructLogItem<Pose3d>(name, Pose3d.struct, () -> (Pose3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Pose3d[].class,
+                            () -> new StructArrayLogItem<Pose3d>(name, Pose3d.struct,
+                                    () -> (Pose3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation2d.class,
+                            () -> new StructLogItem<Rotation2d>(name, Rotation2d.struct,
+                                    () -> (Rotation2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation2d[].class,
+                            () -> new StructArrayLogItem<Rotation2d>(name, Rotation2d.struct,
+                                    () -> (Rotation2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation3d.class,
+                            () -> new StructLogItem<Rotation3d>(name, Rotation3d.struct,
+                                    () -> (Rotation3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Rotation3d[].class,
+                            () -> new StructArrayLogItem<Rotation3d>(name, Rotation3d.struct,
+                                    () -> (Rotation3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform2d.class,
+                            () -> new StructLogItem<Transform2d>(name, Transform2d.struct,
+                                    () -> (Transform2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform2d[].class,
+                            () -> new StructArrayLogItem<Transform2d>(name, Transform2d.struct,
+                                    () -> (Transform2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform3d.class,
+                            () -> new StructLogItem<Transform3d>(name, Transform3d.struct,
+                                    () -> (Transform3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Transform3d[].class,
+                            () -> new StructArrayLogItem<Transform3d>(name, Transform3d.struct,
+                                    () -> (Transform3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation2d.class,
+                            () -> new StructLogItem<Translation2d>(name, Translation2d.struct,
+                                    () -> (Translation2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation2d[].class,
+                            () -> new StructArrayLogItem<Translation2d>(name, Translation2d.struct,
+                                    () -> (Translation2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation3d.class,
+                            () -> new StructLogItem<Translation3d>(name, Translation3d.struct,
+                                    () -> (Translation3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Translation3d[].class,
+                            () -> new StructArrayLogItem<Translation3d>(name, Translation3d.struct,
+                                    () -> (Translation3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist2d.class,
+                            () -> new StructLogItem<Twist2d>(name, Twist2d.struct, () -> (Twist2d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist2d[].class,
+                            () -> new StructArrayLogItem<Twist2d>(name, Twist2d.struct,
+                                    () -> (Twist2d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist3d.class,
+                            () -> new StructLogItem<Twist3d>(name, Twist3d.struct, () -> (Twist3d) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(Twist3d[].class,
+                            () -> new StructArrayLogItem<Twist3d>(name, Twist3d.struct,
+                                    () -> (Twist3d[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ArmFeedforward.class,
+                            () -> new StructLogItem<ArmFeedforward>(name, ArmFeedforward.struct,
+                                    () -> (ArmFeedforward) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ElevatorFeedforward.class,
+                            () -> new StructLogItem<ElevatorFeedforward>(name, ElevatorFeedforward.struct,
+                                    () -> (ElevatorFeedforward) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(ChassisSpeeds.class,
+                            () -> new StructLogItem<ChassisSpeeds>(name, ChassisSpeeds.struct,
+                                    () -> (ChassisSpeeds) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModulePosition.class,
+                            () -> new StructLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
+                                    () -> (SwerveModulePosition) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModuleState.class,
+                            () -> new StructLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
+                                    () -> (SwerveModuleState) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModulePosition[].class,
+                            () -> new StructArrayLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
+                                    () -> (SwerveModulePosition[]) valueSupplier.get(),
+                                    logAnnotation.logLevel())),
+                    entry(SwerveModuleState[].class,
+                            () -> new StructArrayLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
+                                    () -> (SwerveModuleState[]) valueSupplier.get(),
+                                    logAnnotation.logLevel()))
+
+            );
 
             Supplier<Logger> supp = classToLoggerMap.get(value.getClass());
             if (supp == null) {
-                return Optional.empty();
+                // if no match, use toString (helpful for logging enums)
+                return Optional
+                        .of(new StringLogItem(name, () -> valueSupplier.get().toString(), logAnnotation.logLevel()));
             } else {
                 return Optional.of(supp.get());
             }

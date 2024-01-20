@@ -4,7 +4,6 @@ import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.sendable.SendableRegistry;
 import edu.wpi.first.wpilibj.smartdashboard.SendableBuilderImpl;
-import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 
 /**
  * Basically a SingleItemLogger but it uses sendables. Useful for putting
@@ -30,19 +29,12 @@ public class SendableLogger extends Logger {
         this("Not set", key, sendable);
     }
 
-    /**
-     * This is required because I'm stubborn and don't want to use SmartDashboard
-     * for this, so I had to copy the code to send a Sendable over NetworkTables
-     * from {@link SmartDashboard}.
-     *
-     * @param logTable the table through which to send it
-     */
     private void publishSendable(NetworkTable logTable) {
         SendableBuilderImpl builder = new SendableBuilderImpl();
         builder.setTable(logTable);
         SendableRegistry.publish(sendable, builder);
         builder.startListeners();
-        logTable.getStringTopic(".name").publish().set(key);
+        logTable.getEntry(".name").setString(key);
     }
 
     /**

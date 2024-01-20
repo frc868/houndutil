@@ -1,7 +1,7 @@
 package com.techhounds.houndutil.houndlib.robots;
 
 import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkMaxLowLevel.MotorType;
+import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.techhounds.houndutil.houndlog.LogGroup;
 import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 import com.techhounds.houndutil.houndlog.LoggingManager;

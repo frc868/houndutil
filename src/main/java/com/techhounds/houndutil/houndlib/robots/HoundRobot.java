@@ -5,12 +5,19 @@ import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
 import java.util.function.Consumer;
+import java.util.function.Supplier;
+
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.TriConsumer;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 
 public class HoundRobot extends TimedRobot {
     public HoundRobot() {
+    }
+
+    public HoundRobot(Supplier<Object> robotContainerCtor) {
+        if (robotContainerCtor != null)
+            robotContainerCtor.get();
     }
 
     public HoundRobot(Consumer<TriConsumer<Runnable, Double, Double>> robotContainerCtor) {
@@ -27,13 +34,13 @@ public class HoundRobot extends TimedRobot {
         // sets the LoggingManager to run every 100ms and on an offset of 10ms from the
         // main thread
         LoggingManager.getInstance().init();
-        addPeriodic(LoggingManager.getInstance()::run, 0.1, 0.010);
         LiveWindow.disableAllTelemetry();
     }
 
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
+        LoggingManager.getInstance().run();
     }
 
     @Override
@@ -42,7 +49,7 @@ public class HoundRobot extends TimedRobot {
 
     @Override
     public void disabledPeriodic() {
-        AutoManager.getInstance().periodicUpdate(false);
+        AutoManager.getInstance().periodicUpdate();
     }
 
     @Override

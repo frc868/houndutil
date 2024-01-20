@@ -9,7 +9,7 @@ import com.techhounds.houndutil.houndlog.enums.LogType;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ ElementType.FIELD, ElementType.METHOD })
 public @interface Log {
-    public String name();
+    public String name() default "";
 
     public String[] groups() default {};
 

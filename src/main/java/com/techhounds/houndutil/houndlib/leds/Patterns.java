@@ -5,7 +5,6 @@ import com.techhounds.houndutil.houndlib.ValueContainer;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj.util.Color8Bit;
 
 public class Patterns {
     /**
@@ -56,7 +55,7 @@ public class Patterns {
     /**
      * Changes the contents of the AddressableLEDBuffer to the TechHOUNDS state.
      */
-    private static void techHounds(AddressableLEDBuffer buffer) {
+    public static void techHounds(AddressableLEDBuffer buffer) {
         ValueContainer timeStep = new ValueContainer(0);
 
         for (int i = 0; i < buffer.getLength(); i++) {

@@ -72,20 +72,24 @@ public class BooleanArrayLogItem extends AbstractLogItem<boolean[]> {
             if (publisher == null) {
                 this.publish();
             }
-            try {
-                publisher.set(valueSupplier.get());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         } else if (this.type == LogType.DATALOG) {
             if (datalogEntry == null) {
                 this.createDatalogEntry();
             }
 
+        }
+
+        try {
             boolean[] value = valueSupplier.get();
-            if (this.previousValue == null || value != this.previousValue)
-                datalogEntry.append(value);
+            if (this.previousValue == null || value != this.previousValue) {
+                if (this.type == LogType.NT)
+                    publisher.set(value);
+                else if (this.type == LogType.DATALOG)
+                    datalogEntry.append(value);
+            }
             this.previousValue = value;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

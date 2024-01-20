@@ -8,7 +8,7 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)
 public @interface SendableLog {
-    public String name();
+    public String name() default "";
 
     public String[] groups() default {};
 

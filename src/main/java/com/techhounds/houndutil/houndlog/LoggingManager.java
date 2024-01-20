@@ -2,9 +2,12 @@ package com.techhounds.houndutil.houndlog;
 
 import java.util.ArrayList;
 import java.util.List;
-
+import com.techhounds.houndutil.houndlog.interfaces.Log;
+import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
 import com.techhounds.houndutil.houndlog.loggers.Logger;
+
+import edu.wpi.first.wpilibj.Timer;
 
 /**
  * A singleton manager for logging to avoid some of the pitfalls with using the
@@ -13,10 +16,14 @@ import com.techhounds.houndutil.houndlog.loggers.Logger;
  * 
  * @author dr
  */
+@LoggedObject
 public class LoggingManager {
     private static LoggingManager instance;
     private List<Loggable> loggables = new ArrayList<Loggable>();
-    private Console console = new Console();
+
+    private static double startTime = Timer.getFPGATimestamp();
+    @Log
+    private static double loggingLoopTimeMs = 0.0;
 
     /**
      * Returns a singleton of LoggingManager.
@@ -38,6 +45,19 @@ public class LoggingManager {
     public void registerRobotContainer(Object robotContainer) {
         try {
             LogAnnotationHandler.handleLoggedObject(robotContainer);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Register subsystems to check for log annotations.
+     * 
+     * @param subsystems the subsystems to register
+     */
+    public void registerClass(Class<?> class_, String name, ArrayList<String> subkeys) {
+        try {
+            LogAnnotationHandler.handleLoggedClass(class_, name, subkeys);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -110,8 +130,10 @@ public class LoggingManager {
      * {@code robotPeriodic()}.
      */
     public void run() {
+        startTime = Timer.getFPGATimestamp();
         for (Loggable loggable : loggables) {
             loggable.run();
         }
+        loggingLoopTimeMs = (Timer.getFPGATimestamp() - startTime) * 1000;
     }
 }

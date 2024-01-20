@@ -73,20 +73,24 @@ public class IntegerArrayLogItem extends AbstractLogItem<int[]> {
             if (publisher == null) {
                 this.publish();
             }
-            try {
-                publisher.set(Arrays.stream(valueSupplier.get()).asLongStream().toArray());
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
         } else if (this.type == LogType.DATALOG) {
             if (datalogEntry == null) {
                 this.createDatalogEntry();
             }
 
+        }
+
+        try {
             int[] value = valueSupplier.get();
-            if (this.previousValue == null || value != this.previousValue)
-                datalogEntry.append(Arrays.stream(valueSupplier.get()).asLongStream().toArray());
+            if (this.previousValue == null || value != this.previousValue) {
+                if (this.type == LogType.NT)
+                    publisher.set(Arrays.stream(valueSupplier.get()).asLongStream().toArray());
+                else if (this.type == LogType.DATALOG)
+                    datalogEntry.append(Arrays.stream(valueSupplier.get()).asLongStream().toArray());
+            }
             this.previousValue = value;
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }

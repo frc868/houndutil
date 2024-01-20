@@ -1,6 +1,5 @@
 package com.techhounds.houndutil.houndlib;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -10,132 +9,164 @@ import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
+import org.photonvision.simulation.PhotonCameraSim;
+import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
-import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Pose3d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.wpilibj.RobotBase;
 
 @LoggedObject
 public class AprilTagPhotonCamera {
+    public static class PhotonCameraConstants {
+        public int WIDTH;
+        public int HEIGHT;
+        public double FOV;
+        public double FPS;
+        public double AVG_LATENCY;
+        public double STDDEV_LATENCY;
+    }
+
     private String name;
     private PhotonCamera photonCamera;
+    private PhotonCameraSim cameraSim;
     private PhotonPoseEstimator photonPoseEstimator;
     private Transform3d robotToCam;
 
-    @Log(name = "Estimated Robot Pose")
+  @Log
     private Pose3d estimatedRobotPose = new Pose3d();
-
-    private List<Pose3d> detectedAprilTags = new ArrayList<Pose3d>();
-    @Log(name = "Detected AprilTags")
-    private Supplier<double[]> detectedAprilTagsAS = () -> AdvantageScopeSerializer.serializePose3ds(detectedAprilTags);
-
-    @Log(name = "Has Pose")
+    @Log
+    private Pose3d[] detectedAprilTags = new Pose3d[0];
+    @Log
     private boolean hasPose = false;
-
-    @Log(name = "Target Count")
+    @Log
     private int targetCount = 0;
 
-    @Log(name = "Target 1 X Transform")
-    private double target1X = 0;
-    @Log(name = "Target 1 Y Transform")
-    private double target1Y = 0;
-    @Log(name = "Target 1 Theta Transform")
-    private double target1Theta = 0;
-    @Log(name = "Target 1 Ambiguity")
-    private double target1Amb = 0;
-    @Log(name = "Timestamp")
-    private double timestamp = 0;
+    public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
+            double avgErrorPx, double stdDevErrorPx) {
+        this.name = name;
+        this.robotToCam = robotToCam;
 
-    public AprilTagPhotonCamera(String name, Transform3d robotToCam) {
-        try {
-            AprilTagFieldLayout atfl = AprilTagFieldLayout
-                    .loadFromResource(AprilTagFields.k2023ChargedUp.m_resourceFile);
+        photonCamera = new PhotonCamera(name);
+        photonPoseEstimator = new PhotonPoseEstimator(AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera, robotToCam);
+        photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
-            photonCamera = new PhotonCamera(name);
-            this.name = name;
+        if (RobotBase.isSimulation()) {
+            var cameraProp = new SimCameraProperties();
+            cameraProp.setCalibration(constants.WIDTH, constants.HEIGHT,
+                    Rotation2d.fromDegrees(constants.FOV));
+            cameraProp.setCalibError(avgErrorPx, stdDevErrorPx);
+            cameraProp.setFPS(constants.FPS);
+            cameraProp.setAvgLatencyMs(constants.AVG_LATENCY);
+            cameraProp.setLatencyStdDevMs(constants.STDDEV_LATENCY);
+            cameraSim = new PhotonCameraSim(photonCamera, cameraProp);
 
-            this.robotToCam = robotToCam;
-            photonPoseEstimator = new PhotonPoseEstimator(atfl, PoseStrategy.LOWEST_AMBIGUITY, photonCamera,
-                    robotToCam);
-        } catch (IOException e) {
-            e.printStackTrace();
+            cameraSim.enableDrawWireframe(true);
+        }
+    }
+
+    public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
+            Pose2d prevEstimatedRobotPose) {
+        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
+        // result.targets.removeIf((target) ->
+        // target.getBestCameraToTarget().getTranslation().getZ() > 1);
+        PhotonPipelineResult result = photonCamera.getLatestResult();
+        targetCount = result.targets.size();
+        Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update();
+
+        if (photonEstimatedRobotPose.isPresent()) {
+            if (result.targets.size() > 0) {
+                detectedAprilTags = getPosesFromTargets(photonEstimatedRobotPose.get().targetsUsed, estimatedRobotPose,
+                        robotToCam);
+            } else {
+                detectedAprilTags = new Pose3d[0];
+                estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
+            }
+            estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
         }
 
+        hasPose = photonEstimatedRobotPose.isPresent();
+        return photonEstimatedRobotPose;
     }
 
     /**
-     * @param estimatedRobotPose The current best guess at robot pose
-     * @return A pair of the fused camera observations to a single Pose2d on the
-     *         field, and the time of the observation.
+     * The standard deviations of the estimated pose from
+     * {@link #getEstimatedGlobalPose()}, for use
+     * with {@link edu.wpi.first.math.estimator.SwerveDrivePoseEstimator
+     * SwerveDrivePoseEstimator}.
+     * This should only be used when there are targets visible.
+     *
+     * @param estimatedPose The estimated pose to guess standard deviations for.
      */
-    public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
-            Pose2d prevEstimatedRobotPose) {
-        PhotonPipelineResult result = photonCamera.getLatestResult();
-        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
-        // result.targets.removeIf((target) -> target.getFiducialId() > 8);
-        // result.targets.removeIf((target) ->
-        // target.getBestCameraToTarget().getTranslation().getNorm() > 4);
-        targetCount = result.targets.size();
-
-        // photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
-        Optional<EstimatedRobotPose> estimatedRobotPose = photonPoseEstimator.update(result);
-
-        if (result.targets.size() > 0) {
-            Transform3d bestTransform = result.targets.get(0).getBestCameraToTarget();
-            target1X = bestTransform.getX();
-            target1Y = bestTransform.getY();
-            target1Theta = bestTransform.getRotation().getAngle();
-            target1Amb = result.targets.get(0).getPoseAmbiguity();
-
-            timestamp = result.getTimestampSeconds();
+    public Matrix<N3, N1> getEstimationStdDevs(Pose2d estimatedPose, Matrix<N3, N1> singleTagStdDevs,
+            Matrix<N3, N1> multiTagStdDevs) {
+        var estStdDevs = singleTagStdDevs;
+        var targets = photonCamera.getLatestResult().getTargets();
+        int numTags = 0;
+        double avgDist = 0;
+        for (var tgt : targets) {
+            var tagPose = photonPoseEstimator.getFieldTags().getTagPose(tgt.getFiducialId());
+            if (tagPose.isEmpty())
+                continue;
+            numTags++;
+            avgDist += tagPose.get().toPose2d().getTranslation().getDistance(estimatedPose.getTranslation());
         }
-        if (estimatedRobotPose.isPresent()) {
-            this.estimatedRobotPose = estimatedRobotPose.get().estimatedPose;
-            detectedAprilTags = getPosesFromTargets(result.targets, this.estimatedRobotPose.toPose2d(), robotToCam);
-            hasPose = true;
-        } else {
-            hasPose = false;
+        if (numTags == 0)
+            return estStdDevs;
+        avgDist /= numTags;
+
+        if (avgDist > 4)
+            estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
+        else {
+            if (numTags > 1)
+                estStdDevs = multiTagStdDevs.times(1 + (avgDist * avgDist / 5));
+            else
+                estStdDevs = estStdDevs.times(1 + (avgDist * avgDist / 5));
         }
 
-        return estimatedRobotPose;
+        return estStdDevs;
     }
 
-    private List<Pose3d> getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose2d robotPose,
+    private Pose3d[] getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose3d estimatedRobotPose,
             Transform3d robotToCam) {
         List<Pose3d> poses = new ArrayList<Pose3d>();
         for (int i = 0; i < targets.size(); i++) {
-            Pose3d robotPose3d = new Pose3d(robotPose);
             Transform3d camToTarget = targets.get(i).getBestCameraToTarget();
-            poses.add(robotPose3d.plus(robotToCam).plus(camToTarget));
+            poses.add(estimatedRobotPose.plus(robotToCam).plus(camToTarget));
         }
-        return poses;
+
+        Pose3d[] poseArray = new Pose3d[poses.size()];
+        poses.toArray(poseArray);
+        return poseArray;
     }
 
     public String getName() {
         return name;
     }
 
-    // public Optional<Pose2d> getAprilTagPoseRelativeToRobot(Pose2d robotPose) {
-    // PhotonPipelineResult result = photonCamera.getLatestResult();
-    // if (result.getBestTarget() != null) {
-    // Transform3d camToTarget = result.getBestTarget().getBestCameraToTarget();
-    // Pose2d pose = new Pose3d(robotPose).plus(camToTarget).toPose2d();
+    public boolean hasPose() {
+        return hasPose;
+    }
 
-    // return Optional.of(
-    // new Pose2d(
-    // xFilter.calculate(pose.getX()),
-    // yFilter.calculate(pose.getY()),
-    // new Rotation2d(thetaFilter.calculate(pose.getRotation().getRadians()))));
-    // } else {
-    // return Optional.empty();
-    // }
-    // }
+    public PhotonCameraSim getSim() {
+        return cameraSim;
+    }
+
+    public Transform3d getRobotToCam() {
+        return robotToCam;
+    }
 }
