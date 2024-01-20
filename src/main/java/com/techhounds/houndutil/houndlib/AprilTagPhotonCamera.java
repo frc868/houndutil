@@ -3,6 +3,8 @@ package com.techhounds.houndutil.houndlib;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.function.Supplier;
+
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -44,7 +46,7 @@ public class AprilTagPhotonCamera {
     private PhotonPoseEstimator photonPoseEstimator;
     private Transform3d robotToCam;
 
-    @Log
+  @Log
     private Pose3d estimatedRobotPose = new Pose3d();
     @Log
     private Pose3d[] detectedAprilTags = new Pose3d[0];
@@ -79,7 +81,7 @@ public class AprilTagPhotonCamera {
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
-        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);w
+        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
         // result.targets.removeIf((target) ->
         // target.getBestCameraToTarget().getTranslation().getZ() > 1);
         PhotonPipelineResult result = photonCamera.getLatestResult();
