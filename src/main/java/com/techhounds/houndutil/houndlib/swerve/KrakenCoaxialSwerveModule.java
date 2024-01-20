@@ -19,8 +19,6 @@ import com.techhounds.houndutil.houndlib.MotorHoldMode;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.SimpleMotorFeedforward;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
@@ -42,16 +40,16 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private CANcoder steerCanCoder;
 
     /** The PID controller that corrects the drive motor's velocity. */
-    @Log
-    private PIDController drivePidController;
-
-    /** The PID controller that controls the steer motor's position. */
     // @Log
-    // private ProfiledPIDController steerPidController;
+    // private PIDController drivePidController;
 
-    /** The feedforward controller that controls the drive motor's velocity. */
-    @Log
-    private SimpleMotorFeedforward driveFeedforward;
+    // /** The PID controller that controls the steer motor's position. */
+    // // @Log
+    // // private ProfiledPIDController steerPidController;
+
+    // /** The feedforward controller that controls the drive motor's velocity. */
+    // @Log
+    // private SimpleMotorFeedforward driveFeedforward;
 
     @Log
     private DCMotorSim driveMotorSim;
@@ -151,13 +149,13 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
         steerConfigurator.apply(steerConfig);
 
-        drivePidController = new PIDController(SWERVE_CONSTANTS.DRIVE_kP,
-                SWERVE_CONSTANTS.DRIVE_kI,
-                SWERVE_CONSTANTS.DRIVE_kD);
+        // drivePidController = new PIDController(SWERVE_CONSTANTS.DRIVE_kP,
+        // SWERVE_CONSTANTS.DRIVE_kI,
+        // SWERVE_CONSTANTS.DRIVE_kD);
 
-        driveFeedforward = new SimpleMotorFeedforward(SWERVE_CONSTANTS.DRIVE_kS,
-                SWERVE_CONSTANTS.DRIVE_kV,
-                SWERVE_CONSTANTS.DRIVE_kA);
+        // driveFeedforward = new SimpleMotorFeedforward(SWERVE_CONSTANTS.DRIVE_kS,
+        // SWERVE_CONSTANTS.DRIVE_kV,
+        // SWERVE_CONSTANTS.DRIVE_kA);
 
         driveMotorSim = new DCMotorSim(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
                 SWERVE_CONSTANTS.DRIVE_GEARING,
