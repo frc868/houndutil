@@ -61,6 +61,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
 import static java.util.Map.entry;
@@ -343,6 +344,10 @@ public class LogAnnotationHandler {
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildDCMotorSimLogItems(
                                             (DCMotorSim) valueSupplier.get()))),
+                    entry(SingleJointedArmSim.class,
+                            () -> new DeviceLogger(name,
+                                    LogProfileBuilder.buildSingleJointedArmSimLogItems(
+                                            (SingleJointedArmSim) valueSupplier.get()))),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
                                     () -> ((DigitalInput) valueSupplier.get()).get())),

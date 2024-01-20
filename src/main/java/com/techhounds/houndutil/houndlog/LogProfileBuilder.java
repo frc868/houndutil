@@ -19,6 +19,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import com.techhounds.houndutil.houndlog.enums.LogType;
 import com.techhounds.houndutil.houndlog.logitems.AbstractLogItem;
@@ -779,6 +780,14 @@ public class LogProfileBuilder {
                 new DoubleLogItem("angularPositionRotations", obj::getAngularPositionRotations, LogType.NT),
                 new DoubleLogItem("angularVelocityRadPerSec", obj::getAngularVelocityRadPerSec, LogType.NT),
                 new DoubleLogItem("angularVelocityRPM", obj::getAngularVelocityRPM, LogType.NT),
+                new DoubleLogItem("currentDrawAmps", obj::getCurrentDrawAmps, LogType.NT),
+        };
+    }
+
+    public static AbstractLogItem<?>[] buildSingleJointedArmSimLogItems(SingleJointedArmSim obj) {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("angleRad", obj::getAngleRads, LogType.NT),
+                new DoubleLogItem("velocityRadPerSec", obj::getVelocityRadPerSec, LogType.NT),
                 new DoubleLogItem("currentDrawAmps", obj::getCurrentDrawAmps, LogType.NT),
         };
     }
