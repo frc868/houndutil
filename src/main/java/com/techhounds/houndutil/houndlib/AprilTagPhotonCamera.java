@@ -60,8 +60,8 @@ public class AprilTagPhotonCamera {
 
         photonCamera = new PhotonCamera(name);
         photonPoseEstimator = new PhotonPoseEstimator(AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
-                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera,
-                robotToCam);
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera, robotToCam);
+        photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
         if (RobotBase.isSimulation()) {
             var cameraProp = new SimCameraProperties();
@@ -79,26 +79,23 @@ public class AprilTagPhotonCamera {
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
-        PhotonPipelineResult result = photonCamera.getLatestResult();
         // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);w
-        result.targets.removeIf((target) -> target.getBestCameraToTarget().getTranslation().getNorm() > 7);
         // result.targets.removeIf((target) ->
         // target.getBestCameraToTarget().getTranslation().getZ() > 1);
+        PhotonPipelineResult result = photonCamera.getLatestResult();
         targetCount = result.targets.size();
-
-        photonPoseEstimator.setReferencePose(prevEstimatedRobotPose);
         Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update();
 
-        if (result.targets.size() > 0) {
-            detectedAprilTags = getPosesFromTargets(result.targets, prevEstimatedRobotPose,
-                    robotToCam);
-        } else {
-            detectedAprilTags = new Pose3d[0];
-            estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
-        }
-
-        if (photonEstimatedRobotPose.isPresent())
+        if (photonEstimatedRobotPose.isPresent()) {
+            if (result.targets.size() > 0) {
+                detectedAprilTags = getPosesFromTargets(photonEstimatedRobotPose.get().targetsUsed, estimatedRobotPose,
+                        robotToCam);
+            } else {
+                detectedAprilTags = new Pose3d[0];
+                estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
+            }
             estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
+        }
 
         hasPose = photonEstimatedRobotPose.isPresent();
         return photonEstimatedRobotPose;
@@ -129,7 +126,7 @@ public class AprilTagPhotonCamera {
         if (numTags == 0)
             return estStdDevs;
         avgDist /= numTags;
-        // Decrease std devs if multiple targets are visible
+
         if (avgDist > 4)
             estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
         else {
@@ -142,13 +139,12 @@ public class AprilTagPhotonCamera {
         return estStdDevs;
     }
 
-    private Pose3d[] getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose2d robotPose,
+    private Pose3d[] getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose3d estimatedRobotPose,
             Transform3d robotToCam) {
         List<Pose3d> poses = new ArrayList<Pose3d>();
         for (int i = 0; i < targets.size(); i++) {
-            Pose3d robotPose3d = new Pose3d(robotPose);
             Transform3d camToTarget = targets.get(i).getBestCameraToTarget();
-            poses.add(robotPose3d.plus(robotToCam).plus(camToTarget));
+            poses.add(estimatedRobotPose.plus(robotToCam).plus(camToTarget));
         }
 
         Pose3d[] poseArray = new Pose3d[poses.size()];
