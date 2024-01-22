@@ -46,7 +46,7 @@ public class AprilTagPhotonCamera {
     private PhotonPoseEstimator photonPoseEstimator;
     private Transform3d robotToCam;
 
-  @Log
+    @Log
     private Pose3d estimatedRobotPose = new Pose3d();
     @Log
     private Pose3d[] detectedAprilTags = new Pose3d[0];
@@ -54,6 +54,8 @@ public class AprilTagPhotonCamera {
     private boolean hasPose = false;
     @Log
     private int targetCount = 0;
+
+    private double lastTimestamp = 0;
 
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
             double avgErrorPx, double stdDevErrorPx) {
@@ -85,22 +87,31 @@ public class AprilTagPhotonCamera {
         // result.targets.removeIf((target) ->
         // target.getBestCameraToTarget().getTranslation().getZ() > 1);
         PhotonPipelineResult result = photonCamera.getLatestResult();
+        double timestamp = result.getTimestampSeconds();
+        boolean newResult = Math.abs(timestamp - lastTimestamp) > 1e-5;
         targetCount = result.targets.size();
+
         Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update();
 
-        if (photonEstimatedRobotPose.isPresent()) {
+        if (newResult) {
             if (result.targets.size() > 0) {
-                detectedAprilTags = getPosesFromTargets(photonEstimatedRobotPose.get().targetsUsed, estimatedRobotPose,
+                detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                         robotToCam);
+            }
+
+            if (photonEstimatedRobotPose.isPresent()) {
+                estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
             } else {
                 detectedAprilTags = new Pose3d[0];
                 estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
             }
-            estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
         }
 
         hasPose = photonEstimatedRobotPose.isPresent();
+        if (newResult)
+            lastTimestamp = timestamp;
         return photonEstimatedRobotPose;
+
     }
 
     /**
