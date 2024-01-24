@@ -3,8 +3,6 @@ package com.techhounds.houndutil.houndlib;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.function.Supplier;
-
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -83,9 +81,6 @@ public class AprilTagPhotonCamera {
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
             Pose2d prevEstimatedRobotPose) {
-        // result.targets.removeIf((target) -> target.getPoseAmbiguity() > 0.2);
-        // result.targets.removeIf((target) ->
-        // target.getBestCameraToTarget().getTranslation().getZ() > 1);
         PhotonPipelineResult result = photonCamera.getLatestResult();
         double timestamp = result.getTimestampSeconds();
         boolean newResult = Math.abs(timestamp - lastTimestamp) > 1e-5;
@@ -94,13 +89,10 @@ public class AprilTagPhotonCamera {
         Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update();
 
         if (newResult) {
-            if (result.targets.size() > 0) {
-                detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
-                        robotToCam);
-            }
-
             if (photonEstimatedRobotPose.isPresent()) {
                 estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
+                detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
+                        robotToCam);
             } else {
                 detectedAprilTags = new Pose3d[0];
                 estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
