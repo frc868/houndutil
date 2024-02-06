@@ -45,17 +45,10 @@ public class AutoRoutine {
 
     public Pose2d getInitialPose() {
         if (pathPlannerPaths != null) {
-            // return (DriverStation.getAlliance() == Alliance.Blue) ?
-            // blueInitialPoseSupplier.get()
-            // : redInitialPoseSupplier.get();
-            // TODO
-            if (initialPose == null) {
-                return pathPlannerPaths.get(0).getPreviewStartingHolonomicPose();
-            } else {
-                return initialPose;
-            }
-        } else
+            return initialPose;
+        } else {
             return new Pose2d();
+        }
     }
 
 }
