@@ -179,6 +179,21 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     }
 
     @Override
+    public double getSteerMotorPosition() {
+        return steerMotor.getEncoder().getPosition();
+    }
+
+    @Override
+    public double getSteerMotorVelocity() {
+        return steerMotor.getEncoder().getVelocity();
+    }
+
+    @Override
+    public double getSteerMotorVoltage() {
+        return steerMotor.getAppliedOutput();
+    }
+
+    @Override
     public Rotation2d getWheelAngle() {
         return new Rotation2d(
                 this.isUsingAbsoluteEncoder

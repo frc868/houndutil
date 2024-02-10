@@ -46,6 +46,12 @@ public interface CoaxialSwerveModule {
 
     public double getDriveMotorVoltage();
 
+    public double getSteerMotorPosition();
+
+    public double getSteerMotorVelocity();
+
+    public double getSteerMotorVoltage();
+
     public Rotation2d getWheelAngle();
 
     public SwerveModulePosition getPosition();

@@ -5,7 +5,6 @@ import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
-import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -39,18 +38,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     /** The CANCoder used to tell the steer angle of the wheel. */
     @Log
     private CANcoder steerCanCoder;
-
-    /** The PID controller that corrects the drive motor's velocity. */
-    // @Log
-    // private PIDController drivePidController;
-
-    // /** The PID controller that controls the steer motor's position. */
-    // // @Log
-    // // private ProfiledPIDController steerPidController;
-
-    // /** The feedforward controller that controls the drive motor's velocity. */
-    // @Log
-    // private SimpleMotorFeedforward driveFeedforward;
 
     @Log
     private DCMotorSim driveMotorSim;
@@ -189,6 +176,21 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public double getDriveMotorVoltage() {
         return driveMotor.getMotorVoltage().getValue();
+    }
+
+    @Override
+    public double getSteerMotorPosition() {
+        return steerMotor.getPosition().getValue();
+    }
+
+    @Override
+    public double getSteerMotorVelocity() {
+        return steerMotor.getVelocity().getValue();
+    }
+
+    @Override
+    public double getSteerMotorVoltage() {
+        return steerMotor.getMotorVoltage().getValue();
     }
 
     @Override
