@@ -53,9 +53,10 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     private final SwerveConstants SWERVE_CONSTANTS;
 
-    private final VoltageOut driveVoltageRequest = new VoltageOut(0);
-    private final VelocityVoltage driveVelocityRequest = new VelocityVoltage(0);
-    private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0);
+    private final VoltageOut driveVoltageRequest = new VoltageOut(0).withEnableFOC(true);
+    private final MotionMagicVelocityVoltage driveVelocityRequest = new MotionMagicVelocityVoltage(0)
+            .withEnableFOC(true);
+    private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
 
     private SwerveModuleState previousState = new SwerveModuleState();
 
@@ -107,7 +108,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
         driveConfigurator.apply(driveConfig);
 
-        steerCanCoder = new CANcoder(canCoderChannel);
+        steerCanCoder = new CANcoder(canCoderChannel, canBus);
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
@@ -117,7 +118,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerMotor = new TalonFX(steerMotorChannel, canBus);
         TalonFXConfigurator steerConfigurator = steerMotor.getConfigurator();
         TalonFXConfiguration steerConfig = new TalonFXConfiguration();
-        steerConfig.MotorOutput.Inverted = driveMotorInverted ? InvertedValue.Clockwise_Positive
+        steerConfig.MotorOutput.Inverted = steerMotorInverted ? InvertedValue.Clockwise_Positive
                 : InvertedValue.CounterClockwise_Positive;
         steerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         steerConfig.Feedback.FeedbackRemoteSensorID = steerCanCoder.getDeviceID();
