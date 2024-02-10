@@ -7,6 +7,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -69,6 +70,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private final MotionMagicVelocityVoltage driveVelocityRequest = new MotionMagicVelocityVoltage(0)
             .withEnableFOC(true);
     private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
+
+    private SwerveModuleState previousState = new SwerveModuleState();
 
     /**
      * Initalizes a SwerveModule.
@@ -232,7 +235,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public void stop() {
-        driveMotor.set(0);
+        driveMotor.setControl(driveVoltageRequest.withOutput(0));
         steerMotor.set(0);
     }
 
@@ -242,7 +245,10 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                     state.speedMetersPerSecond / SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * 12.0));
         } else {
             driveMotor.setControl(driveVelocityRequest
-                    .withVelocity(state.speedMetersPerSecond / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE));
+                    .withVelocity(state.speedMetersPerSecond / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE)
+                    .withAcceleration((state.speedMetersPerSecond - previousState.speedMetersPerSecond) / 0.020
+                            / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE));
+            previousState = state;
         }
 
         steerMotor.setControl(steerPositionRequest.withPosition(state.angle.getRotations()));

@@ -1,9 +1,9 @@
 package com.techhounds.houndutil.houndlib;
 
-public class ValueContainer {
+public class IntegerContainer {
     public int value;
 
-    public ValueContainer(int value) {
+    public IntegerContainer(int value) {
         this.value = value;
     }
 }

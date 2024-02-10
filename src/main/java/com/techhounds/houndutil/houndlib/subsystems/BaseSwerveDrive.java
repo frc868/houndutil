@@ -60,7 +60,7 @@ public interface BaseSwerveDrive {
     public Command teleopDriveCommand(DoubleSupplier xSpeedSupplier, DoubleSupplier ySpeedSupplier,
             DoubleSupplier thetaSpeedSupplier);
 
-    public Command controlledRotateCommand(double angle, DriveMode driveMode);
+    public Command controlledRotateCommand(DoubleSupplier angle, DriveMode driveMode);
 
     public Command disableControlledRotateCommand();
 

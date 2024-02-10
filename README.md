@@ -4,6 +4,11 @@
 
 A utility library for TechHOUNDS. Includes houndlog, houndauto, and houndlib.
 
+# Mandatory git configuration for projects
+```
+git config --global submodules.recurse true
+```
+
 ## How to add this to other projects
 
 Open your robot project, and open a terminal in its folder. Run:
