@@ -39,17 +39,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log
     private CANcoder steerCanCoder;
 
-    @Log
     private DCMotorSim driveMotorSim;
-    @Log
     private DCMotorSim steerMotorSim;
-
-    @Log(groups = "control")
-    private double driveFeedbackVoltage = 0.0;
-    @Log(groups = "control")
-    private double driveFeedforwardVoltage = 0.0;
-    @Log(groups = "control")
-    private double turnFeedbackVoltage = 0.0;
 
     private final SwerveConstants SWERVE_CONSTANTS;
 
@@ -140,28 +131,12 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
         steerConfigurator.apply(steerConfig);
 
-        // drivePidController = new PIDController(SWERVE_CONSTANTS.DRIVE_kP,
-        // SWERVE_CONSTANTS.DRIVE_kI,
-        // SWERVE_CONSTANTS.DRIVE_kD);
-
-        // driveFeedforward = new SimpleMotorFeedforward(SWERVE_CONSTANTS.DRIVE_kS,
-        // SWERVE_CONSTANTS.DRIVE_kV,
-        // SWERVE_CONSTANTS.DRIVE_kA);
-
         driveMotorSim = new DCMotorSim(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
                 SWERVE_CONSTANTS.DRIVE_GEARING,
                 SWERVE_CONSTANTS.DRIVE_MOI);
         steerMotorSim = new DCMotorSim(SWERVE_CONSTANTS.STEER_GEARBOX_REPR,
                 SWERVE_CONSTANTS.STEER_GEARING,
                 SWERVE_CONSTANTS.STEER_MOI);
-
-        // steerPidController.enableContinuousInput(0, 2 * Math.PI);
-
-        // if (RobotBase.isSimulation()) {
-        // this.simDriveEncoderPosition = 0.0;
-        // this.simDriveEncoderVelocity = 0.0;
-        // this.simCurrentAngle = 0.0;
-        // }
     }
 
     @Override
