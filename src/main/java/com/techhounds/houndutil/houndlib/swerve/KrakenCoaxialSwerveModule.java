@@ -101,7 +101,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
         steerCanCoder = new CANcoder(canCoderChannel, canBus);
         MagnetSensorConfigs config = new MagnetSensorConfigs();
-        config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
+        config.SensorDirection = steerCanCoderInverted ? SensorDirectionValue.Clockwise_Positive
+                : SensorDirectionValue.CounterClockwise_Positive;
         config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
         config.MagnetOffset = steerCanCoderOffset;
         steerCanCoder.getConfigurator().apply(config);
