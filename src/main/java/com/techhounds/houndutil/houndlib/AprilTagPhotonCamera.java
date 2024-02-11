@@ -97,13 +97,10 @@ public class AprilTagPhotonCamera {
                 detectedAprilTags = new Pose3d[0];
                 estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
             }
-        }
-
-        hasPose = photonEstimatedRobotPose.isPresent();
-        if (newResult)
+            hasPose = photonEstimatedRobotPose.isPresent();
             lastTimestamp = timestamp;
+        }
         return photonEstimatedRobotPose;
-
     }
 
     /**
@@ -171,5 +168,13 @@ public class AprilTagPhotonCamera {
 
     public Transform3d getRobotToCam() {
         return robotToCam;
+    }
+
+    public Pose3d getLoggedEstimatedRobotPose() {
+        return estimatedRobotPose;
+    }
+
+    public Pose3d[] getLoggedDetectedAprilTags() {
+        return detectedAprilTags;
     }
 }
