@@ -6,9 +6,7 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkFlex;
 import com.revrobotics.SparkAbsoluteEncoder;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -41,6 +39,38 @@ import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
  */
 public class LogProfileBuilder {
 
+    public static String revFaultsToString(short value) {
+        StringBuilder result = new StringBuilder(16);
+
+        for (int i = 15; i >= 0; i--) {
+            // Check each bit using a bitmask
+            boolean isBitSet = (value & (1 << i)) != 0;
+            if (isBitSet) {
+                result.append("*"); // Append '*' for 1
+            } else {
+                result.append("."); // Append '.' for 0
+            }
+        }
+
+        return result.toString();
+    }
+
+    public static String ctreFaultsToString(int value) {
+        StringBuilder result = new StringBuilder(24);
+
+        for (int i = 23; i >= 0; i--) {
+            // Check each bit using a bitmask
+            boolean isBitSet = (value & (1 << i)) != 0;
+            if (isBitSet) {
+                result.append("*"); // Append '*' for 1
+            } else {
+                result.append("."); // Append '.' for 0
+            }
+        }
+
+        return result.toString();
+    }
+
     /**
      * Builds CANSparkMax log items.
      * 
@@ -48,7 +78,6 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildTalonFXLogItems(TalonFX obj) {
-
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
                 new DoubleLogItem("velocity", () -> obj.getVelocity().getValue(), LogType.NT),
@@ -62,129 +91,13 @@ public class LogProfileBuilder {
                 new DoubleLogItem("closedLoopReference", () -> obj.getClosedLoopReference().getValue(), LogType.NT),
                 new DoubleLogItem("closedLoopOutput", () -> obj.getClosedLoopOutput().getValue(), LogType.NT),
                 new DoubleLogItem("closedLoopError", () -> obj.getClosedLoopError().getValue(), LogType.NT),
-                // new BooleanLogItem("faults/bootDuringEnable", () ->
-                // obj.getFault_BootDuringEnable().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/bridgeBrownout", () ->
-                // obj.getFault_BridgeBrownout().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/deviceTemp", () ->
-                // obj.getFault_DeviceTemp().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/forwardHardLimit", () ->
-                // obj.getFault_ForwardHardLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/forwardSoftLimit", () ->
-                // obj.getFault_ForwardSoftLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/fusedSensorOutOfSync", () ->
-                // obj.getFault_FusedSensorOutOfSync().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/hardware", () ->
-                // obj.getFault_Hardware().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/missingDifferentialFX",
-                // () -> obj.getFault_MissingDifferentialFX().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/overSupplyV", () ->
-                // obj.getFault_OverSupplyV().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/procTemp", () ->
-                // obj.getFault_ProcTemp().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/remoteSensorDataInvalid",
-                // () -> obj.getFault_RemoteSensorDataInvalid().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/remoteSensorPosOverflow",
-                // () -> obj.getFault_RemoteSensorPosOverflow().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/remoteSensorReset", () ->
-                // obj.getFault_RemoteSensorReset().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/reverseHardLimit", () ->
-                // obj.getFault_ReverseHardLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/reverseSoftLimit", () ->
-                // obj.getFault_ReverseSoftLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/statorCurrLimit", () ->
-                // obj.getFault_StatorCurrLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/supplyCurrLimit", () ->
-                // obj.getFault_SupplyCurrLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/undervoltage", () ->
-                // obj.getFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/unlicensedFeatureInUse",
-                // () -> obj.getFault_UnlicensedFeatureInUse().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/unstableSupplyV", () ->
-                // obj.getFault_UnstableSupplyV().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/usingFusedCANcoderWhileUnlicensed",
-                // () -> obj.getStickyFault_UsingFusedCANcoderWhileUnlicensed().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootDuringEnable",
-                // () -> obj.getStickyFault_BootDuringEnable().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bridgeBrownout", () ->
-                // obj.getStickyFault_BridgeBrownout().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/deviceTemp", () ->
-                // obj.getStickyFault_DeviceTemp().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/forwardHardLimit",
-                // () -> obj.getStickyFault_ForwardHardLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/forwardSoftLimit",
-                // () -> obj.getStickyFault_ForwardSoftLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/fusedSensorOutOfSync",
-                // () -> obj.getStickyFault_FusedSensorOutOfSync().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/hardware", () ->
-                // obj.getStickyFault_Hardware().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/missingDifferentialFX",
-                // () -> obj.getStickyFault_MissingDifferentialFX().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/overSupplyV", () ->
-                // obj.getStickyFault_OverSupplyV().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/procTemp", () ->
-                // obj.getStickyFault_ProcTemp().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/remoteSensorDataInvalid",
-                // () -> obj.getStickyFault_RemoteSensorDataInvalid().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/remoteSensorPosOverflow",
-                // () -> obj.getStickyFault_RemoteSensorPosOverflow().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/remoteSensorReset",
-                // () -> obj.getStickyFault_RemoteSensorReset().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/reverseHardLimit",
-                // () -> obj.getStickyFault_ReverseHardLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/reverseSoftLimit",
-                // () -> obj.getStickyFault_ReverseSoftLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/statorCurrLimit",
-                // () -> obj.getStickyFault_StatorCurrLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/supplyCurrLimit",
-                // () -> obj.getStickyFault_SupplyCurrLimit().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/undervoltage", () ->
-                // obj.getStickyFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/unlicensedFeatureInUse",
-                // () -> obj.getStickyFault_UnlicensedFeatureInUse().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/unstableSupplyV",
-                // () -> obj.getStickyFault_UnstableSupplyV().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/usingFusedCANcoderWhileUnlicensed",
-                // () -> obj.getStickyFault_UsingFusedCANcoderWhileUnlicensed().getValue(),
-                // LogType.DATALOG)
-
+                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
+                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                        LogType.NT)
         };
     }
 
-    public static AbstractLogItem<?>[] buildCANSparkMaxLogItems(CANSparkMax obj) {
+    public static AbstractLogItem<?>[] buildCANSparkBaseLogItems(CANSparkBase obj) {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
                 new DoubleLogItem("encoderPositionConversionFactor",
@@ -202,91 +115,10 @@ public class LogProfileBuilder {
                 new BooleanLogItem("brakeMode", () -> obj.getIdleMode() == CANSparkBase.IdleMode.kBrake, LogType.NT),
                 new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
                 new BooleanLogItem("isFollower", obj::isFollower, LogType.DATALOG),
-                new BooleanLogItem("faults/brownout",
-                        () -> obj.getFault(CANSparkMax.FaultID.kBrownout), LogType.NT),
-                new BooleanLogItem("faults/hasReset",
-                        () -> obj.getFault(CANSparkMax.FaultID.kHasReset), LogType.DATALOG),
-                new BooleanLogItem("faults/motorFault",
-                        () -> obj.getFault(CANSparkMax.FaultID.kMotorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/otherFault",
-                        () -> obj.getFault(CANSparkMax.FaultID.kOtherFault), LogType.DATALOG),
-                new BooleanLogItem("faults/overcurrent",
-                        () -> obj.getFault(CANSparkMax.FaultID.kOvercurrent), LogType.DATALOG),
-                new BooleanLogItem("faults/sensorFault",
-                        () -> obj.getFault(CANSparkMax.FaultID.kSensorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/stalled",
-                        () -> obj.getFault(CANSparkMax.FaultID.kStall), LogType.DATALOG),
-                new BooleanLogItem("faults/drvFault",
-                        () -> obj.getFault(CANSparkMax.FaultID.kDRVFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/brownout",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kBrownout), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/hasReset",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kHasReset), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/motorFault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kMotorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/otherFault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOtherFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/overcurrent",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kOvercurrent), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/sensorFault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kSensorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/stalled",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kStall), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/drvFault",
-                        () -> obj.getStickyFault(CANSparkMax.FaultID.kDRVFault), LogType.DATALOG),
-        };
-    }
-
-    public static AbstractLogItem<?>[] buildCANSparkFlexLogItems(CANSparkFlex obj) {
-        return new AbstractLogItem<?>[] {
-                new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
-                new DoubleLogItem("encoderPositionConversionFactor",
-                        obj.getEncoder()::getPositionConversionFactor, LogType.DATALOG),
-                new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
-                new DoubleLogItem("encoderVelocityConversionFactor",
-                        obj.getEncoder()::getVelocityConversionFactor, LogType.DATALOG),
-                new DoubleLogItem("speed", obj::get, LogType.NT),
-                new DoubleLogItem("outputVoltage", obj::getAppliedOutput, LogType.NT),
-                new DoubleLogItem("busVoltage", obj::getBusVoltage, LogType.DATALOG),
-                new DoubleLogItem("motorTemperature", obj::getMotorTemperature, LogType.NT),
-                new DoubleLogItem("outputCurrent", obj::getOutputCurrent, LogType.NT),
-                new IntegerLogItem("deviceId", obj::getDeviceId, LogType.DATALOG),
-                new StringLogItem("firmwareVersion", obj::getFirmwareString, LogType.DATALOG),
-                new BooleanLogItem("brakeMode", () -> obj.getIdleMode() == CANSparkBase.IdleMode.kBrake, LogType.NT),
-                new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
-                new BooleanLogItem("isFollower", obj::isFollower, LogType.DATALOG),
-                new BooleanLogItem("faults/brownout",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kBrownout), LogType.NT),
-                new BooleanLogItem("faults/hasReset",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kHasReset), LogType.DATALOG),
-                new BooleanLogItem("faults/motorFault",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kMotorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/otherFault",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kOtherFault), LogType.DATALOG),
-                new BooleanLogItem("faults/overcurrent",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kOvercurrent), LogType.DATALOG),
-                new BooleanLogItem("faults/sensorFault",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kSensorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/stalled",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kStall), LogType.DATALOG),
-                new BooleanLogItem("faults/drvFault",
-                        () -> obj.getFault(CANSparkFlex.FaultID.kDRVFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/brownout",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kBrownout), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/hasReset",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kHasReset), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/motorFault",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kMotorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/otherFault",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kOtherFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/overcurrent",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kOvercurrent), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/sensorFault",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kSensorFault), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/stalled",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kStall), LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/drvFault",
-                        () -> obj.getStickyFault(CANSparkFlex.FaultID.kDRVFault), LogType.DATALOG),
+                new StringLogItem("faults",
+                        () -> revFaultsToString(obj.getFaults()), LogType.NT),
+                new StringLogItem("stickyFaults",
+                        () -> revFaultsToString(obj.getStickyFaults()), LogType.NT),
         };
     }
 
@@ -304,34 +136,9 @@ public class LogProfileBuilder {
                 new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(), LogType.DATALOG),
                 new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DATALOG),
                 new StringLogItem("magnetHealth", () -> obj.getMagnetHealth().getValue().name(), LogType.DATALOG),
-                // new BooleanLogItem("faults/badMagnet", () ->
-                // obj.getFault_BadMagnet().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/bootDuringEnable", () ->
-                // obj.getFault_BootDuringEnable().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/hardware", () ->
-                // obj.getFault_Hardware().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/undervoltage", () ->
-                // obj.getFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/unlicensed", () ->
-                // obj.getFault_UnlicensedFeatureInUse().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/badMagnet", () ->
-                // obj.getStickyFault_BadMagnet().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootDuringEnable",
-                // () -> obj.getStickyFault_BootDuringEnable().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/hardware", () ->
-                // obj.getStickyFault_Hardware().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/undervoltage", () ->
-                // obj.getStickyFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/unlicensed",
-                // () -> obj.getStickyFault_UnlicensedFeatureInUse().getValue(),
-                // LogType.DATALOG),
+                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
+                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                        LogType.NT)
         };
     }
 
@@ -399,75 +206,9 @@ public class LogProfileBuilder {
                 new DoubleLogItem("zAcceleration", () -> obj.getAccelerationZ().getValue(), LogType.DATALOG),
                 new DoubleLogItem("temperature", () -> obj.getTemperature().getValue(), LogType.DATALOG),
                 new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DATALOG),
-                // new BooleanLogItem("faults/bootDuringEnable", () ->
-                // obj.getFault_BootDuringEnable().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/bootIntoMotion", () ->
-                // obj.getFault_BootIntoMotion().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/bootupAccelerometer", () ->
-                // obj.getFault_BootupAccelerometer().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/bootupGyroscope", () ->
-                // obj.getFault_BootupGyroscope().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/bootupMagnetometer", () ->
-                // obj.getFault_BootupMagnetometer().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/dataAcquiredLate", () ->
-                // obj.getFault_DataAcquiredLate().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/hardware", () ->
-                // obj.getFault_Hardware().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/loopTimeSlow", () ->
-                // obj.getFault_LoopTimeSlow().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/saturatedAccelerometer",
-                // () -> obj.getFault_SaturatedAccelometer().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/saturatedGyroscope", () ->
-                // obj.getFault_SaturatedGyroscope().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/saturatedMagnetometer",
-                // () -> obj.getFault_SaturatedMagnetometer().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/undervoltage", () ->
-                // obj.getFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/unlicensed", () ->
-                // obj.getFault_UnlicensedFeatureInUse().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootDuringEnable",
-                // () -> obj.getStickyFault_BootDuringEnable().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootIntoMotion", () ->
-                // obj.getStickyFault_BootIntoMotion().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootupAccelerometer",
-                // () -> obj.getStickyFault_BootupAccelerometer().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootupGyroscope",
-                // () -> obj.getStickyFault_BootupGyroscope().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/bootupMagnetometer",
-                // () -> obj.getStickyFault_BootupMagnetometer().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/dataAcquiredLate",
-                // () -> obj.getStickyFault_DataAcquiredLate().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/hardware", () ->
-                // obj.getStickyFault_Hardware().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/loopTimeSlow", () ->
-                // obj.getStickyFault_LoopTimeSlow().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/saturatedAccelerometer",
-                // () -> obj.getStickyFault_SaturatedAccelometer().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/saturatedGyroscope",
-                // () -> obj.getStickyFault_SaturatedGyroscope().getValue(), LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/saturatedMagnetometer",
-                // () -> obj.getStickyFault_SaturatedMagnetometer().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/undervoltage", () ->
-                // obj.getStickyFault_Undervoltage().getValue(),
-                // LogType.DATALOG),
-                // new BooleanLogItem("faults/sticky/unlicensed",
-                // () -> obj.getStickyFault_UnlicensedFeatureInUse().getValue(),
-                // LogType.DATALOG),
-
+                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
+                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                        LogType.NT)
         };
     }
 

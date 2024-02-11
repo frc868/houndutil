@@ -276,11 +276,11 @@ public class LogAnnotationHandler {
                     entry(CANSparkMax.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder
-                                            .buildCANSparkMaxLogItems((CANSparkMax) checkedValueSupplier.get()))),
+                                            .buildCANSparkBaseLogItems((CANSparkMax) checkedValueSupplier.get()))),
                     entry(CANSparkFlex.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder
-                                            .buildCANSparkFlexLogItems((CANSparkFlex) checkedValueSupplier.get()))),
+                                            .buildCANSparkBaseLogItems((CANSparkFlex) checkedValueSupplier.get()))),
                     entry(CANcoder.class,
                             () -> new DeviceLogger(name,
                                     LogProfileBuilder.buildCANcoderLogItems((CANcoder) checkedValueSupplier.get()))),

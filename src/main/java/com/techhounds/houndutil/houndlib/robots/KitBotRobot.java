@@ -27,8 +27,8 @@ public class KitBotRobot extends HoundRobot {
         rightMotor.setInverted(true);
         drive = new DifferentialDrive(leftMotor, rightMotor);
         LoggingManager.getInstance().addGroup("Drivetrain", new LogGroup(
-                new DeviceLogger("Left Motor", LogProfileBuilder.buildCANSparkMaxLogItems(leftMotor)),
-                new DeviceLogger("Right Motor", LogProfileBuilder.buildCANSparkMaxLogItems(rightMotor)),
+                new DeviceLogger("Left Motor", LogProfileBuilder.buildCANSparkBaseLogItems(leftMotor)),
+                new DeviceLogger("Right Motor", LogProfileBuilder.buildCANSparkBaseLogItems(rightMotor)),
                 new SendableLogger("Drive", drive)));
     }
 
