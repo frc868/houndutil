@@ -100,11 +100,11 @@ public class LogProfileBuilder {
     public static AbstractLogItem<?>[] buildCANSparkBaseLogItems(CANSparkBase obj) {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
-                new DoubleLogItem("encoderPositionConversionFactor",
-                        obj.getEncoder()::getPositionConversionFactor, LogType.DATALOG),
+                // new DoubleLogItem("encoderPositionConversionFactor",
+                // obj.getEncoder()::getPositionConversionFactor, LogType.DATALOG),
                 new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
-                new DoubleLogItem("encoderVelocityConversionFactor",
-                        obj.getEncoder()::getVelocityConversionFactor, LogType.DATALOG),
+                // new DoubleLogItem("encoderVelocityConversionFactor",
+                // obj.getEncoder()::getVelocityConversionFactor, LogType.DATALOG),
                 new DoubleLogItem("speed", obj::get, LogType.NT),
                 new DoubleLogItem("outputVoltage", obj::getAppliedOutput, LogType.NT),
                 new DoubleLogItem("busVoltage", obj::getBusVoltage, LogType.DATALOG),
@@ -112,8 +112,9 @@ public class LogProfileBuilder {
                 new DoubleLogItem("outputCurrent", obj::getOutputCurrent, LogType.NT),
                 new IntegerLogItem("deviceId", obj::getDeviceId, LogType.DATALOG),
                 new StringLogItem("firmwareVersion", obj::getFirmwareString, LogType.DATALOG),
-                new BooleanLogItem("brakeMode", () -> obj.getIdleMode() == CANSparkBase.IdleMode.kBrake, LogType.NT),
-                new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
+                // new BooleanLogItem("brakeMode", () -> obj.getIdleMode() ==
+                // CANSparkBase.IdleMode.kBrake, LogType.NT),
+                // new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
                 new BooleanLogItem("isFollower", obj::isFollower, LogType.DATALOG),
                 new StringLogItem("faults",
                         () -> revFaultsToString(obj.getFaults()), LogType.NT),
@@ -153,9 +154,11 @@ public class LogProfileBuilder {
                 new DoubleLogItem("position", obj::getPosition, LogType.NT),
                 new DoubleLogItem("velocity", obj::getVelocity, LogType.NT),
                 new DoubleLogItem("zeroOffset", obj::getZeroOffset, LogType.NT),
-                new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
-                new DoubleLogItem("positionConversionFactor", obj::getPositionConversionFactor, LogType.DATALOG),
-                new DoubleLogItem("velocityConversionFactor", obj::getVelocityConversionFactor, LogType.DATALOG),
+                // new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
+                // new DoubleLogItem("positionConversionFactor",
+                // obj::getPositionConversionFactor, LogType.DATALOG),
+                // new DoubleLogItem("velocityConversionFactor",
+                // obj::getVelocityConversionFactor, LogType.DATALOG),
         };
     }
 
