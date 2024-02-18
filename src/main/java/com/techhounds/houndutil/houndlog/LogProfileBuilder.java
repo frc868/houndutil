@@ -87,6 +87,7 @@ public class LogProfileBuilder {
                 new DoubleLogItem("outputVoltage", () -> obj.getMotorVoltage().getValue(), LogType.NT),
                 new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(), LogType.NT),
                 new DoubleLogItem("outputCurrent", () -> obj.getTorqueCurrent().getValue(), LogType.NT),
+                new DoubleLogItem("supplyCurrent", () -> obj.getSupplyCurrent().getValue(), LogType.NT),
                 new StringLogItem("bridgeOutput", () -> obj.getBridgeOutput().getValue().toString(), LogType.NT),
                 new DoubleLogItem("closedLoopReference", () -> obj.getClosedLoopReference().getValue(), LogType.NT),
                 new DoubleLogItem("closedLoopOutput", () -> obj.getClosedLoopOutput().getValue(), LogType.NT),
