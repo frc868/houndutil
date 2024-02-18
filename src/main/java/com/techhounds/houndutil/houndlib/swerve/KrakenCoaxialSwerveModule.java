@@ -88,6 +88,9 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
         driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
+        driveConfig.CurrentLimits.StatorCurrentLimit = 100;
+        driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+
         driveConfig.Slot0.kS = SWERVE_CONSTANTS.DRIVE_kS;
         driveConfig.Slot0.kV = SWERVE_CONSTANTS.DRIVE_kV;
         driveConfig.Slot0.kP = SWERVE_CONSTANTS.DRIVE_kP;
@@ -119,8 +122,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
         steerConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
         steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        steerConfig.CurrentLimits.SupplyCurrentThreshold = 300;
-        steerConfig.CurrentLimits.SupplyTimeThreshold = 1;
 
         steerConfig.Slot0.kP = SWERVE_CONSTANTS.STEER_kP;
         steerConfig.Slot0.kI = SWERVE_CONSTANTS.STEER_kI;
