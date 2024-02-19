@@ -10,6 +10,7 @@ import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -23,7 +24,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 @LoggedObject
@@ -256,5 +259,43 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public void setStateClosedLoop(SwerveModuleState state) {
         setStateInternal(state, false);
+    }
+
+    /**
+     * Find the coupling ratio (ratio of drive motor rotations to azimuth
+     * rotations) for module.
+     *
+     * @param volts     Voltage to send to angle motors to spin.
+     * @param automatic Attempt to automatically spin the modules.
+     * @return Average coupling ratio.
+     */
+    public double findCouplingRatio(double volts, boolean automatic) {
+        System.out.println("Stopping the Swerve Drive.");
+        driveMotor.setVoltage(0);
+        steerMotor.setVoltage(0);
+        Timer.delay(1);
+
+        System.out.println("Fetching the current absolute encoder and drive encoder position.");
+        Timer.delay(1);
+        Rotation2d startingAzimuthPosition = Rotation2d
+                .fromRotations(steerCanCoder.getAbsolutePosition().getValue());
+        double startingDriveMotorPosition = getDriveMotorPosition();
+
+        if (automatic) {
+            System.out.println("Rotating the module 360 degrees");
+            while (!Rotation2d.fromRotations(steerCanCoder.getAbsolutePosition().getValue())
+                    .equals(startingAzimuthPosition)) {
+                steerMotor.setVoltage(volts);
+            }
+
+            steerMotor.setVoltage(0);
+        } else {
+            DriverStation.reportWarning(
+                    "Spin the module 360 degrees now, you have 1 minute.\n",
+                    false);
+            Timer.delay(60);
+        }
+
+        return getDriveMotorPosition() - startingDriveMotorPosition;
     }
 }
