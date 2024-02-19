@@ -38,6 +38,8 @@ public interface CoaxialSwerveModule {
         public DCMotor STEER_GEARBOX_REPR;
         public double DRIVE_MOI;
         public double STEER_MOI;
+
+        public double COUPLING_RATIO;
     }
 
     public double getDriveMotorPosition();
