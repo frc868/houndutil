@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlib.subsystems;
 
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
@@ -68,7 +69,7 @@ public interface BaseSwerveDrive {
 
     public Command turnWheelsToAngleCommand(double angle);
 
-    public Command driveToPoseCommand(Pose2d pose);
+    public Command driveToPoseCommand(Supplier<Pose2d> pose);
 
     public Command followPathCommand(PathPlannerPath path);
 

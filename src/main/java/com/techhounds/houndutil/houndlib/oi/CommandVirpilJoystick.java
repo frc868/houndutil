@@ -66,7 +66,7 @@ public class CommandVirpilJoystick extends CommandGenericHID {
     }
 
     public Trigger pinkieButton(EventLoop loop) {
-        return joystick.triggerSoftPress(loop).castTo(Trigger::new);
+        return joystick.pinkieButton(loop).castTo(Trigger::new);
     }
 
     public Trigger triggerSoftPress() {
