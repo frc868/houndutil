@@ -124,6 +124,10 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
         steerConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
         steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        if (RobotBase.isReal()) {
+            steerConfig.CurrentLimits.StatorCurrentLimit = 30;
+            steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
+        }
 
         steerConfig.Slot0.kP = SWERVE_CONSTANTS.STEER_kP;
         steerConfig.Slot0.kI = SWERVE_CONSTANTS.STEER_kI;
