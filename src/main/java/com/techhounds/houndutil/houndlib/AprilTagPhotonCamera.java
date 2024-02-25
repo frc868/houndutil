@@ -129,7 +129,7 @@ public class AprilTagPhotonCamera {
             return estStdDevs;
         avgDist /= numTags;
 
-        if (avgDist > 4)
+        if (avgDist > 6)
             estStdDevs = VecBuilder.fill(Double.MAX_VALUE, Double.MAX_VALUE, Double.MAX_VALUE);
         else {
             if (numTags > 1)
