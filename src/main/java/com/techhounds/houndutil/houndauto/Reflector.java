@@ -12,7 +12,7 @@ public class Reflector {
         Translation2d transformedTranslation = new Translation2d(
                 fieldLength - pose.getTranslation().getX(), pose.getTranslation().getY());
 
-        Rotation2d transformedHeading = pose.getRotation().plus(Rotation2d.fromDegrees(180));
+        Rotation2d transformedHeading = new Rotation2d(Math.PI - pose.getRotation().getRadians());
 
         return new Pose2d(transformedTranslation, transformedHeading);
     }
@@ -21,7 +21,8 @@ public class Reflector {
         Translation3d transformedTranslation = new Translation3d(
                 fieldLength - pose.getTranslation().getX(), pose.getTranslation().getY(), pose.getZ());
 
-        Rotation3d transformedHeading = pose.getRotation().plus(new Rotation3d(0, 0, Math.PI));
+        Rotation3d transformedHeading = pose.getRotation()
+                .plus(new Rotation3d(0, 0, Math.PI - pose.getRotation().getZ()));
 
         return new Pose3d(transformedTranslation, transformedHeading);
     }
