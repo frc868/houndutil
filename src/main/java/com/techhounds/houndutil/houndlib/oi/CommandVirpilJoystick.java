@@ -109,6 +109,22 @@ public class CommandVirpilJoystick extends CommandGenericHID {
         return joystick.stickButton(loop).castTo(Trigger::new);
     }
 
+    public Trigger dialSoftPress() {
+        return dialSoftPress(CommandScheduler.getInstance().getDefaultButtonLoop());
+    }
+
+    public Trigger dialSoftPress(EventLoop loop) {
+        return joystick.dialSoftPress(loop).castTo(Trigger::new);
+    }
+
+    public Trigger dialHardPress() {
+        return dialHardPress(CommandScheduler.getInstance().getDefaultButtonLoop());
+    }
+
+    public Trigger dialHardPress(EventLoop loop) {
+        return joystick.dialHardPress(loop).castTo(Trigger::new);
+    }
+
     public Trigger bottomHatButton() {
         return bottomHatButton(CommandScheduler.getInstance().getDefaultButtonLoop());
     }
