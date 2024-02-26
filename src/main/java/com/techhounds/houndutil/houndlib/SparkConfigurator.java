@@ -1,9 +1,11 @@
 package com.techhounds.houndutil.houndlib;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Function;
 
 import com.revrobotics.CANSparkBase;
+import com.revrobotics.CANSparkBaseExtensions;
 import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.REVLibError;
@@ -35,10 +37,15 @@ public class SparkConfigurator {
     @SafeVarargs
     private static void configure(CANSparkBase motor, boolean inverted,
             Function<CANSparkBase, REVLibError>... configs) {
+
+        ArrayList<Function<CANSparkBase, REVLibError>> configsArr = new ArrayList<>(List.of(configs));
+        if (inverted) {
+            configsArr.add((s) -> CANSparkBaseExtensions.setInverted(s, inverted));
+        }
         motor.restoreFactoryDefaults();
         motor.setCANTimeout(250);
 
-        for (Function<CANSparkBase, REVLibError> config : configs) {
+        for (Function<CANSparkBase, REVLibError> config : configsArr) {
             int attempt = 0;
 
             do {
@@ -64,8 +71,6 @@ public class SparkConfigurator {
         }
 
         motor.setCANTimeout(0);
-        motor.setInverted(inverted); // returns void so no error
-
         sparks.add(motor);
     }
 
