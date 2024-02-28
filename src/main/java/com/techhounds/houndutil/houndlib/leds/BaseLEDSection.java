@@ -1,9 +1,11 @@
 package com.techhounds.houndutil.houndlib.leds;
 
 public interface BaseLEDSection {
-    public int getStart();
+    public int start();
 
-    public int getEnd();
+    public int end();
 
-    public boolean getInverted();
+    public int length();
+
+    public boolean inverted();
 }
