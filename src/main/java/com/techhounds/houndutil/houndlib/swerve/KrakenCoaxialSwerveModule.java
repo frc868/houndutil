@@ -1,5 +1,6 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -7,6 +8,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -44,10 +46,9 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     private final SwerveConstants SWERVE_CONSTANTS;
 
-    private final VoltageOut driveVoltageRequest = new VoltageOut(0).withEnableFOC(true);
-    private final MotionMagicVelocityVoltage driveVelocityRequest = new MotionMagicVelocityVoltage(0)
-            .withEnableFOC(true);
-    private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0).withEnableFOC(true);
+    private final VoltageOut driveVoltageRequest = new VoltageOut(0);
+    private final VelocityVoltage driveVelocityRequest = new VelocityVoltage(0);
+    private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0);
 
     private SwerveModuleState previousState = new SwerveModuleState();
 
@@ -84,24 +85,32 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 : InvertedValue.CounterClockwise_Positive;
         driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         driveConfig.Feedback.SensorToMechanismRatio = SWERVE_CONSTANTS.DRIVE_GEARING;
-        driveConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
-        driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
-        driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
+        // driveConfig.CurrentLimits.SupplyCurrentLimit =
+        // SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
+        // driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
+        // driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
+        // driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
         if (RobotBase.isReal()) {
-            driveConfig.CurrentLimits.StatorCurrentLimit = 100;
+            driveConfig.CurrentLimits.StatorCurrentLimit = 50;
             driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         }
+
+        BaseStatusSignal.setUpdateFrequencyForAll(250,
+                driveMotor.getPosition(),
+                driveMotor.getVelocity(),
+                driveMotor.getMotorVoltage());
 
         driveConfig.Slot0.kS = SWERVE_CONSTANTS.DRIVE_kS;
         driveConfig.Slot0.kV = SWERVE_CONSTANTS.DRIVE_kV;
         driveConfig.Slot0.kP = SWERVE_CONSTANTS.DRIVE_kP;
         driveConfig.Slot0.kI = SWERVE_CONSTANTS.DRIVE_kI;
         driveConfig.Slot0.kD = SWERVE_CONSTANTS.DRIVE_kD;
-        driveConfig.MotionMagic.MotionMagicCruiseVelocity = SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND
-                / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
-        driveConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_DRIVING_ACCELERATION_METERS_PER_SECOND_SQUARED
-                / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+        // driveConfig.MotionMagic.MotionMagicCruiseVelocity =
+        // SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND
+        // / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+        // driveConfig.MotionMagic.MotionMagicAcceleration =
+        // SWERVE_CONSTANTS.MAX_DRIVING_ACCELERATION_METERS_PER_SECOND_SQUARED
+        // / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
         driveConfigurator.apply(driveConfig);
 
         steerCanCoder = new CANcoder(canCoderChannel, canBus);
