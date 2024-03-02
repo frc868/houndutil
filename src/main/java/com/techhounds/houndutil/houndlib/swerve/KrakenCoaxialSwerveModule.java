@@ -91,7 +91,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         // driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
         // driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
         if (RobotBase.isReal()) {
-            driveConfig.CurrentLimits.StatorCurrentLimit = 50;
+            driveConfig.CurrentLimits.StatorCurrentLimit = 75;
             driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         }
 

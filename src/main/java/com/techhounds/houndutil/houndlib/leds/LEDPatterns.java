@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlib.leds;
 
 import java.util.Arrays;
+import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
 
@@ -210,78 +211,168 @@ public class LEDPatterns {
         };
     }
 
-    public static Consumer<AddressableLEDBuffer> fire(double sparking, double cooling, double speed,
-            BaseLEDSection section, Color primaryColor, Color secondaryColor, Color tertiaryColor, int flameHeight) {
+    // public static Consumer<AddressableLEDBuffer> fire(double sparking, double
+    // cooling, double speed,
+    // BaseLEDSection section, Color primaryColor, Color secondaryColor, Color
+    // tertiaryColor, int flameHeight) {
+    // Random random = new Random();
+    // int[] heat = new int[section.end() - section.start() + 1];
+    // int maxHeatIndex = Math.min(flameHeight, heat.length) - 1; // Ensure
+    // flameHeight does not exceed heat array
+    // // bounds
+
+    // return (AddressableLEDBuffer buffer) -> {
+    // // Cool down every cell a little
+    // for (int i = section.start(); i <= section.end(); i++) {
+    // heat[i - section.start()] = Math.max(0,
+    // heat[i - section.start()] - random.nextInt((int) (cooling * 100 / speed) +
+    // 2));
+    // }
+
+    // // Heat from each cell drifts 'up' and diffuses a little
+    // for (int k = section.end(); k >= section.start() + 2; k--) {
+    // heat[k - section.start()] = (heat[k - section.start() - 1] + heat[k -
+    // section.start() - 2]
+    // + heat[k - section.start() - 2]) / 3;
+    // }
+
+    // // Randomly ignite new 'sparks' of heat near the bottom
+    // if (random.nextDouble() < sparking) {
+    // int y = random.nextInt(Math.min(7, maxHeatIndex + 1));
+    // heat[y] = Math.min(heat[y] + random.nextInt((int) (95 * speed)) + 160, 255);
+    // }
+
+    // System.out.println(Arrays.toString(heat));
+    // // Convert heat to LED colors
+    // for (int j = section.start(); j <= section.end(); j++) {
+    // Color color = interpolateColor(primaryColor, secondaryColor, tertiaryColor,
+    // heat[j - section.start()]);
+    // buffer.setLED(j, color);
+    // }
+    // };
+    // }
+
+    /**
+     * Algorithm derivative of Fire2012.
+     * 
+     * @param sparking       likelihood of a new spark being lit. higher chance =
+     *                       more roaring fire, lower chance = more flickery fire.
+     *                       [0-1]
+     * @param cooling        how much the air cools as it rises. less cooling =
+     *                       taller flames, more cooling = shorter flames. [0-1]
+     * @param speed
+     * @param section
+     * @param primaryColor
+     * @param secondaryColor
+     * @param tertiaryColor
+     * @param flameHeight
+     * @return
+     */
+    public static Consumer<AddressableLEDBuffer> fire2012(double sparking, double cooling,
+            BaseLEDSection section) {
         Random random = new Random();
-        int[] heat = new int[section.end() - section.start() + 1];
-        int maxHeatIndex = Math.min(flameHeight, heat.length) - 1; // Ensure flameHeight does not exceed heat array
-                                                                   // bounds
+        int[] heat = new int[section.length()];
 
         return (AddressableLEDBuffer buffer) -> {
             // Cool down every cell a little
-            for (int i = section.start(); i <= section.end(); i++) {
-                heat[i - section.start()] = Math.max(0,
-                        heat[i - section.start()] - random.nextInt((int) (cooling * 100 / speed) + 2));
+            for (int i = 0; i < section.length(); i++) {
+                heat[i] = Math.max(0, heat[i] - random.nextInt((int) (cooling * 10 * 255 / section.length()) + 2));
             }
 
             // Heat from each cell drifts 'up' and diffuses a little
-            for (int k = section.end(); k >= section.start() + 2; k--) {
-                heat[k - section.start()] = (heat[k - section.start() - 1] + heat[k - section.start() - 2]
-                        + heat[k - section.start() - 2]) / 3;
+            for (int i = section.length() - 1; i > 2; i--) {
+                heat[i] = (heat[i - 1] + heat[i - 2] + heat[i - 2]) / 3;
             }
 
             // Randomly ignite new 'sparks' of heat near the bottom
             if (random.nextDouble() < sparking) {
-                int y = random.nextInt(Math.min(7, maxHeatIndex + 1));
-                heat[y] = Math.min(heat[y] + random.nextInt((int) (95 * speed)) + 160, 255);
+                int y = random.nextInt(3);
+                heat[y] = Math.min(heat[y] + random.nextInt(160, 255), 255);
             }
 
-            System.out.println(Arrays.toString(heat));
-            // Convert heat to LED colors
-            for (int j = section.start(); j <= section.end(); j++) {
-                Color color = interpolateColor(primaryColor, secondaryColor, tertiaryColor, heat[j - section.start()]);
+            // // Convert heat to LED colors
+            for (int i = 0, j = section.start(); i < section.length() && j < section.end(); i++, j++) {
+                Color color = interpolateColor(heat[i]);
                 buffer.setLED(j, color);
             }
         };
     }
 
-    private static Color interpolateColor(Color primary, Color secondary, Color tertiary, int heat) {
-        int maxHeat = 255;
-        double heatRatio = heat / (double) maxHeat;
-        double fadeToBlack = heatRatio;
+    private static Color interpolateColor(int heat) {
+        int t192 = (int) (heat / 255.0 * 192);
 
-        // Determine which two colors to blend between and the blend ratio
-        Color startColor, endColor;
-        double blendRatio;
-        if (heat <= maxHeat / 3) {
-            // Blend between primary and secondary
-            startColor = primary;
-            endColor = secondary;
-            blendRatio = heatRatio * 3; // Scale ratio to 0-1 range within the first third
-        } else if (heat <= 2 * maxHeat / 3) {
-            // Blend between secondary and tertiary
-            startColor = secondary;
-            endColor = tertiary;
-            blendRatio = (heatRatio - 1.0 / 3) * 3; // Scale ratio to 0-1 range within the second third
+        int heatramp = (t192 % 64) * 4;
+
+        int red;
+        int green;
+        int blue;
+        if (t192 >= 128) {
+            red = 255;
+            green = 255;
+            blue = heatramp;
+        } else if (t192 >= 64) {
+            red = 255; // full red
+            green = heatramp; // ramp up green
+            blue = 0; // no blue
         } else {
-            // Blend between tertiary and a bit of primary to smooth out the transition back
-            // to start, if looping
-            startColor = tertiary;
-            endColor = primary;
-            blendRatio = (heatRatio - 2.0 / 3) * 3; // Scale ratio to 0-1 range within the last third
+            red = heatramp; // full red
+            green = 0; // ramp up green
+            blue = 0; // no blue
         }
 
-        // Calculate blended color
-        int r = (int) ((startColor.red * 255 * (1 - blendRatio) + endColor.red * 255 * blendRatio) * fadeToBlack);
-        int g = (int) ((startColor.green * 255 * (1 - blendRatio) + endColor.green * 255 * blendRatio) * fadeToBlack);
-        int b = (int) ((startColor.blue * 255 * (1 - blendRatio) + endColor.blue * 255 * blendRatio) * fadeToBlack);
+        return new Color(red, green, blue);
+    }
 
-        // Clamp values to ensure they are within 0-255 range
-        r = Math.min(Math.max(r, 0), 255);
-        g = Math.min(Math.max(g, 0), 255);
-        b = Math.min(Math.max(b, 0), 255);
+    public static Consumer<AddressableLEDBuffer> fire2012Palette(double sparking, double cooling, List<Color> colors,
+            BaseLEDSection section) {
+        Random random = new Random();
+        int[] heat = new int[section.length()];
 
-        return new Color(r, g, b);
+        return (AddressableLEDBuffer buffer) -> {
+            // Cool down every cell a little
+            for (int i = 0; i < section.length(); i++) {
+                heat[i] = Math.max(0, heat[i] - random.nextInt((int) (cooling * 10 * 255 / section.length()) + 2));
+            }
+
+            // Heat from each cell drifts 'up' and diffuses a little
+            for (int i = section.length() - 1; i > 2; i--) {
+                heat[i] = (heat[i - 1] + heat[i - 2] + heat[i - 2]) / 3;
+            }
+
+            // Randomly ignite new 'sparks' of heat near the bottom
+            if (random.nextDouble() < sparking) {
+                int y = random.nextInt(3);
+                heat[y] = Math.min(heat[y] + random.nextInt(160, 255), 255);
+            }
+
+            // // Convert heat to LED colors
+            for (int i = 0, j = section.start(); i < section.length() && j < section.end(); i++, j++) {
+                Color color = interpolateColor(heat[i], colors);
+                buffer.setLED(j, color);
+            }
+        };
+    }
+
+    private static Color interpolateColor(int heat, List<Color> colors) {
+        double scaled01 = heat / 255.0;
+
+        double scaledValue = scaled01 * (colors.size() - 1);
+        int index = (int) scaledValue;
+        double t = scaledValue - index; // Fractional part of the scaled value
+
+        // Perform linear interpolation
+        Color color1 = colors.get(index);
+        Color color2 = colors.get(Math.min(index + 1, colors.size() - 1));
+
+        double red = lerp(color1.red, color2.red, t);
+        double green = lerp(color1.green, color2.green, t);
+        double blue = lerp(color1.blue, color2.blue, t);
+
+        return new Color(red, green, blue);
+    }
+
+    private static double lerp(double start, double end, double t) {
+        return start + (end - start) * t;
     }
 
 }
