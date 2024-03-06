@@ -7,6 +7,8 @@ import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.kauailabs.navx.frc.AHRS;
 import com.revrobotics.CANSparkBase;
+import com.revrobotics.CANSparkFlex;
+import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkAbsoluteEncoder;
 
 import edu.wpi.first.math.controller.PIDController;
@@ -78,6 +80,7 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildTalonFXLogItems(TalonFX obj) {
+        FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
                 new DoubleLogItem("velocity", () -> obj.getVelocity().getValue(), LogType.NT),
@@ -98,7 +101,17 @@ public class LogProfileBuilder {
         };
     }
 
-    public static AbstractLogItem<?>[] buildCANSparkBaseLogItems(CANSparkBase obj) {
+    public static AbstractLogItem<?>[] buildCANSparkFlexLogItems(CANSparkFlex obj) {
+        FaultLogger.register(obj);
+        return buildCANSparkBaseLogItems(obj);
+    }
+
+    public static AbstractLogItem<?>[] buildCANSparkMaxLogItems(CANSparkMax obj) {
+        FaultLogger.register(obj);
+        return buildCANSparkBaseLogItems(obj);
+    }
+
+    private static AbstractLogItem<?>[] buildCANSparkBaseLogItems(CANSparkBase obj) {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
                 // new DoubleLogItem("encoderPositionConversionFactor",
@@ -131,6 +144,7 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildCANcoderLogItems(CANcoder obj) {
+        FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("absolutePosition", () -> obj.getAbsolutePosition().getValue(), LogType.NT),
                 new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
@@ -200,6 +214,7 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildPigeon2LogItems(Pigeon2 obj) {
+        FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("pitch", () -> obj.getPitch().getValue(), LogType.NT),
                 new DoubleLogItem("roll", () -> obj.getRoll().getValue(), LogType.NT),

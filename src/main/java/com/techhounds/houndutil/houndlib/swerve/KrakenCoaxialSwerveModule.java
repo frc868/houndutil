@@ -6,7 +6,6 @@ import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.configs.TalonFXConfigurator;
-import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.MotionMagicVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
@@ -105,12 +104,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         driveConfig.Slot0.kP = SWERVE_CONSTANTS.DRIVE_kP;
         driveConfig.Slot0.kI = SWERVE_CONSTANTS.DRIVE_kI;
         driveConfig.Slot0.kD = SWERVE_CONSTANTS.DRIVE_kD;
-        // driveConfig.MotionMagic.MotionMagicCruiseVelocity =
-        // SWERVE_CONSTANTS.MAX_DRIVING_VELOCITY_METERS_PER_SECOND
-        // / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
-        // driveConfig.MotionMagic.MotionMagicAcceleration =
-        // SWERVE_CONSTANTS.MAX_DRIVING_ACCELERATION_METERS_PER_SECOND_SQUARED
-        // / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
         driveConfigurator.apply(driveConfig);
 
         steerCanCoder = new CANcoder(canCoderChannel, canBus);
@@ -171,6 +164,10 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         return driveMotor.getMotorVoltage().getValue();
     }
 
+    public TalonFX getDriveMotor() {
+        return driveMotor;
+    }
+
     @Override
     public double getSteerMotorPosition() {
         return steerMotor.getPosition().getValue();
@@ -184,6 +181,10 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public double getSteerMotorVoltage() {
         return steerMotor.getMotorVoltage().getValue();
+    }
+
+    public TalonFX getSteerMotor() {
+        return steerMotor;
     }
 
     @Override
@@ -242,6 +243,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                     .withVelocity(state.speedMetersPerSecond / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE)
                     .withAcceleration((state.speedMetersPerSecond - previousState.speedMetersPerSecond) / 0.020
                             / SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE));
+
             previousState = state;
         }
 

@@ -87,4 +87,12 @@ public class SparkConfigurator {
         }
         Timer.delay(0.2);
     }
+
+    public static String name(CANSparkFlex spark) {
+        return "SPARK Flex [" + spark.getDeviceId() + "]";
+    }
+
+    public static String name(CANSparkMax spark) {
+        return "SPARK MAX [" + spark.getDeviceId() + "]";
+    }
 }
