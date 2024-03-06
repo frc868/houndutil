@@ -22,6 +22,7 @@ public interface CoaxialSwerveModule {
 
         public double DRIVE_GEARING;
         public double STEER_GEARING;
+        public double COUPLING_RATIO;
         public double DRIVE_ENCODER_ROTATIONS_TO_METERS;
         public double STEER_ENCODER_ROTATIONS_TO_RADIANS;
         public double WHEEL_CIRCUMFERENCE;
@@ -38,8 +39,6 @@ public interface CoaxialSwerveModule {
         public DCMotor STEER_GEARBOX_REPR;
         public double DRIVE_MOI;
         public double STEER_MOI;
-
-        public double COUPLING_RATIO;
     }
 
     public double getDriveMotorPosition();
