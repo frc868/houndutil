@@ -84,13 +84,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 : InvertedValue.CounterClockwise_Positive;
         driveConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         driveConfig.Feedback.SensorToMechanismRatio = SWERVE_CONSTANTS.DRIVE_GEARING;
-        // driveConfig.CurrentLimits.SupplyCurrentLimit =
-        // SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
-        // driveConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
-        // driveConfig.CurrentLimits.SupplyCurrentThreshold = 300;
-        // driveConfig.CurrentLimits.SupplyTimeThreshold = 1;
         if (RobotBase.isReal()) {
-            driveConfig.CurrentLimits.StatorCurrentLimit = 75;
+            driveConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT;
             driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         }
 
@@ -127,7 +122,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
         steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         if (RobotBase.isReal()) {
-            steerConfig.CurrentLimits.StatorCurrentLimit = 30;
+            steerConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
             steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         }
 
@@ -200,7 +195,9 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 // correct number of rotations due to coupling between the drive and steer
                 // gears, then multiply back by circumference to get distance traveled in
                 // meters
-                (driveMotor.getPosition().getValue() - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO)
+                (driveMotor.getPosition().getValue()
+                        - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO
+                                / SWERVE_CONSTANTS.DRIVE_GEARING)
                         * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE,
                 getWheelAngle());
     }
