@@ -182,7 +182,12 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log
     public SwerveModulePosition getPosition() {
         return new SwerveModulePosition(
-                getDriveMotorPosition() - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO,
+                // the position value of the drive motor is in rotations, so back out the
+                // correct number of rotations due to coupling between the drive and steer
+                // gears, then multiply back by circumference to get distance traveled in
+                // meters
+                (driveMotor.getPosition().getValue() - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO)
+                        * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE,
                 getWheelAngle());
     }
 
