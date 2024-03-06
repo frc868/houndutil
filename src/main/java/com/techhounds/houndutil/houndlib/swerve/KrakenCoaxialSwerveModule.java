@@ -11,6 +11,7 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.mechanisms.swerve.SwerveModule;
 import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -24,7 +25,9 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
 @LoggedObject
@@ -195,7 +198,14 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     @Log
     public SwerveModulePosition getPosition() {
-        return new SwerveModulePosition(getDriveMotorPosition(), getWheelAngle());
+        return new SwerveModulePosition(
+                // the position value of the drive motor is in rotations, so back out the
+                // correct number of rotations due to coupling between the drive and steer
+                // gears, then multiply back by circumference to get distance traveled in
+                // meters
+                (driveMotor.getPosition().getValue() - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO)
+                        * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE,
+                getWheelAngle());
     }
 
     @Override
