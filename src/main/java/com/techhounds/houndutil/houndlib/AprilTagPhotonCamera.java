@@ -12,6 +12,7 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
@@ -77,6 +78,7 @@ public class AprilTagPhotonCamera {
 
             cameraSim.enableDrawWireframe(true);
         }
+        FaultLogger.register(photonCamera);
     }
 
     public Optional<EstimatedRobotPose> getEstimatedGlobalPose(
