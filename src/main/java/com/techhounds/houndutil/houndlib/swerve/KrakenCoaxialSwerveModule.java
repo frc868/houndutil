@@ -23,7 +23,6 @@ import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -89,11 +88,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
             driveConfig.CurrentLimits.StatorCurrentLimitEnable = true;
         }
 
-        BaseStatusSignal.setUpdateFrequencyForAll(250,
-                driveMotor.getPosition(),
-                driveMotor.getVelocity(),
-                driveMotor.getMotorVoltage());
-
         driveConfig.Slot0.kS = SWERVE_CONSTANTS.DRIVE_kS;
         driveConfig.Slot0.kV = SWERVE_CONSTANTS.DRIVE_kV;
         driveConfig.Slot0.kP = SWERVE_CONSTANTS.DRIVE_kP;
@@ -142,16 +136,26 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerMotorSim = new DCMotorSim(SWERVE_CONSTANTS.STEER_GEARBOX_REPR,
                 SWERVE_CONSTANTS.STEER_GEARING,
                 SWERVE_CONSTANTS.STEER_MOI);
+
+        BaseStatusSignal.setUpdateFrequencyForAll(250,
+                driveMotor.getPosition(),
+                driveMotor.getVelocity(),
+                driveMotor.getAcceleration(),
+                driveMotor.getMotorVoltage(),
+                steerMotor.getPosition(),
+                steerMotor.getVelocity(),
+                steerMotor.getAcceleration(),
+                steerMotor.getMotorVoltage());
     }
 
     @Override
     public double getDriveMotorPosition() {
-        return driveMotor.getPosition().getValue() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+        return BaseStatusSignal.getLatencyCompensatedValue(driveMotor.getPosition(), driveMotor.getVelocity());
     }
 
     @Override
     public double getDriveMotorVelocity() {
-        return driveMotor.getVelocity().getValue() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE;
+        return BaseStatusSignal.getLatencyCompensatedValue(driveMotor.getVelocity(), driveMotor.getAcceleration());
     }
 
     @Override
@@ -165,12 +169,12 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public double getSteerMotorPosition() {
-        return steerMotor.getPosition().getValue();
+        return BaseStatusSignal.getLatencyCompensatedValue(steerMotor.getPosition(), steerMotor.getVelocity());
     }
 
     @Override
     public double getSteerMotorVelocity() {
-        return steerMotor.getVelocity().getValue();
+        return BaseStatusSignal.getLatencyCompensatedValue(steerMotor.getVelocity(), steerMotor.getAcceleration());
     }
 
     @Override
@@ -184,7 +188,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public Rotation2d getWheelAngle() {
-        return new Rotation2d(Units.rotationsToRadians(steerMotor.getPosition().getValue()));
+        return Rotation2d.fromRotations(getSteerMotorPosition());
     }
 
     @Override
@@ -195,8 +199,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 // correct number of rotations due to coupling between the drive and steer
                 // gears, then multiply back by circumference to get distance traveled in
                 // meters
-                (driveMotor.getPosition().getValue()
-                        - getWheelAngle().getRotations() * SWERVE_CONSTANTS.COUPLING_RATIO
+                (getDriveMotorPosition()
+                        - getSteerMotorPosition() * SWERVE_CONSTANTS.COUPLING_RATIO
                                 / SWERVE_CONSTANTS.DRIVE_GEARING)
                         * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE,
                 getWheelAngle());
@@ -205,7 +209,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     @Log
     public SwerveModuleState getState() {
-        return new SwerveModuleState(getDriveMotorVelocity(), getWheelAngle());
+        return new SwerveModuleState(getDriveMotorVelocity() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE, getWheelAngle());
     }
 
     @Override
