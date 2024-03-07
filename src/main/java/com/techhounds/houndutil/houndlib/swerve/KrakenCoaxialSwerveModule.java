@@ -186,6 +186,11 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         return steerMotor;
     }
 
+    public BaseStatusSignal[] getSignals() {
+        return new BaseStatusSignal[] { driveMotor.getPosition(), driveMotor.getVelocity(),
+                steerMotor.getPosition(), steerMotor.getVelocity() };
+    }
+
     @Override
     public Rotation2d getWheelAngle() {
         return Rotation2d.fromRotations(getSteerMotorPosition());
