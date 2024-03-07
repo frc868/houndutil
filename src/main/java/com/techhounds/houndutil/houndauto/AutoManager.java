@@ -17,6 +17,7 @@ import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -131,6 +132,9 @@ public class AutoManager {
     public void displayPaths(List<PathPlannerPath> paths) {
         ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
         for (PathPlannerPath path : paths) {
+            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
+                path = path.flipPath();
+            }
             PathPlannerTrajectory trajectory = path.getTrajectory(new ChassisSpeeds(),
                     path.getStartingDifferentialPose().getRotation());
 
@@ -167,9 +171,9 @@ public class AutoManager {
             timer.start();
             currentCommand = baseCommand
                     .beforeStarting(() -> resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose()))
+                    .andThen(Commands.runOnce(timer::stop))
                     .withName("auto");
             currentCommand.schedule();
-            new Trigger(currentCommand::isFinished).onTrue(Commands.runOnce(timer::stop).ignoringDisable(true));
         }
     }
 

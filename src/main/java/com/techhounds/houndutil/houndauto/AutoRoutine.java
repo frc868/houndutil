@@ -4,6 +4,8 @@ import java.util.List;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
 
 public class AutoRoutine {
@@ -45,7 +47,10 @@ public class AutoRoutine {
 
     public Pose2d getInitialPose() {
         if (pathPlannerPaths != null) {
-            return initialPose;
+            if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red)
+                return Reflector.reflectPose2d(initialPose, 16.54);
+            else
+                return initialPose;
         } else {
             return new Pose2d();
         }
