@@ -11,10 +11,7 @@ import com.techhounds.houndutil.houndlib.SparkConfigurator;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringArrayPublisher;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -266,6 +263,8 @@ public final class FaultLogger {
                 talon.getStickyFault_UnstableSupplyV(),
                 talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
 
+        faultSignals.forEach((s) -> SignalManager.register(s));
+
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
         }
@@ -293,6 +292,8 @@ public final class FaultLogger {
                 cancoder.getStickyFault_Hardware(),
                 cancoder.getStickyFault_Undervoltage(),
                 cancoder.getStickyFault_UnlicensedFeatureInUse());
+
+        faultSignals.forEach((s) -> SignalManager.register(s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "CANcoder [" + cancoder.getDeviceID() + "]", signal.getName(),
@@ -333,6 +334,8 @@ public final class FaultLogger {
                 pigeon.getStickyFault_SaturatedMagnetometer(),
                 pigeon.getStickyFault_Undervoltage(),
                 pigeon.getStickyFault_UnlicensedFeatureInUse());
+
+        faultSignals.forEach((s) -> SignalManager.register(s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Pigeon 2 [" + pigeon.getDeviceID() + "]", signal.getName(),

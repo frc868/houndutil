@@ -9,7 +9,7 @@ public enum LogType {
     /**
      * LogValues set at this type will only be available via the console (over NT).
      */
-    CONSOLE(2),
+    DEBUG(2),
     /**
      * LogValues set at this level will be available via DataLog, but not NT.
      */

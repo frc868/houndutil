@@ -2,6 +2,7 @@ package com.techhounds.houndutil.houndlog;
 
 import java.lang.reflect.Field;
 
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -18,6 +19,7 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
@@ -28,7 +30,6 @@ import com.techhounds.houndutil.houndlog.logitems.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.logitems.DoubleArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.logitems.FloatLogItem;
-import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
 import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
@@ -80,24 +81,41 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildTalonFXLogItems(TalonFX obj) {
+        StatusSignal<Double> position = obj.getPosition();
+        StatusSignal<Double> velocity = obj.getVelocity();
+        StatusSignal<Double> acceleration = obj.getAcceleration();
+        StatusSignal<Double> temp = obj.getDeviceTemp();
+        StatusSignal<Double> outputVoltage = obj.getMotorVoltage();
+        StatusSignal<Double> outputCurrent = obj.getTorqueCurrent();
+
+        SignalManager.register(position, velocity, acceleration, temp, outputVoltage, outputCurrent);
         FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
-                new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
-                new DoubleLogItem("velocity", () -> obj.getVelocity().getValue(), LogType.NT),
-                new DoubleLogItem("acceleration", () -> obj.getAcceleration().getValue(), LogType.NT),
-                new DoubleLogItem("temperature", () -> obj.getDeviceTemp().getValue(), LogType.NT),
-                new DoubleLogItem("speed", () -> obj.getDutyCycle().getValue() / 2.0, LogType.NT), // [-2, 2)
-                new DoubleLogItem("outputVoltage", () -> obj.getMotorVoltage().getValue(), LogType.NT),
-                new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(), LogType.NT),
-                new DoubleLogItem("outputCurrent", () -> obj.getTorqueCurrent().getValue(), LogType.NT),
-                new DoubleLogItem("supplyCurrent", () -> obj.getSupplyCurrent().getValue(), LogType.NT),
-                new StringLogItem("bridgeOutput", () -> obj.getBridgeOutput().getValue().toString(), LogType.NT),
-                new DoubleLogItem("closedLoopReference", () -> obj.getClosedLoopReference().getValue(), LogType.NT),
-                new DoubleLogItem("closedLoopOutput", () -> obj.getClosedLoopOutput().getValue(), LogType.NT),
-                new DoubleLogItem("closedLoopError", () -> obj.getClosedLoopError().getValue(), LogType.NT),
-                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
-                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
-                        LogType.NT)
+                new DoubleLogItem("position", () -> position.getValue(), LogType.NT),
+                new DoubleLogItem("velocity", () -> velocity.getValue(), LogType.NT),
+                new DoubleLogItem("acceleration", () -> acceleration.getValue(), LogType.NT),
+                new DoubleLogItem("temperature", () -> temp.getValue(), LogType.NT),
+                // new DoubleLogItem("speed", () -> obj.getDutyCycle().getValue() / 2.0,
+                // LogType.DEBUG), // [-2, 2)
+                new DoubleLogItem("outputVoltage", () -> outputVoltage.getValue(), LogType.NT),
+                // new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(),
+                // LogType.DEBUG),
+                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValue(), LogType.NT),
+                // new DoubleLogItem("supplyCurrent", () -> obj.getSupplyCurrent().getValue(),
+                // LogType.DEBUG),
+                // new StringLogItem("bridgeOutput", () ->
+                // obj.getBridgeOutput().getValue().toString(), LogType.DEBUG),
+                // new DoubleLogItem("closedLoopReference", () ->
+                // obj.getClosedLoopReference().getValue(), LogType.DEBUG),
+                // new DoubleLogItem("closedLoopOutput", () ->
+                // obj.getClosedLoopOutput().getValue(), LogType.DEBUG),
+                // new DoubleLogItem("closedLoopError", () ->
+                // obj.getClosedLoopError().getValue(), LogType.DEBUG),
+                // new StringLogItem("faults", () ->
+                // ctreFaultsToString(obj.getFaultField().getValue()), LogType.DEBUG),
+                // new StringLogItem("stickyFaults", () ->
+                // ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                // LogType.DEBUG)
         };
     }
 
@@ -114,26 +132,19 @@ public class LogProfileBuilder {
     private static AbstractLogItem<?>[] buildCANSparkBaseLogItems(CANSparkBase obj) {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
-                // new DoubleLogItem("encoderPositionConversionFactor",
-                // obj.getEncoder()::getPositionConversionFactor, LogType.DATALOG),
                 new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
-                // new DoubleLogItem("encoderVelocityConversionFactor",
-                // obj.getEncoder()::getVelocityConversionFactor, LogType.DATALOG),
                 new DoubleLogItem("speed", obj::get, LogType.NT),
-                new DoubleLogItem("outputVoltage", obj::getAppliedOutput, LogType.NT),
-                new DoubleLogItem("busVoltage", obj::getBusVoltage, LogType.DATALOG),
+                new DoubleLogItem("outputVoltage",
+                        () -> RobotBase.isReal() ? obj.getAppliedOutput() * obj.getBusVoltage()
+                                : obj.getAppliedOutput(),
+                        LogType.NT),
+                // new DoubleLogItem("busVoltage", obj::getBusVoltage, LogType.DEBUG),
                 new DoubleLogItem("motorTemperature", obj::getMotorTemperature, LogType.NT),
                 new DoubleLogItem("outputCurrent", obj::getOutputCurrent, LogType.NT),
-                new IntegerLogItem("deviceId", obj::getDeviceId, LogType.DATALOG),
-                new StringLogItem("firmwareVersion", obj::getFirmwareString, LogType.DATALOG),
-                // new BooleanLogItem("brakeMode", () -> obj.getIdleMode() ==
-                // CANSparkBase.IdleMode.kBrake, LogType.NT),
-                // new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
-                new BooleanLogItem("isFollower", obj::isFollower, LogType.DATALOG),
-                new StringLogItem("faults",
-                        () -> revFaultsToString(obj.getFaults()), LogType.NT),
-                new StringLogItem("stickyFaults",
-                        () -> revFaultsToString(obj.getStickyFaults()), LogType.NT),
+                // new StringLogItem("faults",
+                // () -> revFaultsToString(obj.getFaults()), LogType.DEBUG),
+                // new StringLogItem("stickyFaults",
+                // () -> revFaultsToString(obj.getStickyFaults()), LogType.DEBUG),
         };
     }
 
@@ -144,17 +155,26 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildCANcoderLogItems(CANcoder obj) {
+        StatusSignal<Double> absolutePosition = obj.getAbsolutePosition();
+        StatusSignal<Double> position = obj.getPosition();
+        StatusSignal<Double> velocity = obj.getVelocity();
+
+        SignalManager.register(absolutePosition, position, velocity);
         FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
-                new DoubleLogItem("absolutePosition", () -> obj.getAbsolutePosition().getValue(), LogType.NT),
-                new DoubleLogItem("position", () -> obj.getPosition().getValue(), LogType.NT),
-                new DoubleLogItem("velocity", () -> obj.getVelocity().getValue(), LogType.NT),
-                new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(), LogType.DATALOG),
-                new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DATALOG),
-                new StringLogItem("magnetHealth", () -> obj.getMagnetHealth().getValue().name(), LogType.DATALOG),
-                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
-                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
-                        LogType.NT)
+                new DoubleLogItem("absolutePosition", () -> absolutePosition.getValue(), LogType.NT),
+                new DoubleLogItem("position", () -> position.getValue(), LogType.NT),
+                new DoubleLogItem("velocity", () -> velocity.getValue(), LogType.NT),
+                // new DoubleLogItem("busVoltage", () -> obj.getSupplyVoltage().getValue(),
+                // LogType.DEBUG),
+                // new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DEBUG),
+                // new StringLogItem("magnetHealth", () ->
+                // obj.getMagnetHealth().getValue().name(), LogType.DEBUG),
+                // new StringLogItem("faults", () ->
+                // ctreFaultsToString(obj.getFaultField().getValue()), LogType.DEBUG),
+                // new StringLogItem("stickyFaults", () ->
+                // ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                // LogType.DEBUG)
         };
     }
 
@@ -169,11 +189,6 @@ public class LogProfileBuilder {
                 new DoubleLogItem("position", obj::getPosition, LogType.NT),
                 new DoubleLogItem("velocity", obj::getVelocity, LogType.NT),
                 new DoubleLogItem("zeroOffset", obj::getZeroOffset, LogType.NT),
-                // new BooleanLogItem("isInverted", obj::getInverted, LogType.DATALOG),
-                // new DoubleLogItem("positionConversionFactor",
-                // obj::getPositionConversionFactor, LogType.DATALOG),
-                // new DoubleLogItem("velocityConversionFactor",
-                // obj::getVelocityConversionFactor, LogType.DATALOG),
         };
     }
 
@@ -214,20 +229,31 @@ public class LogProfileBuilder {
      * @return the array of LogItems
      */
     public static AbstractLogItem<?>[] buildPigeon2LogItems(Pigeon2 obj) {
+        StatusSignal<Double> pitch = obj.getPitch();
+        StatusSignal<Double> roll = obj.getRoll();
+        StatusSignal<Double> yaw = obj.getYaw();
+
+        SignalManager.register(pitch, roll, yaw);
         FaultLogger.register(obj);
         return new AbstractLogItem<?>[] {
-                new DoubleLogItem("pitch", () -> obj.getPitch().getValue(), LogType.NT),
-                new DoubleLogItem("roll", () -> obj.getRoll().getValue(), LogType.NT),
-                new DoubleLogItem("yaw", () -> obj.getYaw().getValue(), LogType.NT),
-                new DoubleLogItem("yawRad", () -> Units.degreesToRadians(obj.getYaw().getValue()), LogType.NT),
-                new DoubleLogItem("xAcceleration", () -> obj.getAccelerationX().getValue(), LogType.DATALOG),
-                new DoubleLogItem("yAcceleration", () -> obj.getAccelerationY().getValue(), LogType.DATALOG),
-                new DoubleLogItem("zAcceleration", () -> obj.getAccelerationZ().getValue(), LogType.DATALOG),
-                new DoubleLogItem("temperature", () -> obj.getTemperature().getValue(), LogType.DATALOG),
-                new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DATALOG),
-                new StringLogItem("faults", () -> ctreFaultsToString(obj.getFaultField().getValue()), LogType.NT),
-                new StringLogItem("stickyFaults", () -> ctreFaultsToString(obj.getStickyFaultField().getValue()),
-                        LogType.NT)
+                new DoubleLogItem("pitch", () -> pitch.getValue(), LogType.NT),
+                new DoubleLogItem("roll", () -> roll.getValue(), LogType.NT),
+                new DoubleLogItem("yaw", () -> yaw.getValue(), LogType.NT),
+                new DoubleLogItem("yawRad", () -> Units.degreesToRadians(yaw.getValue()), LogType.NT),
+                // new DoubleLogItem("xAcceleration", () -> obj.getAccelerationX().getValue(),
+                // LogType.DEBUG),
+                // new DoubleLogItem("yAcceleration", () -> obj.getAccelerationY().getValue(),
+                // LogType.DEBUG),
+                // new DoubleLogItem("zAcceleration", () -> obj.getAccelerationZ().getValue(),
+                // LogType.DEBUG),
+                // new DoubleLogItem("temperature", () -> obj.getTemperature().getValue(),
+                // LogType.DEBUG),
+                // new IntegerLogItem("deviceId", obj::getDeviceID, LogType.DEBUG),
+                // new StringLogItem("faults", () ->
+                // ctreFaultsToString(obj.getFaultField().getValue()), LogType.DEBUG),
+                // new StringLogItem("stickyFaults", () ->
+                // ctreFaultsToString(obj.getStickyFaultField().getValue()),
+                // LogType.DEBUG)
         };
     }
 
@@ -259,113 +285,117 @@ public class LogProfileBuilder {
                 new DoubleLogItem("voltage", obj::getVoltage, LogType.NT),
                 new DoubleLogItem("temperature", obj::getTemperature, LogType.NT),
                 new DoubleLogItem("totalCurrentAmps", obj::getTotalCurrent, LogType.NT),
-                new DoubleLogItem("totalPowerWatts", obj::getTotalPower, LogType.NT),
-                new DoubleLogItem("totalEnergyJoules", obj::getTotalEnergy, LogType.NT),
-                new DoubleArrayLogItem("channelCurrents", () -> new double[] {
-                        obj.getCurrent(0),
-                        obj.getCurrent(1),
-                        obj.getCurrent(2),
-                        obj.getCurrent(3),
-                        obj.getCurrent(4),
-                        obj.getCurrent(5),
-                        obj.getCurrent(6),
-                        obj.getCurrent(7),
-                        obj.getCurrent(8),
-                        obj.getCurrent(9),
-                        obj.getCurrent(10),
-                        obj.getCurrent(11),
-                        obj.getCurrent(12),
-                        obj.getCurrent(13),
-                        obj.getCurrent(14),
-                        obj.getCurrent(15),
-                        obj.getCurrent(16),
-                        obj.getCurrent(17),
-                        obj.getCurrent(18),
-                        obj.getCurrent(19),
-                        obj.getCurrent(20),
-                        obj.getCurrent(21),
-                        obj.getCurrent(22),
-                        obj.getCurrent(23),
-                }, LogType.DATALOG),
-                new StringLogItem("firmwareVersion",
-                        () -> obj.getVersion().firmwareMajor + "."
-                                + obj.getVersion().firmwareMinor + "."
-                                + obj.getVersion().firmwareFix,
-                        LogType.DATALOG),
-                new StringLogItem("type",
-                        () -> obj.getType().toString(),
-                        LogType.DATALOG),
-                new BooleanLogItem("isSwitchableChannelActive", obj::getSwitchableChannel,
-                        LogType.NT),
-                new BooleanArrayLogItem("faults/breakerFaults",
-                        () -> new boolean[] {
-                                obj.getFaults().Channel0BreakerFault,
-                                obj.getFaults().Channel1BreakerFault,
-                                obj.getFaults().Channel2BreakerFault,
-                                obj.getFaults().Channel3BreakerFault,
-                                obj.getFaults().Channel4BreakerFault,
-                                obj.getFaults().Channel5BreakerFault,
-                                obj.getFaults().Channel6BreakerFault,
-                                obj.getFaults().Channel7BreakerFault,
-                                obj.getFaults().Channel8BreakerFault,
-                                obj.getFaults().Channel9BreakerFault,
-                                obj.getFaults().Channel10BreakerFault,
-                                obj.getFaults().Channel11BreakerFault,
-                                obj.getFaults().Channel12BreakerFault,
-                                obj.getFaults().Channel13BreakerFault,
-                                obj.getFaults().Channel14BreakerFault,
-                                obj.getFaults().Channel15BreakerFault,
-                                obj.getFaults().Channel16BreakerFault,
-                                obj.getFaults().Channel17BreakerFault,
-                                obj.getFaults().Channel18BreakerFault,
-                                obj.getFaults().Channel19BreakerFault,
-                                obj.getFaults().Channel20BreakerFault,
-                                obj.getFaults().Channel21BreakerFault,
-                                obj.getFaults().Channel22BreakerFault,
-                                obj.getFaults().Channel23BreakerFault,
-                        },
-                        LogType.DATALOG),
-                new BooleanLogItem("faults/brownout", () -> obj.getFaults().Brownout, LogType.DATALOG),
-                new BooleanLogItem("faults/canWarning",
-                        () -> obj.getFaults().CanWarning, LogType.DATALOG),
-                new BooleanLogItem("faults/hardwareFault", () -> obj.getFaults().HardwareFault,
-                        LogType.DATALOG),
-                new BooleanArrayLogItem("faults/sticky/breakerFaults",
-                        () -> new boolean[] {
-                                obj.getStickyFaults().Channel0BreakerFault,
-                                obj.getStickyFaults().Channel1BreakerFault,
-                                obj.getStickyFaults().Channel2BreakerFault,
-                                obj.getStickyFaults().Channel3BreakerFault,
-                                obj.getStickyFaults().Channel4BreakerFault,
-                                obj.getStickyFaults().Channel5BreakerFault,
-                                obj.getStickyFaults().Channel6BreakerFault,
-                                obj.getStickyFaults().Channel7BreakerFault,
-                                obj.getStickyFaults().Channel8BreakerFault,
-                                obj.getStickyFaults().Channel9BreakerFault,
-                                obj.getStickyFaults().Channel10BreakerFault,
-                                obj.getStickyFaults().Channel11BreakerFault,
-                                obj.getStickyFaults().Channel12BreakerFault,
-                                obj.getStickyFaults().Channel13BreakerFault,
-                                obj.getStickyFaults().Channel14BreakerFault,
-                                obj.getStickyFaults().Channel15BreakerFault,
-                                obj.getStickyFaults().Channel16BreakerFault,
-                                obj.getStickyFaults().Channel17BreakerFault,
-                                obj.getStickyFaults().Channel18BreakerFault,
-                                obj.getStickyFaults().Channel19BreakerFault,
-                                obj.getStickyFaults().Channel20BreakerFault,
-                                obj.getStickyFaults().Channel21BreakerFault,
-                                obj.getStickyFaults().Channel22BreakerFault,
-                                obj.getStickyFaults().Channel23BreakerFault,
-                        },
-                        LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/brownout", () -> obj.getStickyFaults().Brownout,
-                        LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/canBusOff",
-                        () -> obj.getStickyFaults().CanBusOff, LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/canWarning",
-                        () -> obj.getStickyFaults().CanWarning, LogType.DATALOG),
-                new BooleanLogItem("faults/sticky/hasReset", () -> obj.getStickyFaults().HasReset,
-                        LogType.DATALOG)
+                // new DoubleLogItem("totalPowerWatts", obj::getTotalPower, LogType.DEBUG),
+                // new DoubleLogItem("totalEnergyJoules", obj::getTotalEnergy, LogType.DEBUG),
+                // new DoubleArrayLogItem("channelCurrents", () -> new double[] {
+                // obj.getCurrent(0),
+                // obj.getCurrent(1),
+                // obj.getCurrent(2),
+                // obj.getCurrent(3),
+                // obj.getCurrent(4),
+                // obj.getCurrent(5),
+                // obj.getCurrent(6),
+                // obj.getCurrent(7),
+                // obj.getCurrent(8),
+                // obj.getCurrent(9),
+                // obj.getCurrent(10),
+                // obj.getCurrent(11),
+                // obj.getCurrent(12),
+                // obj.getCurrent(13),
+                // obj.getCurrent(14),
+                // obj.getCurrent(15),
+                // obj.getCurrent(16),
+                // obj.getCurrent(17),
+                // obj.getCurrent(18),
+                // obj.getCurrent(19),
+                // obj.getCurrent(20),
+                // obj.getCurrent(21),
+                // obj.getCurrent(22),
+                // obj.getCurrent(23),
+                // }, LogType.DATALOG),
+                // new StringLogItem("firmwareVersion",
+                // () -> obj.getVersion().firmwareMajor + "."
+                // + obj.getVersion().firmwareMinor + "."
+                // + obj.getVersion().firmwareFix,
+                // LogType.DEBUG),
+                // new StringLogItem("type",
+                // () -> obj.getType().toString(),
+                // LogType.DEBUG),
+                // new BooleanLogItem("isSwitchableChannelActive", obj::getSwitchableChannel,
+                // LogType.DEBUG),
+                // new BooleanArrayLogItem("faults/breakerFaults",
+                // () -> new boolean[] {
+                // obj.getFaults().Channel0BreakerFault,
+                // obj.getFaults().Channel1BreakerFault,
+                // obj.getFaults().Channel2BreakerFault,
+                // obj.getFaults().Channel3BreakerFault,
+                // obj.getFaults().Channel4BreakerFault,
+                // obj.getFaults().Channel5BreakerFault,
+                // obj.getFaults().Channel6BreakerFault,
+                // obj.getFaults().Channel7BreakerFault,
+                // obj.getFaults().Channel8BreakerFault,
+                // obj.getFaults().Channel9BreakerFault,
+                // obj.getFaults().Channel10BreakerFault,
+                // obj.getFaults().Channel11BreakerFault,
+                // obj.getFaults().Channel12BreakerFault,
+                // obj.getFaults().Channel13BreakerFault,
+                // obj.getFaults().Channel14BreakerFault,
+                // obj.getFaults().Channel15BreakerFault,
+                // obj.getFaults().Channel16BreakerFault,
+                // obj.getFaults().Channel17BreakerFault,
+                // obj.getFaults().Channel18BreakerFault,
+                // obj.getFaults().Channel19BreakerFault,
+                // obj.getFaults().Channel20BreakerFault,
+                // obj.getFaults().Channel21BreakerFault,
+                // obj.getFaults().Channel22BreakerFault,
+                // obj.getFaults().Channel23BreakerFault,
+                // },
+                // LogType.DEBUG),
+                // new BooleanLogItem("faults/brownout", () -> obj.getFaults().Brownout,
+                // LogType.DEBUG),
+                // new BooleanLogItem("faults/canWarning",
+                // () -> obj.getFaults().CanWarning, LogType.DEBUG),
+                // new BooleanLogItem("faults/hardwareFault", () ->
+                // obj.getFaults().HardwareFault,
+                // LogType.DEBUG),
+                // new BooleanArrayLogItem("faults/sticky/breakerFaults",
+                // () -> new boolean[] {
+                // obj.getStickyFaults().Channel0BreakerFault,
+                // obj.getStickyFaults().Channel1BreakerFault,
+                // obj.getStickyFaults().Channel2BreakerFault,
+                // obj.getStickyFaults().Channel3BreakerFault,
+                // obj.getStickyFaults().Channel4BreakerFault,
+                // obj.getStickyFaults().Channel5BreakerFault,
+                // obj.getStickyFaults().Channel6BreakerFault,
+                // obj.getStickyFaults().Channel7BreakerFault,
+                // obj.getStickyFaults().Channel8BreakerFault,
+                // obj.getStickyFaults().Channel9BreakerFault,
+                // obj.getStickyFaults().Channel10BreakerFault,
+                // obj.getStickyFaults().Channel11BreakerFault,
+                // obj.getStickyFaults().Channel12BreakerFault,
+                // obj.getStickyFaults().Channel13BreakerFault,
+                // obj.getStickyFaults().Channel14BreakerFault,
+                // obj.getStickyFaults().Channel15BreakerFault,
+                // obj.getStickyFaults().Channel16BreakerFault,
+                // obj.getStickyFaults().Channel17BreakerFault,
+                // obj.getStickyFaults().Channel18BreakerFault,
+                // obj.getStickyFaults().Channel19BreakerFault,
+                // obj.getStickyFaults().Channel20BreakerFault,
+                // obj.getStickyFaults().Channel21BreakerFault,
+                // obj.getStickyFaults().Channel22BreakerFault,
+                // obj.getStickyFaults().Channel23BreakerFault,
+                // },
+                // LogType.DEBUG),
+                // new BooleanLogItem("faults/sticky/brownout", () ->
+                // obj.getStickyFaults().Brownout,
+                // LogType.DEBUG),
+                // new BooleanLogItem("faults/sticky/canBusOff",
+                // () -> obj.getStickyFaults().CanBusOff, LogType.DEBUG),
+                // new BooleanLogItem("faults/sticky/canWarning",
+                // () -> obj.getStickyFaults().CanWarning, LogType.DEBUG),
+                // new BooleanLogItem("faults/sticky/hasReset", () ->
+                // obj.getStickyFaults().HasReset,
+                // LogType.DEBUG)
 
         };
     }
@@ -466,10 +496,12 @@ public class LogProfileBuilder {
                         LogType.NT),
                 new BooleanLogItem("atSetpoint", () -> obj.atSetpoint(),
                         LogType.NT),
-                new BooleanLogItem("isContinuousInputEnabled", () -> obj.isContinuousInputEnabled(),
-                        LogType.NT),
+                // new BooleanLogItem("isContinuousInputEnabled", () ->
+                // obj.isContinuousInputEnabled(),
+                // LogType.DEBUG),
                 new DoubleLogItem("positionError", () -> obj.getPositionError(), LogType.NT),
-                new DoubleLogItem("velocityError", () -> obj.getVelocityError(), LogType.DATALOG),
+                // new DoubleLogItem("velocityError", () -> obj.getVelocityError(),
+                // LogType.DEBUG),
                 new TunableDouble("tunables/kP", obj.getP(), (d) -> obj.setP(d)),
                 new TunableDouble("tunables/kI", obj.getI(), (d) -> obj.setI(d)),
                 new TunableDouble("tunables/kD", obj.getD(), (d) -> obj.setD(d)),
@@ -514,8 +546,8 @@ public class LogProfileBuilder {
                         LogType.NT),
                 new DoubleLogItem("positionError", () -> obj.getPositionError(),
                         LogType.NT),
-                new DoubleLogItem("velocityError", () -> obj.getVelocityError(),
-                        LogType.DATALOG),
+                // new DoubleLogItem("velocityError", () -> obj.getVelocityError(),
+                // LogType.DEBUG),
                 new TunableDouble("tunables/kP", obj.getP(), (d) -> obj.setP(d)),
                 new TunableDouble("tunables/kI", obj.getI(), (d) -> obj.setI(d)),
                 new TunableDouble("tunables/kD", obj.getD(), (d) -> obj.setD(d)),

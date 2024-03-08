@@ -1,5 +1,6 @@
 package com.techhounds.houndutil.houndlib.robots;
 
+import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -9,7 +10,9 @@ import java.util.function.Supplier;
 
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.TriConsumer;
+import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.LoggingManager;
+import com.techhounds.houndutil.houndlog.SignalManager;
 
 public class HoundRobot extends TimedRobot {
     public HoundRobot() {
@@ -34,14 +37,16 @@ public class HoundRobot extends TimedRobot {
         // sets the LoggingManager to run every 100ms and on an offset of 10ms from the
         // main thread
         LoggingManager.getInstance().init();
-        addPeriodic(LoggingManager.getInstance()::run, 0.100, 0.010);
+        addPeriodic(FaultLogger::update, 0.100, 0.010);
         LiveWindow.disableAllTelemetry();
+        SignalManager.registerAll();
+        Threads.setCurrentThreadPriority(true, 99);
     }
 
     @Override
     public void robotPeriodic() {
         CommandScheduler.getInstance().run();
-        // LoggingManager.getInstance().run();
+        LoggingManager.getInstance().run();
     }
 
     @Override

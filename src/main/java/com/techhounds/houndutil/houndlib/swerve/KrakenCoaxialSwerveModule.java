@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
@@ -17,6 +18,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
+import com.techhounds.houndutil.houndlog.SignalManager;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
@@ -49,6 +51,15 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0);
 
     private SwerveModuleState previousState = new SwerveModuleState();
+
+    private final StatusSignal<Double> drivePosition;
+    private final StatusSignal<Double> driveVelocity;
+    private final StatusSignal<Double> driveAcceleration;
+    private final StatusSignal<Double> driveMotorVoltage;
+    private final StatusSignal<Double> steerPosition;
+    private final StatusSignal<Double> steerVelocity;
+    private final StatusSignal<Double> steerAcceleration;
+    private final StatusSignal<Double> steerMotorVoltage;
 
     /**
      * Initalizes a SwerveModule.
@@ -137,30 +148,37 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 SWERVE_CONSTANTS.STEER_GEARING,
                 SWERVE_CONSTANTS.STEER_MOI);
 
+        drivePosition = driveMotor.getPosition();
+        driveVelocity = driveMotor.getVelocity();
+        driveAcceleration = driveMotor.getAcceleration();
+        driveMotorVoltage = driveMotor.getMotorVoltage();
+        steerPosition = steerMotor.getPosition();
+        steerVelocity = steerMotor.getVelocity();
+        steerAcceleration = steerMotor.getAcceleration();
+        steerMotorVoltage = steerMotor.getMotorVoltage();
+
         BaseStatusSignal.setUpdateFrequencyForAll(250,
-                driveMotor.getPosition(),
-                driveMotor.getVelocity(),
-                driveMotor.getAcceleration(),
-                driveMotor.getMotorVoltage(),
-                steerMotor.getPosition(),
-                steerMotor.getVelocity(),
-                steerMotor.getAcceleration(),
-                steerMotor.getMotorVoltage());
+                drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
+                steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
+
+        SignalManager.register(
+                drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
+                steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
     }
 
     @Override
     public double getDriveMotorPosition() {
-        return BaseStatusSignal.getLatencyCompensatedValue(driveMotor.getPosition(), driveMotor.getVelocity());
+        return BaseStatusSignal.getLatencyCompensatedValue(drivePosition, driveVelocity);
     }
 
     @Override
     public double getDriveMotorVelocity() {
-        return BaseStatusSignal.getLatencyCompensatedValue(driveMotor.getVelocity(), driveMotor.getAcceleration());
+        return BaseStatusSignal.getLatencyCompensatedValue(driveVelocity, driveAcceleration);
     }
 
     @Override
     public double getDriveMotorVoltage() {
-        return driveMotor.getMotorVoltage().getValue();
+        return driveMotorVoltage.getValue();
     }
 
     public TalonFX getDriveMotor() {
@@ -169,17 +187,17 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public double getSteerMotorPosition() {
-        return BaseStatusSignal.getLatencyCompensatedValue(steerMotor.getPosition(), steerMotor.getVelocity());
+        return BaseStatusSignal.getLatencyCompensatedValue(steerPosition, steerVelocity);
     }
 
     @Override
     public double getSteerMotorVelocity() {
-        return BaseStatusSignal.getLatencyCompensatedValue(steerMotor.getVelocity(), steerMotor.getAcceleration());
+        return BaseStatusSignal.getLatencyCompensatedValue(steerVelocity, steerAcceleration);
     }
 
     @Override
     public double getSteerMotorVoltage() {
-        return steerMotor.getMotorVoltage().getValue();
+        return steerMotorVoltage.getValue();
     }
 
     public TalonFX getSteerMotor() {
@@ -187,8 +205,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     }
 
     public BaseStatusSignal[] getSignals() {
-        return new BaseStatusSignal[] { driveMotor.getPosition(), driveMotor.getVelocity(),
-                steerMotor.getPosition(), steerMotor.getVelocity() };
+        return new BaseStatusSignal[] { drivePosition, driveVelocity, steerPosition, steerVelocity };
     }
 
     @Override

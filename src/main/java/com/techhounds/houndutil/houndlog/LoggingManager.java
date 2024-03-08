@@ -134,7 +134,6 @@ public class LoggingManager {
         for (Loggable loggable : loggables) {
             loggable.run();
         }
-        FaultLogger.update();
         loggingLoopTimeMs = (Timer.getFPGATimestamp() - startTime) * 1000;
     }
 }
