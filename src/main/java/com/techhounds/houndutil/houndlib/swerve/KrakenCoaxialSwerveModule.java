@@ -134,6 +134,9 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.Slot0.kP = SWERVE_CONSTANTS.STEER_kP;
         steerConfig.Slot0.kI = SWERVE_CONSTANTS.STEER_kI;
         steerConfig.Slot0.kD = SWERVE_CONSTANTS.STEER_kD;
+        steerConfig.Slot0.kS = SWERVE_CONSTANTS.STEER_kS;
+        steerConfig.Slot0.kV = SWERVE_CONSTANTS.STEER_kV;
+        steerConfig.Slot0.kA = SWERVE_CONSTANTS.STEER_kA;
         steerConfig.MotionMagic.MotionMagicCruiseVelocity = SWERVE_CONSTANTS.MAX_STEER_VELOCITY_RADIANS_PER_SECOND
                 / (2 * Math.PI);
         steerConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED

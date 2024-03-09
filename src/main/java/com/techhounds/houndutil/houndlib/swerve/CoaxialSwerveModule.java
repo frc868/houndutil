@@ -19,6 +19,9 @@ public interface CoaxialSwerveModule {
         public double STEER_kP;
         public double STEER_kI;
         public double STEER_kD;
+        public double STEER_kS;
+        public double STEER_kV;
+        public double STEER_kA;
 
         public double DRIVE_GEARING;
         public double STEER_GEARING;
