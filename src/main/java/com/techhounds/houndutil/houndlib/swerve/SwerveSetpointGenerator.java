@@ -176,13 +176,15 @@ public class SwerveSetpointGenerator {
         // max_vel_step from our
         // velocity at s=0:
         // sqrt(x_0^2 + y_0^2) +/- max_vel_step = ...quadratic...
-        final double dx = x_1 - x_0;
-        final double dy = y_1 - y_0;
-        final double a = dx * dx + dy * dy;
-        final double b = 2.0 * x_0 * dx + 2.0 * y_0 * dy;
-        final double c = x_0 * x_0 + y_0 * y_0;
-        final double v_limit_upper_2 = Math.pow(Math.hypot(x_0, y_0) + max_vel_step, 2.0);
-        final double v_limit_lower_2 = Math.pow(Math.hypot(x_0, y_0) - max_vel_step, 2.0);
+        // final double dx = x_1 - x_0;
+        // final double dy = y_1 - y_0;
+        // final double a = dx * dx + dy * dy;
+        // final double b = 2.0 * x_0 * dx + 2.0 * y_0 * dy;
+        // final double c = x_0 * x_0 + y_0 * y_0;
+        // final double v_limit_upper_2 = Math.pow(Math.hypot(x_0, y_0) + max_vel_step,
+        // 2.0);
+        // final double v_limit_lower_2 = Math.pow(Math.hypot(x_0, y_0) - max_vel_step,
+        // 2.0);
         return 0.0;
     }
 
