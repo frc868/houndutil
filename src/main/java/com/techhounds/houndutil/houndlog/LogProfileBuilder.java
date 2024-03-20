@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
@@ -30,6 +31,7 @@ import com.techhounds.houndutil.houndlog.logitems.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.logitems.DoubleArrayLogItem;
 import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.logitems.FloatLogItem;
+import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
 import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
 
@@ -583,4 +585,25 @@ public class LogProfileBuilder {
                 new DoubleLogItem("currentDrawAmps", obj::getCurrentDrawAmps, LogType.NT),
         };
     }
+
+    public static AbstractLogItem<?>[] buildRobotControllerLogItems() {
+        return new AbstractLogItem<?>[] {
+                new DoubleLogItem("batteryVoltage", RobotController::getBatteryVoltage, LogType.NT),
+                new BooleanLogItem("isBrownedOut", RobotController::isBrownedOut, LogType.NT),
+                new IntegerLogItem("faultCount3v3", RobotController::getFaultCount3V3, LogType.NT),
+                new IntegerLogItem("faultCount5v", RobotController::getFaultCount5V, LogType.NT),
+                new IntegerLogItem("faultCount6v", RobotController::getFaultCount6V, LogType.NT),
+                new DoubleLogItem("cpuTemp", RobotController::getCPUTemp, LogType.NT),
+                new DoubleLogItem("canBusUtil", () -> RobotController.getCANStatus().percentBusUtilization, LogType.NT),
+                new IntegerLogItem("canBusOffCount", () -> RobotController.getCANStatus().busOffCount,
+                        LogType.NT),
+                new IntegerLogItem("canBusTxFullCount", () -> RobotController.getCANStatus().txFullCount,
+                        LogType.NT),
+                new IntegerLogItem("canBusReceiveErrorCount", () -> RobotController.getCANStatus().receiveErrorCount,
+                        LogType.NT),
+                new IntegerLogItem("canBusTransmitErrorCount",
+                        () -> RobotController.getCANStatus().transmitErrorCount, LogType.NT),
+        };
+    }
+
 }
