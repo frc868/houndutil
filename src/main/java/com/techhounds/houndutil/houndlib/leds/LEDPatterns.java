@@ -1,6 +1,5 @@
 package com.techhounds.houndutil.houndlib.leds;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
@@ -11,7 +10,6 @@ import com.techhounds.houndutil.houndlib.IntegerContainer;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
-import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 public class LEDPatterns {
     private static int interpolate(int start, int end, double interpolationValue) {
