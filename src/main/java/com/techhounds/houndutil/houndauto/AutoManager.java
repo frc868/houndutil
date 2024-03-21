@@ -119,8 +119,10 @@ public class AutoManager {
             if (resetOdometryConsumer != null) {
                 resetOdometryConsumer.accept(selectedRoutine.getInitialPose());
             }
-            if (selectedRoutine.getPathPlannerPaths() != null)
+            if (selectedRoutine.getPathPlannerPaths() != null) {
+                field.getObject("startingPose").setPose(selectedRoutine.getInitialPose());
                 displayPaths(selectedRoutine.getPathPlannerPaths());
+            }
             lastRoutine = selectedRoutine;
         }
     }
