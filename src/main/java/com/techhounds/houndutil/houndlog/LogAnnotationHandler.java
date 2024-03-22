@@ -191,7 +191,8 @@ public class LogAnnotationHandler {
             if (subSendableLogAnnotation != null) {
                 ArrayList<String> nameComponents = new ArrayList<String>();
                 nameComponents.addAll(Arrays.asList(subSendableLogAnnotation.groups()));
-                String varName = subSendableLogAnnotation.name().equals("") ? field.getName() : subLogAnnotation.name();
+                String varName = subSendableLogAnnotation.name().equals("") ? field.getName()
+                        : subSendableLogAnnotation.name();
                 nameComponents.add(varName);
                 String formattedName = String.join("/", nameComponents);
 
