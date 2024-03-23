@@ -95,6 +95,10 @@ public class AprilTagPhotonCamera {
                 estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
                 detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                         robotToCam);
+
+                if (estimatedRobotPose.getZ() > 1 || estimatedRobotPose.getZ() < -1) {
+                    return Optional.empty();
+                }
             } else {
                 detectedAprilTags = new Pose3d[0];
                 estimatedRobotPose = new Pose3d(-100, -100, -100, new Rotation3d());
