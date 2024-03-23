@@ -132,7 +132,10 @@ public class AprilTagPhotonCamera {
             avgDist += tagPose.get().toPose2d().getTranslation().getDistance(estimatedPose.getTranslation());
         }
         if (numTags == 0)
-            return estStdDevs;
+            return singleTagStdDevs;
+        if (numTags < 2) {
+            return singleTagStdDevs;
+        }
         avgDist /= numTags;
 
         if (avgDist > 6)
