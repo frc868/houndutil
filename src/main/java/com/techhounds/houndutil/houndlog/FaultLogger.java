@@ -239,29 +239,29 @@ public final class FaultLogger {
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
                 talon.getFault_UnlicensedFeatureInUse(),
-                talon.getFault_UnstableSupplyV(),
-                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed(),
-                talon.getStickyFault_BootDuringEnable(),
-                talon.getStickyFault_BridgeBrownout(),
-                talon.getStickyFault_DeviceTemp(),
-                talon.getStickyFault_ForwardHardLimit(),
-                talon.getStickyFault_ForwardSoftLimit(),
-                talon.getStickyFault_FusedSensorOutOfSync(),
-                talon.getStickyFault_Hardware(),
-                talon.getStickyFault_MissingDifferentialFX(),
-                talon.getStickyFault_OverSupplyV(),
-                talon.getStickyFault_ProcTemp(),
-                talon.getStickyFault_RemoteSensorDataInvalid(),
-                talon.getStickyFault_RemoteSensorPosOverflow(),
-                talon.getStickyFault_RemoteSensorReset(),
-                talon.getStickyFault_ReverseHardLimit(),
-                talon.getStickyFault_ReverseSoftLimit(),
-                talon.getStickyFault_StatorCurrLimit(),
-                talon.getStickyFault_SupplyCurrLimit(),
-                talon.getStickyFault_Undervoltage(),
-                talon.getStickyFault_UnlicensedFeatureInUse(),
-                talon.getStickyFault_UnstableSupplyV(),
-                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
+                talon.getFault_UnstableSupplyV());
+        // talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed(),
+        // talon.getStickyFault_BootDuringEnable(),
+        // talon.getStickyFault_BridgeBrownout(),
+        // talon.getStickyFault_DeviceTemp(),
+        // talon.getStickyFault_ForwardHardLimit(),
+        // talon.getStickyFault_ForwardSoftLimit(),
+        // talon.getStickyFault_FusedSensorOutOfSync(),
+        // talon.getStickyFault_Hardware(),
+        // talon.getStickyFault_MissingDifferentialFX(),
+        // talon.getStickyFault_OverSupplyV(),
+        // talon.getStickyFault_ProcTemp(),
+        // talon.getStickyFault_RemoteSensorDataInvalid(),
+        // talon.getStickyFault_RemoteSensorPosOverflow(),
+        // talon.getStickyFault_RemoteSensorReset(),
+        // talon.getStickyFault_ReverseHardLimit(),
+        // talon.getStickyFault_ReverseSoftLimit(),
+        // talon.getStickyFault_StatorCurrLimit(),
+        // talon.getStickyFault_SupplyCurrLimit(),
+        // talon.getStickyFault_Undervoltage(),
+        // talon.getStickyFault_UnlicensedFeatureInUse(),
+        // talon.getStickyFault_UnstableSupplyV(),
+        // talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
@@ -286,12 +286,12 @@ public final class FaultLogger {
                 cancoder.getFault_BootDuringEnable(),
                 cancoder.getFault_Hardware(),
                 cancoder.getFault_Undervoltage(),
-                cancoder.getFault_UnlicensedFeatureInUse(),
-                cancoder.getStickyFault_BadMagnet(),
-                cancoder.getStickyFault_BootDuringEnable(),
-                cancoder.getStickyFault_Hardware(),
-                cancoder.getStickyFault_Undervoltage(),
-                cancoder.getStickyFault_UnlicensedFeatureInUse());
+                cancoder.getFault_UnlicensedFeatureInUse());
+        // cancoder.getStickyFault_BadMagnet(),
+        // cancoder.getStickyFault_BootDuringEnable(),
+        // cancoder.getStickyFault_Hardware(),
+        // cancoder.getStickyFault_Undervoltage(),
+        // cancoder.getStickyFault_UnlicensedFeatureInUse());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
@@ -320,20 +320,20 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedGyroscope(),
                 pigeon.getFault_SaturatedMagnetometer(),
                 pigeon.getFault_Undervoltage(),
-                pigeon.getFault_UnlicensedFeatureInUse(),
-                pigeon.getStickyFault_BootDuringEnable(),
-                pigeon.getStickyFault_BootIntoMotion(),
-                pigeon.getStickyFault_BootupAccelerometer(),
-                pigeon.getStickyFault_BootupGyroscope(),
-                pigeon.getStickyFault_BootupMagnetometer(),
-                pigeon.getStickyFault_DataAcquiredLate(),
-                pigeon.getStickyFault_Hardware(),
-                pigeon.getStickyFault_LoopTimeSlow(),
-                pigeon.getStickyFault_SaturatedAccelerometer(),
-                pigeon.getStickyFault_SaturatedGyroscope(),
-                pigeon.getStickyFault_SaturatedMagnetometer(),
-                pigeon.getStickyFault_Undervoltage(),
-                pigeon.getStickyFault_UnlicensedFeatureInUse());
+                pigeon.getFault_UnlicensedFeatureInUse());
+        // pigeon.getStickyFault_BootDuringEnable(),
+        // pigeon.getStickyFault_BootIntoMotion(),
+        // pigeon.getStickyFault_BootupAccelerometer(),
+        // pigeon.getStickyFault_BootupGyroscope(),
+        // pigeon.getStickyFault_BootupMagnetometer(),
+        // pigeon.getStickyFault_DataAcquiredLate(),
+        // pigeon.getStickyFault_Hardware(),
+        // pigeon.getStickyFault_LoopTimeSlow(),
+        // pigeon.getStickyFault_SaturatedAccelerometer(),
+        // pigeon.getStickyFault_SaturatedGyroscope(),
+        // pigeon.getStickyFault_SaturatedMagnetometer(),
+        // pigeon.getStickyFault_Undervoltage(),
+        // pigeon.getStickyFault_UnlicensedFeatureInUse());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
