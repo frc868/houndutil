@@ -594,15 +594,19 @@ public class LogProfileBuilder {
                 new IntegerLogItem("faultCount5v", RobotController::getFaultCount5V, LogType.NT),
                 new IntegerLogItem("faultCount6v", RobotController::getFaultCount6V, LogType.NT),
                 new DoubleLogItem("cpuTemp", RobotController::getCPUTemp, LogType.NT),
-                new DoubleLogItem("canBusUtil", () -> RobotController.getCANStatus().percentBusUtilization, LogType.NT),
-                new IntegerLogItem("canBusOffCount", () -> RobotController.getCANStatus().busOffCount,
-                        LogType.NT),
-                new IntegerLogItem("canBusTxFullCount", () -> RobotController.getCANStatus().txFullCount,
-                        LogType.NT),
-                new IntegerLogItem("canBusReceiveErrorCount", () -> RobotController.getCANStatus().receiveErrorCount,
-                        LogType.NT),
-                new IntegerLogItem("canBusTransmitErrorCount",
-                        () -> RobotController.getCANStatus().transmitErrorCount, LogType.NT),
+                // new DoubleLogItem("canBusUtil", () ->
+                // RobotController.getCANStatus().percentBusUtilization, LogType.NT),
+                // new IntegerLogItem("canBusOffCount", () ->
+                // RobotController.getCANStatus().busOffCount,
+                // LogType.NT),
+                // new IntegerLogItem("canBusTxFullCount", () ->
+                // RobotController.getCANStatus().txFullCount,
+                // LogType.NT),
+                // new IntegerLogItem("canBusReceiveErrorCount", () ->
+                // RobotController.getCANStatus().receiveErrorCount,
+                // LogType.NT),
+                // new IntegerLogItem("canBusTransmitErrorCount",
+                // () -> RobotController.getCANStatus().transmitErrorCount, LogType.NT),
         };
     }
 
