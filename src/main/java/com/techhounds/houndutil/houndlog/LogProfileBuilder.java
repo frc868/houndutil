@@ -135,7 +135,7 @@ public class LogProfileBuilder {
         return new AbstractLogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
                 new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
-                new DoubleLogItem("speed", obj::get, LogType.NT),
+                // new DoubleLogItem("speed", obj::get, LogType.NT),
                 new DoubleLogItem("outputVoltage",
                         () -> RobotBase.isReal() ? obj.getAppliedOutput() * obj.getBusVoltage()
                                 : obj.getAppliedOutput(),
