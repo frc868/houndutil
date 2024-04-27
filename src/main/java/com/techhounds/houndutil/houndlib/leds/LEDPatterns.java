@@ -39,11 +39,20 @@ public class LEDPatterns {
         IntegerContainer firstPixelHue = new IntegerContainer(0);
 
         return (AddressableLEDBuffer buffer) -> {
-            for (int i = section.start(); i <= section.end(); i++) {
-                // Calculate the hue - hue is easier for rainbows because the color
-                // shape is a circle so only one value needs to change
-                final var hue = (firstPixelHue.value + (i * 180 / buffer.getLength())) % 180;
-                buffer.setHSV(i, hue, 255, brightness);
+            if (section.inverted()) {
+                for (int i = 0; i < section.length(); i++) {
+                    // Calculate the hue - hue is easier for rainbows because the color
+                    // shape is a circle so only one value needs to change
+                    final var hue = (firstPixelHue.value + (i * 180 / section.length())) % 180;
+                    buffer.setHSV(section.end() - i, hue, 255, brightness);
+                }
+            } else {
+                for (int i = 0; i <= section.length(); i++) {
+                    // Calculate the hue - hue is easier for rainbows because the color
+                    // shape is a circle so only one value needs to change
+                    final var hue = (firstPixelHue.value + (i * 180 / section.length())) % 180;
+                    buffer.setHSV(i + section.start(), hue, 255, brightness);
+                }
             }
             // Increase to make the rainbow "move"
             firstPixelHue.value += speed;
@@ -344,9 +353,13 @@ public class LEDPatterns {
             }
 
             // // Convert heat to LED colors
+
             for (int i = 0, j = section.start(); i < section.length() && j < section.end(); i++, j++) {
                 Color color = interpolateColor(heat[i], colors);
-                buffer.setLED(j, color);
+                if (section.inverted())
+                    buffer.setLED(section.end() - i, color);
+                else
+                    buffer.setLED(j, color);
             }
         };
     }
