@@ -24,40 +24,59 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+/**
+ * Handles scheduling of autos and display of paths to NetworkTables.
+ * Uses the {@code /HoundLog/autonomous} table.
+ * 
+ * <p>
+ * 
+ * Use {@code init()} in {@code robotInit},
+ * {@code periodicUpdate()}
+ * in {@code disabledPeriodic}, {@code runSelectedRoutine()} in
+ * {@code autonomousInit}, and {@code endRoutine()} in {@code autonomousExit}.
+ */
 public class AutoManager {
     private static AutoManager instance;
     private HashMap<String, AutoRoutine> routines = new HashMap<String, AutoRoutine>();
     private AutoRoutine lastRoutine;
     private SendableChooser<AutoRoutine> chooser = new SendableChooser<AutoRoutine>();
     private Field2d field = new Field2d();
+    /**
+     * The scheduled command without the additional composition (extra odometry
+     * triggers, timer sets).
+     */
     private Command baseCommand;
+    /** The full scheduled command, used for exiting the routine. */
     private Command currentCommand;
+    /** A consumer that takes in a Pose2d to reset the odometry of a drivetrain. */
     private Consumer<Pose2d> resetOdometryConsumer;
-    private HashMap<String, Command> eventMap = new HashMap<String, Command>();
-
     private Timer timer = new Timer();
 
-    /**
-     * Initialize the AutoManager.
-     * Set up the Shuffleboard tab and display a trajectory if one is already set in
-     * the chooser.
-     */
     private AutoManager() {
-        // lastRoutine = chooser.getSelected();
-        chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("Waiting...")));
-        setupShuffleboardTab();
     }
 
     /**
-     * Returns a singleton of AutonManager.
+     * Returns the AutoManager instance.
      * 
-     * @return a singleton AutonManager.
+     * @return the instance
      */
     public static AutoManager getInstance() {
         if (instance == null) {
             instance = new AutoManager();
         }
         return instance;
+    }
+
+    /**
+     * Initializes logging for the AutoManager.
+     */
+    public void init() {
+        chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("No path selected.")));
+        LoggingManager.getInstance().addGroup("autonomous",
+                new LogGroup(
+                        new DoubleLogItem("autoTimer", timer::get, LogType.NT),
+                        new SendableLogger("field", field),
+                        new SendableLogger("chooser", chooser)));
     }
 
     /**
@@ -99,18 +118,7 @@ public class AutoManager {
     }
 
     /**
-     * Create a Shuffleboard tab with the field and chooser objects.
-     */
-    public void setupShuffleboardTab() {
-        LoggingManager.getInstance().addGroup("autonomous",
-                new LogGroup(
-                        new DoubleLogItem("autoTimer", timer::get, LogType.NT),
-                        new SendableLogger("field", field),
-                        new SendableLogger("chooser", chooser)));
-    }
-
-    /**
-     * Updates the Shuffleboard visualization with the new selected auton path. This
+     * Updates the NetworkTables field with the new selected auto path. This
      * should be put in {@code disabledPeriodic()}.
      */
     public void periodicUpdate() {
@@ -154,7 +162,7 @@ public class AutoManager {
     public void runSelectedRoutine() {
         if (this.resetOdometryConsumer == null) {
             throw new NullPointerException(
-                    "Reset Odometry Consumer must not be null, set it in the drivetrain constructor.");
+                    "Reset Odometry Consumer must not be null.");
         }
 
         if (this.getSelectedRoutine() == null) {
@@ -186,16 +194,5 @@ public class AutoManager {
         if (currentCommand != null) {
             currentCommand.cancel();
         }
-    }
-
-    public void addEvent(String key, Command command) {
-        eventMap.put(key, command);
-    }
-
-    public HashMap<String, Command> getEventMap() {
-        if (eventMap.size() == 0) {
-            throw new NullPointerException("You must add events to the event map!");
-        }
-        return eventMap;
     }
 }
