@@ -23,4 +23,12 @@ public class Utils {
         return new Twist2d(
                 speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
     }
+
+    public static double interpolate(double start, double end, double t) {
+        return start + (end - start) * t;
+    }
+
+    public static int interpolate(int start, int end, double t) {
+        return (int) (start + (end - start) * t);
+    }
 }
