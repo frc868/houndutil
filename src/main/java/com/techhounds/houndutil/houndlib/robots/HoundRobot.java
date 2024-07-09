@@ -31,10 +31,10 @@ public class HoundRobot extends TimedRobot {
 
     @Override
     public void robotInit() {
-        AutoManager.getInstance().setupShuffleboardTab();
 
         // sets the LoggingManager to run every 100ms and on an offset of 10ms from the
         // main thread
+        AutoManager.getInstance().init();
         LoggingManager.getInstance().init();
         addPeriodic(FaultLogger::update, 0.100, 0.010);
         LiveWindow.disableAllTelemetry();
