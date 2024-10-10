@@ -14,7 +14,7 @@ public class SignalManager {
         }
     }
 
-    public static void registerAll() {
+    public static void finalizeAll() {
         statuses = new BaseStatusSignal[statusesList.size()];
 
         statusesList.toArray(statuses);

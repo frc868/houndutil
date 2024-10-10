@@ -3,7 +3,7 @@ package com.techhounds.houndutil.houndlib.leds;
 import edu.wpi.first.wpilibj.util.Color;
 
 /**
- * A utility class that provides conversions between RGB values and HSV values.
+ * A wrapper class that provides conversions between RGB values and HSV values.
  */
 public class ExtendedColor {
     /**

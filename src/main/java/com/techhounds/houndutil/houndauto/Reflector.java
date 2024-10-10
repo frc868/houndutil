@@ -8,7 +8,8 @@ import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Translation3d;
 
 /**
- * Utility class for reflecting poses when working with a mirrored field.
+ * Utility class for reflecting poses when working with a mirrored field (2023,
+ * 2024).
  */
 public class Reflector {
     /**

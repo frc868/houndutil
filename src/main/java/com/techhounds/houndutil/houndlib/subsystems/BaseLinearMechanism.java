@@ -5,49 +5,40 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
- * Base scaffolding for an single-jointed arm mechanism. Should use PID or
- * profiled PID
+ * Base scaffolding for a linear mechanism. Should use PID or profiled PID
  * control to move between setpoints or to an arbitrary position. Use SI units
- * (for arms, the most common SI unit is radians).
+ * (for linear mechanisms, the most common SI unit is meters).
  * <p>
- * To use, implement {@code BaseSingleJointedArm<MechanismPosition>}, where
+ * To use, implement {@code BaseLinearMechanism<MechanismPosition>}, where
  * {@code MechanismPosition} is an enum with the various setpoints that can be
  * used.
  * <p>
- * Examples of single-jointed arm-type mechanisms include: typical arms,
- * turrets, and rotational-deployment intakes
+ * Examples of "linear mechanism"-type mechanisms include: elevators, climbers,
+ * lead screws, telescoping tube, and linear intakes
  */
-public interface BaseSingleJointedArm<T extends Enum<T>> {
+public interface BaseLinearMechanism<T extends Enum<T>> {
     /**
-     * Gets the position of the mechanism.
-     * 
-     * <p>
-     * 0 should be <i>at the point where the arm is parallel to the ground</i>, or
-     * where the force of gravity is strongest. In CAD, this looks like the line
-     * between
-     * the pivot and the center of mass of the arm being parallel to the ground. The
-     * position should increase as the arm moves up, and decrease as the arm moves
-     * down.
-     * <p>
-     * Note that this calibration is not necessary if the arm is horizontal.
+     * Gets the position of the mechanism. 0 should be at the lowest movement point,
+     * and the position should increase as the mechanism moves up.
      * 
      * @return the position of the mechanism, in meters
      */
-    double getPosition();
+    public double getPosition();
 
     /**
      * Resets the position of the mechanism to a specific value (this should be the
      * position of a hard stop).
      */
-    void resetPosition();
+    public void resetPosition();
 
     /**
-     * Explicit function to set the voltage of the motors attached to the arm,
+     * Explicit function to set the voltage of the motors attached to the linear
+     * mechanism,
      * should handle safeties and clamping here.
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
-    void setVoltage(double voltage);
+    public void setVoltage(double voltage);
 
     /**
      * Creates a command that continuously applies voltage to the motor controllers
@@ -83,13 +74,14 @@ public interface BaseSingleJointedArm<T extends Enum<T>> {
 
     /**
      * Creates a command that sets the current goal position to the setpoint plus
-     * the delta (if a delta of pi/4 is set, the arm should move up 45 degrees), and
+     * the delta (if a delta of 0.1 is set, the linear mechanism should move up
+     * 10cm), and
      * cancels once the mechanism has reached that goal.
      * 
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
      * 
-     * @param delta a supplier of a delta to move, in radians
+     * @param delta a supplier of a delta to move, in meters
      * @return the command
      */
     public Command movePositionDeltaCommand(Supplier<Double> delta);
@@ -103,7 +95,8 @@ public interface BaseSingleJointedArm<T extends Enum<T>> {
     public Command holdCurrentPositionCommand();
 
     /**
-     * Creates an instantaneous command that resets the position of the arm.
+     * Creates an instantaneous command that resets the position of the linear
+     * mechanism.
      * 
      * @return the command
      */

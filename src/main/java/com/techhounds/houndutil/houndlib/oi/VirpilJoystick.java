@@ -6,6 +6,9 @@ import edu.wpi.first.wpilibj.event.EventLoop;
 
 /**
  * Handles input from a Virpil Controls VPC Alpha-R joystick.
+ * 
+ * @apiNote When the trigger is in the neutral position, neither
+ *          {@code kFlipTriggerOut} nor {@code kFlipTriggerIn} will be active.
  */
 public class VirpilJoystick extends GenericHID {
     /** Represents a digital button on a joystick. */

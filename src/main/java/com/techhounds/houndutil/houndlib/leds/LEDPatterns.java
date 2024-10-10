@@ -508,7 +508,7 @@ public class LEDPatterns {
     }
 
     /**
-     * Interpolates a fire color based on a pallete of colors, from a heat value
+     * Interpolates a fire color based on a palette of colors, from a heat value
      * from 0-255.
      * 
      * @param heat   the "heat" value as a temperature [0-255]

@@ -29,7 +29,8 @@ public interface BaseLEDSection {
     public int length();
 
     /**
-     * Gets whether this section of the strip should have its effects inverted.
+     * Gets whether this section of the strip should have its effects inverted
+     * (starting effects at {@code end()} instead of {@code start()}).
      * 
      * @return whether effects should be inverted
      */
