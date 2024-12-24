@@ -28,6 +28,14 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
+/**
+ * An implementation of a coaxial swerve module that uses the Kraken X60 on both
+ * the drive and steer motors.
+ * 
+ * Supports simulated operation as well, with full closed-loop control.
+ * 
+ * For status signals to update, you must call SignalManager.update().
+ */
 @LoggedObject
 public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     /** The motor used for driving. */
@@ -41,17 +49,22 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log
     private CANcoder steerCanCoder;
 
+    /** The simulated drive motor. */
     private DCMotorSim driveMotorSim;
+    /** The simulated steer motor. */
     private DCMotorSim steerMotorSim;
 
+    /** The constants required for this swerve module. */
     private final SwerveConstants SWERVE_CONSTANTS;
 
+    // CTRE's control modes required to command motors how we want
     private final VoltageOut driveVoltageRequest = new VoltageOut(0);
     private final VelocityVoltage driveVelocityRequest = new VelocityVoltage(0);
     private final MotionMagicVoltage steerPositionRequest = new MotionMagicVoltage(0);
 
     private SwerveModuleState previousState = new SwerveModuleState();
 
+    // status signals to collect, stored here so we can update them all at once
     private final StatusSignal<Double> drivePosition;
     private final StatusSignal<Double> driveVelocity;
     private final StatusSignal<Double> driveAcceleration;
@@ -72,8 +85,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
      * @param steerMotorInverted    if the turn motor is inverted
      * @param steerCanCoderInverted if the turn encoder is inverted
      * @param steerCanCoderOffset   the offset, in radians, to add to the CANCoder
-     *                              value to make it zero when the module is
-     *                              straight
+     *                              value to make it zero when the module facing the
+     *                              +x direction
      */
     public KrakenCoaxialSwerveModule(
             int driveMotorChannel,
@@ -124,8 +137,6 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
         steerConfig.Feedback.SensorToMechanismRatio = 1.0;
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
-        steerConfig.CurrentLimits.SupplyCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
-        steerConfig.CurrentLimits.SupplyCurrentLimitEnable = true;
         if (RobotBase.isReal()) {
             steerConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT;
             steerConfig.CurrentLimits.StatorCurrentLimitEnable = true;
@@ -164,6 +175,8 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
                 drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
                 steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
 
+        // register all signals with the SignalManager so that any downstream callers
+        // get updated signals
         SignalManager.register(
                 drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
                 steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
@@ -184,6 +197,11 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         return driveMotorVoltage.getValue();
     }
 
+    /**
+     * Exposes the drive motor for additional configuration.
+     * 
+     * @return the drive motor
+     */
     public TalonFX getDriveMotor() {
         return driveMotor;
     }
@@ -203,10 +221,20 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         return steerMotorVoltage.getValue();
     }
 
+    /**
+     * Exposes the steer motor for additional configuration.
+     * 
+     * @return the steer motor
+     */
     public TalonFX getSteerMotor() {
         return steerMotor;
     }
 
+    /**
+     * Returns an array of the required signals for odometry.
+     * 
+     * @return the required signals for odometry
+     */
     public BaseStatusSignal[] getSignals() {
         return new BaseStatusSignal[] { drivePosition, driveVelocity, steerPosition, steerVelocity };
     }
@@ -267,6 +295,13 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerMotor.set(0);
     }
 
+    /**
+     * Internal common implementation for setting the state of the swerve module.
+     * Updates simulation states of the module if needed.
+     * 
+     * @param state    the desired state of the swerve module
+     * @param openLoop whether the drive motor should use open loop velocity control
+     */
     private void setStateInternal(SwerveModuleState state, boolean openLoop) {
         if (openLoop) {
             driveMotor.setControl(driveVoltageRequest.withOutput(

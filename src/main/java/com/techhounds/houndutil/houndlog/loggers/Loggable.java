@@ -2,7 +2,7 @@ package com.techhounds.houndutil.houndlog.loggers;
 
 /**
  * Defines a loggable. This was mainly necessary due to wanting to include both
- * {@link Logger}s and {@link LogGroup}s in {@link LoggingManager}.
+ * {@link Logger}s and {@link DeviceLogger}s in {@link LoggingManager}.
  * 
  * @author dr
  */

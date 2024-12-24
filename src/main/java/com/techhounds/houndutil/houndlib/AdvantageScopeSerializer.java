@@ -9,6 +9,17 @@ import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.math.geometry.Quaternion;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 
+/**
+ * Collection of static methods that serializes common objects (poses, swerve
+ * states, etc) in the format expected by 6328's AdvantageScope.
+ * 
+ * <p>
+ * 
+ * No longer needed, as AdvantageScope supports struct/protobuf decoding. Send
+ * these objects over NetworkTables directly, instead.
+ * 
+ * @deprecated
+ */
 public class AdvantageScopeSerializer {
     public static double[] serializeSwerveModuleStates(SwerveModuleState[] states) {
         double[] output = new double[states.length * 2];

@@ -10,6 +10,7 @@ import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
 import com.revrobotics.CANSparkBase.IdleMode;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
+import com.techhounds.houndutil.houndlib.SparkConfigurator;
 import com.techhounds.houndutil.houndlog.interfaces.Log;
 import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
 
@@ -24,6 +25,16 @@ import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
+/**
+ * An implementation of a coaxial swerve module that uses a NEO or NEO 550 on
+ * both the drive and steer motors (technically, any motor that uses the SPARK
+ * MAX would work).
+ * 
+ * Supports simulated operation as well, with full closed-loop control.
+ * 
+ * You must call {@link SparkConfigurator#safeBurnFlash()} to ensure that all
+ * motors are configured.
+ */
 @LoggedObject
 public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     /** The motor used for driving. */
@@ -59,7 +70,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log(groups = "control")
     private double driveFeedforwardVoltage = 0.0;
     @Log(groups = "control")
-    private double turnFeedbackVoltage = 0.0;
+    private double steerFeedbackVoltage = 0.0;
 
     @Log
     private double simDriveEncoderVelocity = 0.0;
@@ -77,55 +88,48 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     /**
      * Initalizes a SwerveModule.
      * 
-     * @param name                 the name of the module (used for logging)
-     * @param driveMotorChannel    the CAN ID of the drive motor
-     * @param steerMotorChannel    the CAN ID of the turning motor
-     * @param canCoderChannel      the CAN ID of the CANCoder
-     * @param driveMotorInverted   if the drive motor is inverted
-     * @param turnMotorInverted    if the turn motor is inverted
-     * @param turnCanCoderInverted if the turn encoder is inverted
-     * @param turnCanCoderOffset   the offset, in radians, to add to the CANCoder
-     *                             value to make it zero when the module is straight
+     * @param name                  the name of the module (used for logging)
+     * @param driveMotorChannel     the CAN ID of the drive motor
+     * @param steerMotorChannel     the CAN ID of the steer motor
+     * @param canCoderChannel       the CAN ID of the CANCoder
+     * @param driveMotorInverted    if the drive motor is inverted
+     * @param steerMotorInverted    if the steer motor is inverted
+     * @param steerCanCoderInverted if the steer encoder is inverted
+     * @param steerCanCoderOffset   the offset, in radians, to add to the CANCoder
+     *                              value to make it zero when the module is
+     *                              straight
      */
     public NEOCoaxialSwerveModule(
             int driveMotorChannel,
             int steerMotorChannel,
             int canCoderChannel,
             boolean driveMotorInverted,
-            boolean turnMotorInverted,
-            boolean turnCanCoderInverted,
-            double turnCanCoderOffset,
+            boolean steerMotorInverted,
+            boolean steerCanCoderInverted,
+            double steerCanCoderOffset,
             SwerveConstants swerveConstants) {
         this.SWERVE_CONSTANTS = swerveConstants;
 
-        driveMotor = new CANSparkMax(driveMotorChannel, MotorType.kBrushless);
-        driveMotor.restoreFactoryDefaults();
-        driveMotor.setInverted(driveMotorInverted);
-        driveMotor.setIdleMode(IdleMode.kBrake);
-        driveMotor.setSmartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT);
-        driveMotor.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS);
-        driveMotor.getEncoder()
-                .setVelocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS / 60.0);
-        driveMotor.burnFlash();
-
-        steerMotor = new CANSparkMax(steerMotorChannel, MotorType.kBrushless);
-        steerMotor.restoreFactoryDefaults();
-        steerMotor.setInverted(turnMotorInverted);
-        steerMotor.setIdleMode(IdleMode.kBrake);
-        steerMotor.setSmartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT);
-        steerMotor.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS);
-        steerMotor.getEncoder().setVelocityConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0);
-        steerMotor.burnFlash();
+        driveMotor = SparkConfigurator.createSparkMax(driveMotorChannel, MotorType.kBrushless, driveMotorInverted,
+                (s) -> s.setIdleMode(IdleMode.kBrake),
+                (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT),
+                (s) -> s.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS),
+                (s) -> s.getEncoder()
+                        .setVelocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS / 60.0));
+        steerMotor = SparkConfigurator.createSparkMax(steerMotorChannel, MotorType.kBrushed, steerMotorInverted,
+                (s) -> s.setIdleMode(IdleMode.kBrake),
+                (s) -> s.setSmartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT),
+                (s) -> s.getEncoder().setPositionConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS),
+                (s) -> s.getEncoder()
+                        .setVelocityConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0));
 
         steerCanCoder = new CANcoder(canCoderChannel);
 
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = SensorDirectionValue.CounterClockwise_Positive;
         config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
-        config.MagnetOffset = turnCanCoderOffset;
+        config.MagnetOffset = steerCanCoderOffset;
         steerCanCoder.getConfigurator().apply(config);
-
-        // this.turnCanCoderOffset = turnCanCoderOffset;
 
         new Thread(() -> {
             try {
@@ -230,6 +234,13 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
         steerMotor.set(0);
     }
 
+    /**
+     * Internal common implementation for setting the state of the swerve module.
+     * Updates simulation states of the module if needed.
+     * 
+     * @param state    the desired state of the swerve module
+     * @param openLoop whether the drive motor should use open loop velocity control
+     */
     private void setStateInternal(SwerveModuleState state, boolean openLoop) {
         if (openLoop) {
             driveMotor.setVoltage(state.speedMetersPerSecond
@@ -243,10 +254,10 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
             driveMotor.setVoltage(driveFeedbackVoltage + driveFeedforwardVoltage);
         }
 
-        this.turnFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians(),
+        this.steerFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians(),
                 state.angle.getRadians());
 
-        steerMotor.setVoltage(turnFeedbackVoltage);
+        steerMotor.setVoltage(steerFeedbackVoltage);
 
         if (RobotBase.isSimulation()) {
             driveMotorSim.setInputVoltage(driveMotor.getAppliedOutput() > 12 ? 12 : driveMotor.getAppliedOutput());

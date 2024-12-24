@@ -2,6 +2,10 @@ package com.revrobotics;
 
 import com.revrobotics.jni.CANSparkMaxJNI;
 
+/**
+ * An extension class designed to provide safe implementations of common SPARK
+ * MAX parameter functions, and expose settings not accessible through REVLib.
+ */
 public class CANSparkBaseExtensions {
     /**
      * Common interface for inverting direction of a speed controller.

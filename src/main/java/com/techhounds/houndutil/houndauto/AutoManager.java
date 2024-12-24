@@ -34,6 +34,10 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * {@code periodicUpdate()}
  * in {@code disabledPeriodic}, {@code runSelectedRoutine()} in
  * {@code autonomousInit}, and {@code endRoutine()} in {@code autonomousExit}.
+ * 
+ * <p>
+ * 
+ * Note: this is automatically handled by {@code HoundRobot}.
  */
 public class AutoManager {
     private static AutoManager instance;

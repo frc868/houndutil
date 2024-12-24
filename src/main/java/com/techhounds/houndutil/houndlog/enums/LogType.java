@@ -1,21 +1,27 @@
 package com.techhounds.houndutil.houndlog.enums;
 
 /**
- * The type of Logger to create. These are values defined by NetworkTables.
+ * The type of Logger to create. This will determine where the log value is
+ * visible. Certain loggers may need to be accessible at all times via a
+ * NetworkTables connection, others may only want to be reviewed offline, and
+ * others should only be visible in a debug console, when explicitly requested.
  * 
  * @author dr
  */
 public enum LogType {
     /**
-     * LogValues set at this type will only be available via the console (over NT).
+     * LogValues set at this type will only be available over HoundLog's console.
+     * 
+     * @deprecated This log type is currently unimplemented.
      */
     DEBUG(2),
     /**
-     * LogValues set at this level will be available via DataLog, but not NT.
+     * LogValues set at this level will be available via data logs, but not NT.
      */
     DATALOG(1),
     /**
-     * LogValues set at this level will be available over NT, always.
+     * LogValues set at this level will be available over NetworkTables (but will
+     * also be stored in data logs).
      */
     NT(0);
 

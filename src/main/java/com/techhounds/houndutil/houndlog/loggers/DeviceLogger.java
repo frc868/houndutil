@@ -9,14 +9,12 @@ import com.techhounds.houndutil.houndlog.LogProfileBuilder;
 /**
  * A logger for a specific object. This logger will post all items contained
  * in {@code items} to SmartDashboard.
- * 
- * @author dr
  */
 public class DeviceLogger extends Logger {
     /**
      * The name of the device to log.
      */
-    private String deviceName;
+    private String groupName;
 
     /**
      * An array of items to log. Using the unspecified generic form since this list
@@ -34,7 +32,7 @@ public class DeviceLogger extends Logger {
      *                   through {@link LogProfileBuilder})
      */
     public DeviceLogger(String subsystem, String deviceName, AbstractLogItem<?>[] items) {
-        this.deviceName = deviceName;
+        this.groupName = deviceName;
         this.items = items;
         setSubsystem(subsystem);
         setSubkeys();
@@ -50,7 +48,7 @@ public class DeviceLogger extends Logger {
      *                   through {@link LogProfileBuilder})
      */
     public DeviceLogger(String deviceName, AbstractLogItem<?>[] items) {
-        this.deviceName = deviceName;
+        this.groupName = deviceName;
         this.items = items;
         setSubkeys();
     }
@@ -64,7 +62,7 @@ public class DeviceLogger extends Logger {
 
     public void setSubkeys() {
         for (AbstractLogItem<?> item : items) {
-            item.setSubkeys(Arrays.asList(deviceName));
+            item.setSubkeys(Arrays.asList(groupName));
         }
     }
 

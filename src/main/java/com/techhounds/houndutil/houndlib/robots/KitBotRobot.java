@@ -15,8 +15,7 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
 /**
  * A {@link TimedRobot} extension class that creates all of the resources
  * necessary for a low-code time-based tank-drive KitBot using SPARK MAXes.
- * Intended as an
- * example project.
+ * Intended as an example project.
  * 
  * To use, delete the {@code Robot.java} file and replace
  * {@code Main.java} with the following:
@@ -33,9 +32,10 @@ import edu.wpi.first.wpilibj.drive.DifferentialDrive;
  * </pre>
  * 
  * The contents of this class can also be copied directly into a
- * {@code Robot.java} for further functionality.
+ * {@code Robot.java} for further functionality, or you may use extend this
+ * class to modify functionality.
  * 
- * @apiNote If this is a 4 wheel robot, set the SPARK MAXes into a following
+ * @apiNote If this is a 4 wheel robot, set the SPARK MAXes into a follower
  *          configuration via the REV Hardware Client.
  */
 public class KitBotRobot extends HoundRobot {

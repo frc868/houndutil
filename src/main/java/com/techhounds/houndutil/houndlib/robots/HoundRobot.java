@@ -15,14 +15,13 @@ import com.techhounds.houndutil.houndlog.SignalManager;
 
 /**
  * A {@link TimedRobot} extension class that automatically sets up all of
- * HoundUtil for a typical
- * robot project.
+ * HoundUtil for a typical robot project.
  * 
  * This class:
  * <ul>
  * <li>Initializes the {@link AutoManager}</li>
  * <li>Initializes the {@link LoggingManager}</li>
- * <li>Sets up the FaultLogger to run on 0.100s period</li>
+ * <li>Sets up the {@link FaultLogger} to run on 0.100s period</li>
  * <li>Disables LiveWindow</li>
  * <li>Finalizes all {@code BaseStatusSignal}s registered with the
  * {@link SignalManager}</li>
@@ -48,6 +47,8 @@ import com.techhounds.houndutil.houndlog.SignalManager;
  *     }
  * }
  * </pre>
+ * 
+ * If any modifications are needed, create use anonymous inner classes.
  */
 public class HoundRobot extends TimedRobot {
     /**
