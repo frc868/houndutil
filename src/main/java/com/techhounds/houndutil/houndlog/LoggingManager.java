@@ -1,29 +1,47 @@
 package com.techhounds.houndutil.houndlog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import com.techhounds.houndutil.houndlog.interfaces.Log;
-import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
+import java.util.Map;
+import java.util.function.Function;
+import com.techhounds.houndutil.houndlib.robots.HoundRobot;
+import com.techhounds.houndutil.houndlog.annotations.Log;
+import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
+import com.techhounds.houndutil.houndlog.loggers.LogItem;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
-import com.techhounds.houndutil.houndlog.loggers.Logger;
 
 import edu.wpi.first.wpilibj.Timer;
 
 /**
- * A singleton manager for logging to avoid some of the pitfalls with using the
- * periodic methods of each subsystem (like the inability to use Test mode,
- * verbosity, etc).
+ * Manages all registered loggers, and handles generating loggers from
+ * annotations given a base class.
  * 
- * @author dr
+ * <p>
+ * 
+ * Call {@code LoggingManager.getInstance().registerRobotContainer(this)} in the
+ * {@code RobotContainer} constructor. If not using {@link HoundRobot}, call
+ * {@code LoggingManager.getInstance().init()} in {@code robotInit()} and
+ * {@code LoggingManager.getInstance().run()} in {@code robotPeriodic()}.
  */
 @LoggedObject
 public class LoggingManager {
+    /** The singleton instance of the logging manager. */
     private static LoggingManager instance;
+    // this log group won't contain anything, but exists so it can be the parent of
+    // all log groups
+    private LogGroup baseLogGroup = new LogGroup("HoundLog");
     private List<Loggable> loggables = new ArrayList<Loggable>();
+    private Map<Class<?>, Function<Object, LogItem<?>[]>> profiles = new HashMap<Class<?>, Function<Object, LogItem<?>[]>>();
 
     private static double startTime = Timer.getFPGATimestamp();
     @Log
     private static double loggingLoopTimeMs = 0.0;
+
+    private LoggingManager() {
+        registerProfiles(LogProfiles.class);
+    }
 
     /**
      * Returns a singleton of LoggingManager.
@@ -38,85 +56,83 @@ public class LoggingManager {
     }
 
     /**
-     * Register subsystems to check for log annotations.
+     * Registers an object to search for log annotations.
      * 
-     * @param subsystems the subsystems to register
+     * @param object the object to register
      */
-    public void registerRobotContainer(Object robotContainer) {
+    public void registerObject(Object object) {
         try {
-            LogAnnotationHandler.handleLoggedObject(robotContainer);
+            LogAnnotationHandler.handleLoggedObject(object);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Register subsystems to check for log annotations.
+     * Registers a class to search for log annotations. Used for classes with
+     * <b>static</b> fields and methods.
      * 
-     * @param subsystems the subsystems to register
+     * @param clazz the subsystems to register
      */
-    public void registerClass(Class<?> class_, String name, ArrayList<String> subkeys) {
+    public void registerClass(Class<?> clazz, String name, ArrayList<String> subkeys) {
         try {
-            LogAnnotationHandler.handleLoggedClass(class_, name, subkeys);
+            LogAnnotationHandler.handleLoggedClass(clazz, name, subkeys);
         } catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     /**
-     * Adds a group to the LoggingManager. Sets the subsystem of the group and its
-     * loggers as well.
+     * Registers a class to search for log profiles. These are methods that take in
+     * a single object and return an array of LogItems, and are annotated with
+     * {@code @LogProfile}.
      * 
-     * @param subsystem the name of the subsystem
-     * @param group     the LogGroup to add
+     * @param clazz the class to register
      */
-    public void addGroup(String subsystem, LogGroup group) {
-        group.setLoggerSubsystems(subsystem);
-        loggables.add(group);
+    public void registerProfiles(Class<?> clazz) {
+        LogAnnotationHandler.handleLogProfile(clazz, profiles);
     }
 
     /**
-     * Adds a group to the LoggingManager. Only use this constructor if the
-     * subsystem is already defined in the LogGroup.
+     * Adds a group to the registered list of loggers.
      * 
      * @param group the LogGroup to add
      */
     public void addGroup(LogGroup group) {
         loggables.add(group);
+        group.setParent(baseLogGroup);
     }
 
     /**
-     * Adds an individual Logger to the LoggingManager. Sets the subsystem of the
-     * Logger as well.
+     * Adds an individual Loggable to the registered list of loggers.
      * 
-     * @param logger the Logger to add
+     * @param loggable the Loggable to add
      */
-    public void addLogger(String subsystem, Logger logger) {
-        logger.setSubsystem(subsystem);
-        loggables.add(logger);
+    public void addLogger(Loggable loggable) {
+        loggables.add(loggable);
+        loggable.setParent(baseLogGroup);
     }
 
     /**
-     * Adds an individual logger to the LoggingManager. Only use this constructor if
-     * the subsystem is already defined in the Logger.
+     * Gets all of the {@link Loggable}s currently registered.
      * 
-     * @param logger the Logger to add
-     */
-    public void addLogger(Logger logger) {
-        loggables.add(logger);
-    }
-
-    /**
-     * Get the {@link Loggable}s in the LoggingManager.
-     * 
-     * @return the loggables
+     * @return the registered loggables
      */
     public List<Loggable> getLoggables() {
         return loggables;
     }
 
     /**
-     * Runs the {@code init()} method on each loggable. Put this in
+     * Gets the registered log profiles.
+     * 
+     * @return the registered log profiles
+     */
+    protected Map<Class<?>, Function<Object, LogItem<?>[]>> getProfiles() {
+        return profiles;
+    }
+
+    /**
+     * Runs the {@code init()} method on each loggable. Call this in
      * {@code robotInit()}.
      */
     public void init() {
@@ -126,7 +142,7 @@ public class LoggingManager {
     }
 
     /**
-     * Runs the {@code run()} method on each loggable. Put this in
+     * Runs the {@code run()} method on each loggable. Call this in
      * {@code robotPeriodic()}.
      */
     public void run() {

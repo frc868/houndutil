@@ -2,12 +2,11 @@ package com.techhounds.houndutil.houndlib.robots;
 
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkLowLevel.MotorType;
-import com.techhounds.houndutil.houndlog.LogGroup;
-import com.techhounds.houndutil.houndlog.LogProfileBuilder;
+import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
-import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
+import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
+import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
 
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.drive.DifferentialDrive;
@@ -73,12 +72,12 @@ public class KitBotRobot extends HoundRobot {
         leftMotor = new CANSparkMax(leftMotorId, MotorType.kBrushless);
         rightMotor = new CANSparkMax(rightMotorId, MotorType.kBrushless);
         rightMotor.setInverted(true);
-        speedLimit = new TunableDouble("main", "speedLimit", initialSpeedLimit);
+        speedLimit = new TunableDouble("main/speedLimit", initialSpeedLimit);
         drive = new DifferentialDrive(leftMotor, rightMotor);
-        LoggingManager.getInstance().addGroup("drivetrain", new LogGroup(
-                new DeviceLogger("leftMotor", LogProfileBuilder.buildCANSparkMaxLogItems(leftMotor)),
-                new DeviceLogger("rightMotor", LogProfileBuilder.buildCANSparkMaxLogItems(rightMotor)),
-                new SendableLogger("drive", drive)));
+        LoggingManager.getInstance().addGroup(new LogGroup("drivetrain",
+                new LogGroup("leftMotor", LogProfiles.logCANSparkMax(leftMotor)),
+                new LogGroup("rightMotor", LogProfiles.logCANSparkMax(rightMotor)),
+                new SendableLogItem("drive", drive)));
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlog.interfaces;
+package com.techhounds.houndutil.houndlog.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -6,8 +6,11 @@ import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
 /**
- * An annotation used to mark fields that should be sent to a dashboard as a
- * complex widget, implementing the Sendable interface.
+ * An annotation used to mark fields that implement the Sendable interface to be
+ * sent to a dashboard as a complex widget. By default, using {@code @Log} on an
+ * object that implements Sendable will not use the Sendable interface, but
+ * instead will attempt log the object using one of the defined profiles. Use
+ * this annotation to force the object to be logged as a Sendable.
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.FIELD)

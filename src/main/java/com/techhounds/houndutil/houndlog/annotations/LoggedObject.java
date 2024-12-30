@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlog.interfaces;
+package com.techhounds.houndutil.houndlog.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

@@ -1,10 +1,11 @@
-package com.techhounds.houndutil.houndlog.interfaces;
+package com.techhounds.houndutil.houndlog.annotations;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import com.techhounds.houndutil.houndlog.enums.LogType;
+
+import com.techhounds.houndutil.houndlog.LogType;
 
 /**
  * This is the main annotation used in HoundLog's annotation-based system.

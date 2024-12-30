@@ -8,11 +8,12 @@ import java.util.stream.Collectors;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPlannerTrajectory;
-import com.techhounds.houndutil.houndlog.LogGroup;
+import com.techhounds.houndutil.houndlog.LogType;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.enums.LogType;
-import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
+import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -76,11 +77,11 @@ public class AutoManager {
      */
     public void init() {
         chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("No path selected.")));
-        LoggingManager.getInstance().addGroup("autonomous",
-                new LogGroup(
+        LoggingManager.getInstance().addGroup(
+                new LogGroup("autonomous",
                         new DoubleLogItem("autoTimer", timer::get, LogType.NT),
-                        new SendableLogger("field", field),
-                        new SendableLogger("chooser", chooser)));
+                        new SendableLogItem("field", field),
+                        new SendableLogItem("chooser", chooser)));
     }
 
     /**

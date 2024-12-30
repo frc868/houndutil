@@ -20,6 +20,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
  * 
  * @deprecated
  */
+@Deprecated(forRemoval = true)
 public class AdvantageScopeSerializer {
     public static double[] serializeSwerveModuleStates(SwerveModuleState[] states) {
         double[] output = new double[states.length * 2];

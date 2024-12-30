@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlog.enums;
+package com.techhounds.houndutil.houndlog;
 
 /**
  * The type of Logger to create. This will determine where the log value is
@@ -14,6 +14,7 @@ public enum LogType {
      * 
      * @deprecated This log type is currently unimplemented.
      */
+    @Deprecated
     DEBUG(2),
     /**
      * LogValues set at this level will be available via data logs, but not NT.

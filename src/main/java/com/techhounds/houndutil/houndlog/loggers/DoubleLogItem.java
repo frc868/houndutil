@@ -1,34 +1,21 @@
-package com.techhounds.houndutil.houndlog.logitems;
+package com.techhounds.houndutil.houndlog.loggers;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogType;
+import com.techhounds.houndutil.houndlog.LogType;
 
 import edu.wpi.first.networktables.DoublePublisher;
 import edu.wpi.first.util.datalog.DoubleLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
- * The LogItem for doubles.
- * 
- * @author dr
+ * LogItem for doubles.
  */
-public class DoubleLogItem extends AbstractLogItem<Double> {
-    /** The publisher for this logger. */
+public class DoubleLogItem extends LogItem<Double> {
+    /** The NetworkTables publisher for this logger. */
     private DoublePublisher publisher;
+    /** The data log publisher for this logger. */
     private DoubleLogEntry datalogEntry;
-
-    /**
-     * Constructs a LogItem for doubles.
-     * 
-     * @param subsystem     the subsystem to assign this LogItem to
-     * @param key           the key of the value to log
-     * @param valueSupplier the supplier for the value
-     * @param level         the level at which to place the LogItem
-     */
-    public DoubleLogItem(String subsystem, String key, Supplier<Double> valueSupplier, LogType level) {
-        super(subsystem, key, valueSupplier, level);
-    }
 
     /**
      * Constructs a LogItem for doubles.
@@ -51,21 +38,35 @@ public class DoubleLogItem extends AbstractLogItem<Double> {
         super(key, valueSupplier);
     }
 
+    /**
+     * Publishes the key to NetworkTables.
+     */
     @Override
     public void publish() {
         publisher = getTable().getDoubleTopic(key).publish();
     }
 
+    /**
+     * Unpublishes the key from NetworkTables if the item no longer needs to be
+     * active.
+     */
     @Override
     public void unpublish() {
         publisher.close();
     }
 
+    /**
+     * Creates a data log entry for the key.
+     */
     @Override
     public void createDatalogEntry() {
-        datalogEntry = new DoubleLogEntry(DataLogManager.getLog(), getFullName());
+        datalogEntry = new DoubleLogEntry(DataLogManager.getLog(), getFullPath());
     }
 
+    /**
+     * Gets the value that should be logged, and handles it depending on the
+     * {@link LogType}.
+     */
     @Override
     public void run() {
         if (this.type == LogType.NT) {

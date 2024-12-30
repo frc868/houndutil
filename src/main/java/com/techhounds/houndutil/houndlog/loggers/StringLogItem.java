@@ -1,71 +1,72 @@
-package com.techhounds.houndutil.houndlog.logitems;
+package com.techhounds.houndutil.houndlog.loggers;
 
 import java.util.function.Supplier;
 
-import com.techhounds.houndutil.houndlog.enums.LogType;
+import com.techhounds.houndutil.houndlog.LogType;
 
-import edu.wpi.first.networktables.FloatArrayPublisher;
-import edu.wpi.first.util.datalog.FloatArrayLogEntry;
+import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.util.datalog.StringLogEntry;
 import edu.wpi.first.wpilibj.DataLogManager;
 
 /**
- * The LogItem for float arrays.
- * 
- * @author dr
+ * LogItem for strings.
  */
-public class FloatArrayLogItem extends AbstractLogItem<float[]> {
-    /** The publisher for this logger. */
-    private FloatArrayPublisher publisher;
-    private FloatArrayLogEntry datalogEntry;
+public class StringLogItem extends LogItem<String> {
+    /** The NetworkTables publisher for this logger. */
+    private StringPublisher publisher;
+    /** The data log publisher for this logger. */
+    private StringLogEntry datalogEntry;
 
     /**
-     * Constructs a LogItem for float arrays.
-     * 
-     * @param subsystem     the subsystem to assign this LogItem to
-     * @param key           the key of the value to log
-     * @param valueSupplier the supplier for the value
-     * @param level         the level at which to place the LogItem
-     */
-    public FloatArrayLogItem(String subsystem, String key, Supplier<float[]> func, LogType level) {
-        super(subsystem, key, func, level);
-    }
-
-    /**
-     * Constructs a LogItem for float arrays.
+     * Constructs a LogItem for integers.
      * 
      * @param key           the key of the value to log
      * @param valueSupplier the supplier for the value
      * @param level         the level at which to place the LogItem
      */
-    public FloatArrayLogItem(String key, Supplier<float[]> func, LogType level) {
+    public StringLogItem(String key, Supplier<String> func, LogType level) {
         super(key, func, level);
     }
 
     /**
-     * Constructs a LogItem for float arrays.
+     * Constructs a LogItem for integers.
      * 
      * @param key           the key of the value to log
      * @param valueSupplier the supplier for the value
      */
-    public FloatArrayLogItem(String key, Supplier<float[]> func) {
+    public StringLogItem(String key, Supplier<String> func) {
         super(key, func);
     }
 
+    /**
+     * Publishes the key to NetworkTables.
+     */
     @Override
     public void publish() {
-        publisher = getTable().getFloatArrayTopic(key).publish();
+        publisher = getTable().getStringTopic(key).publish();
     }
 
+    /**
+     * Unpublishes the key from NetworkTables if the item no longer needs to be
+     * active.
+     */
     @Override
     public void unpublish() {
         publisher.close();
     }
 
+    /**
+     * Creates a data log entry for the key.
+     */
     @Override
     public void createDatalogEntry() {
-        datalogEntry = new FloatArrayLogEntry(DataLogManager.getLog(), getFullName());
+        datalogEntry = new StringLogEntry(DataLogManager.getLog(), getFullPath());
     }
 
+    /**
+     * Gets the value that should be logged, and handles it depending on the
+     * {@link LogType}.
+     */
     @Override
     public void run() {
         if (this.type == LogType.NT) {
@@ -80,7 +81,7 @@ public class FloatArrayLogItem extends AbstractLogItem<float[]> {
         }
 
         try {
-            float[] value = valueSupplier.get();
+            String value = valueSupplier.get();
             if (this.previousValue == null || value != this.previousValue) {
                 if (this.type == LogType.NT)
                     publisher.set(value);

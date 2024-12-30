@@ -8,9 +8,15 @@ import com.revrobotics.CANSparkFlex;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.CANSparkBase.FaultID;
 import com.techhounds.houndutil.houndlib.SparkConfigurator;
+
+import edu.wpi.first.hal.PowerDistributionFaults;
+import edu.wpi.first.hal.PowerDistributionStickyFaults;
+import edu.wpi.first.hal.REVPHFaults;
+import edu.wpi.first.hal.REVPHStickyFaults;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringArrayPublisher;
+import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -23,17 +29,13 @@ import java.util.function.Supplier;
 import org.photonvision.PhotonCamera;
 
 /**
- * FaultLogger allows for faults to be logged and displayed.
- *
- * <pre>
- * FaultLogger.register(spark); // registers a spark, periodically checking for hardware faults
- * spark.set(0.5);
- * FaultLogger.check(spark); // checks that the previous set call did not encounter an error.
- * </pre>
+ * Provides a utility that can be shown on a dashboard that displays faults on
+ * registered devices.
+ * 
+ * To use, add the object as an Alerts widget in Elastic.
  */
 public final class FaultLogger {
-
-    /** An individual fault, containing necessary information. */
+    /** An individual fault, containing a name and description. */
     public static record Fault(String name, String description, FaultType type) {
         @Override
         public String toString() {
@@ -43,8 +45,7 @@ public final class FaultLogger {
 
     /**
      * The type of fault, used for detecting whether the fallible is in a failure
-     * state and displaying
-     * to NetworkTables.
+     * state and displaying to NetworkTables.
      */
     public static enum FaultType {
         INFO,
@@ -52,7 +53,7 @@ public final class FaultLogger {
         ERROR,
     }
 
-    /** A class to represent an alerts widget on NetworkTables */
+    /** Represents an alert widget on NetworkTables. */
     public static class Alerts {
         private final StringArrayPublisher errors;
         private final StringArrayPublisher warnings;
@@ -73,13 +74,11 @@ public final class FaultLogger {
         }
     }
 
-    // DATA
     private static final List<Supplier<Optional<Fault>>> faultSuppliers = new ArrayList<>();
     private static final Set<Fault> newFaults = new HashSet<>();
     private static final Set<Fault> activeFaults = new HashSet<>();
     private static final Set<Fault> totalFaults = new HashSet<>();
 
-    // NETWORK TABLES
     private static final NetworkTable base = NetworkTableInstance.getDefault().getTable("HoundLog/faultLogger");
     private static final Alerts activeAlerts = new Alerts(base, "activeFaults");
     private static final Alerts totalAlerts = new Alerts(base, "totalFaults");
@@ -115,7 +114,7 @@ public final class FaultLogger {
     /**
      * Returns the set of all current faults.
      *
-     * @return The set of all current faults.
+     * @return the set of all current faults
      */
     public static Set<Fault> activeFaults() {
         return activeFaults;
@@ -124,7 +123,7 @@ public final class FaultLogger {
     /**
      * Returns the set of all total faults.
      *
-     * @return The set of all total faults.
+     * @return the set of all total faults
      */
     public static Set<Fault> totalFaults() {
         return totalFaults;
@@ -133,25 +132,23 @@ public final class FaultLogger {
     /**
      * Reports a fault.
      *
-     * @param fault The fault to report.
+     * @param fault the fault to report
      */
     public static void report(Fault fault) {
         newFaults.add(fault);
-        // if (false) {
         // switch (fault.type) {
         // case ERROR -> DriverStation.reportError(fault.toString(), false);
         // case WARNING -> DriverStation.reportWarning(fault.toString(), false);
         // case INFO -> System.out.println(fault.toString());
-        // }
         // }
     }
 
     /**
      * Reports a fault.
      *
-     * @param name        The name of the fault.
-     * @param description The description of the fault.
-     * @param type        The type of the fault.
+     * @param name        the name of the fault
+     * @param description the description of the fault
+     * @param type        the type of the fault
      */
     public static void report(String name, String description, FaultType type) {
         report(new Fault(name, description, type));
@@ -160,7 +157,7 @@ public final class FaultLogger {
     /**
      * Registers a new fault supplier.
      *
-     * @param supplier A supplier of an optional fault.
+     * @param supplier a supplier that can provide a fault
      */
     public static void register(Supplier<Optional<Fault>> supplier) {
         faultSuppliers.add(supplier);
@@ -169,9 +166,9 @@ public final class FaultLogger {
     /**
      * Registers a new fault supplier.
      *
-     * @param condition   Whether a failure is occuring.
-     * @param description The failure's description.
-     * @param type        The type of failure.
+     * @param condition   whether a failure is occuring
+     * @param description the failure's description
+     * @param type        the type of failure.
      */
     public static void register(
             BooleanSupplier condition, String name, String description, FaultType type) {
@@ -182,9 +179,9 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a SPARK Flex
+     * Registers fault suppliers for a SPARK Flex.
      *
-     * @param spark The SPARK Flex to register
+     * @param spark the SPARK Flex to register
      */
     public static void register(CANSparkFlex spark) {
         for (FaultID fault : FaultID.values()) {
@@ -195,12 +192,13 @@ public final class FaultLogger {
                 SparkConfigurator.name(spark),
                 "motor above 80°C",
                 FaultType.WARNING);
+
     }
 
     /**
-     * Registers fault suppliers for a SPARK MAX
+     * Registers fault suppliers for a SPARK MAX.
      *
-     * @param spark The SPARK MAX
+     * @param spark the SPARK MAX to register
      */
     public static void register(CANSparkMax spark) {
         for (FaultID fault : FaultID.values()) {
@@ -214,9 +212,9 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a Talon FX
+     * Registers fault suppliers for a Talon FX.
      *
-     * @param talon The Talon FX
+     * @param talon the Talon FX to register
      */
     public static void register(TalonFX talon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
@@ -239,29 +237,29 @@ public final class FaultLogger {
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
                 talon.getFault_UnlicensedFeatureInUse(),
-                talon.getFault_UnstableSupplyV());
-        // talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed(),
-        // talon.getStickyFault_BootDuringEnable(),
-        // talon.getStickyFault_BridgeBrownout(),
-        // talon.getStickyFault_DeviceTemp(),
-        // talon.getStickyFault_ForwardHardLimit(),
-        // talon.getStickyFault_ForwardSoftLimit(),
-        // talon.getStickyFault_FusedSensorOutOfSync(),
-        // talon.getStickyFault_Hardware(),
-        // talon.getStickyFault_MissingDifferentialFX(),
-        // talon.getStickyFault_OverSupplyV(),
-        // talon.getStickyFault_ProcTemp(),
-        // talon.getStickyFault_RemoteSensorDataInvalid(),
-        // talon.getStickyFault_RemoteSensorPosOverflow(),
-        // talon.getStickyFault_RemoteSensorReset(),
-        // talon.getStickyFault_ReverseHardLimit(),
-        // talon.getStickyFault_ReverseSoftLimit(),
-        // talon.getStickyFault_StatorCurrLimit(),
-        // talon.getStickyFault_SupplyCurrLimit(),
-        // talon.getStickyFault_Undervoltage(),
-        // talon.getStickyFault_UnlicensedFeatureInUse(),
-        // talon.getStickyFault_UnstableSupplyV(),
-        // talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
+                talon.getFault_UnstableSupplyV(),
+                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed(),
+                talon.getStickyFault_BootDuringEnable(),
+                talon.getStickyFault_BridgeBrownout(),
+                talon.getStickyFault_DeviceTemp(),
+                talon.getStickyFault_ForwardHardLimit(),
+                talon.getStickyFault_ForwardSoftLimit(),
+                talon.getStickyFault_FusedSensorOutOfSync(),
+                talon.getStickyFault_Hardware(),
+                talon.getStickyFault_MissingDifferentialFX(),
+                talon.getStickyFault_OverSupplyV(),
+                talon.getStickyFault_ProcTemp(),
+                talon.getStickyFault_RemoteSensorDataInvalid(),
+                talon.getStickyFault_RemoteSensorPosOverflow(),
+                talon.getStickyFault_RemoteSensorReset(),
+                talon.getStickyFault_ReverseHardLimit(),
+                talon.getStickyFault_ReverseSoftLimit(),
+                talon.getStickyFault_StatorCurrLimit(),
+                talon.getStickyFault_SupplyCurrLimit(),
+                talon.getStickyFault_Undervoltage(),
+                talon.getStickyFault_UnlicensedFeatureInUse(),
+                talon.getStickyFault_UnstableSupplyV(),
+                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
@@ -276,9 +274,9 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a CANcoder
+     * Registers fault suppliers for a CANcoder.
      *
-     * @param talon The Talon FX
+     * @param talon the CANcoder to register
      */
     public static void register(CANcoder cancoder) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
@@ -286,12 +284,12 @@ public final class FaultLogger {
                 cancoder.getFault_BootDuringEnable(),
                 cancoder.getFault_Hardware(),
                 cancoder.getFault_Undervoltage(),
-                cancoder.getFault_UnlicensedFeatureInUse());
-        // cancoder.getStickyFault_BadMagnet(),
-        // cancoder.getStickyFault_BootDuringEnable(),
-        // cancoder.getStickyFault_Hardware(),
-        // cancoder.getStickyFault_Undervoltage(),
-        // cancoder.getStickyFault_UnlicensedFeatureInUse());
+                cancoder.getFault_UnlicensedFeatureInUse(),
+                cancoder.getStickyFault_BadMagnet(),
+                cancoder.getStickyFault_BootDuringEnable(),
+                cancoder.getStickyFault_Hardware(),
+                cancoder.getStickyFault_Undervoltage(),
+                cancoder.getStickyFault_UnlicensedFeatureInUse());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
@@ -302,9 +300,9 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a Pigeon 2
+     * Registers fault suppliers for a Pigeon 2.
      *
-     * @param talon The Talon FX
+     * @param talon the Pigeon 2 to register
      */
     public static void register(Pigeon2 pigeon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
@@ -320,20 +318,20 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedGyroscope(),
                 pigeon.getFault_SaturatedMagnetometer(),
                 pigeon.getFault_Undervoltage(),
-                pigeon.getFault_UnlicensedFeatureInUse());
-        // pigeon.getStickyFault_BootDuringEnable(),
-        // pigeon.getStickyFault_BootIntoMotion(),
-        // pigeon.getStickyFault_BootupAccelerometer(),
-        // pigeon.getStickyFault_BootupGyroscope(),
-        // pigeon.getStickyFault_BootupMagnetometer(),
-        // pigeon.getStickyFault_DataAcquiredLate(),
-        // pigeon.getStickyFault_Hardware(),
-        // pigeon.getStickyFault_LoopTimeSlow(),
-        // pigeon.getStickyFault_SaturatedAccelerometer(),
-        // pigeon.getStickyFault_SaturatedGyroscope(),
-        // pigeon.getStickyFault_SaturatedMagnetometer(),
-        // pigeon.getStickyFault_Undervoltage(),
-        // pigeon.getStickyFault_UnlicensedFeatureInUse());
+                pigeon.getFault_UnlicensedFeatureInUse(),
+                pigeon.getStickyFault_BootDuringEnable(),
+                pigeon.getStickyFault_BootIntoMotion(),
+                pigeon.getStickyFault_BootupAccelerometer(),
+                pigeon.getStickyFault_BootupGyroscope(),
+                pigeon.getStickyFault_BootupMagnetometer(),
+                pigeon.getStickyFault_DataAcquiredLate(),
+                pigeon.getStickyFault_Hardware(),
+                pigeon.getStickyFault_LoopTimeSlow(),
+                pigeon.getStickyFault_SaturatedAccelerometer(),
+                pigeon.getStickyFault_SaturatedGyroscope(),
+                pigeon.getStickyFault_SaturatedMagnetometer(),
+                pigeon.getStickyFault_Undervoltage(),
+                pigeon.getStickyFault_UnlicensedFeatureInUse());
 
         faultSignals.forEach((s) -> SignalManager.register(s));
 
@@ -346,14 +344,29 @@ public final class FaultLogger {
     /**
      * Registers fault suppliers for a power distribution hub/panel.
      *
-     * @param powerDistribution The power distribution to manage.
+     * @param powerDistribution the power distribution device to register
      */
     public static void register(PowerDistribution powerDistribution) {
-        for (Field field : PowerDistribution.class.getFields()) {
+        powerDistribution.getFaults();
+        for (Field field : PowerDistributionFaults.class.getFields()) {
             register(
                     () -> {
                         try {
-                            if (field.getBoolean(powerDistribution)) {
+                            if (field.getBoolean(powerDistribution.getFaults())) {
+                                return Optional.of(
+                                        new Fault("PDH", field.getName(), FaultType.ERROR));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return Optional.empty();
+                    });
+        }
+        for (Field field : PowerDistributionStickyFaults.class.getFields()) {
+            register(
+                    () -> {
+                        try {
+                            if (field.getBoolean(powerDistribution.getStickyFaults())) {
                                 return Optional.of(
                                         new Fault("PDH", field.getName(), FaultType.ERROR));
                             }
@@ -365,9 +378,45 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a camera.
+     * Registers fault suppliers for a REV Pneumatic Hub.
+     * 
+     * @param ph the Pneumatic Hub to register
+     */
+    public static void register(PneumaticHub ph) {
+        for (Field field : REVPHFaults.class.getFields()) {
+            register(
+                    () -> {
+                        try {
+                            if (field.getBoolean(ph.getFaults())) {
+                                return Optional.of(
+                                        new Fault("Pneumatic Hub", field.getName(), FaultType.ERROR));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return Optional.empty();
+                    });
+        }
+        for (Field field : REVPHStickyFaults.class.getFields()) {
+            register(
+                    () -> {
+                        try {
+                            if (field.getBoolean(ph.getStickyFaults())) {
+                                return Optional.of(
+                                        new Fault("Pneumatic Hub", field.getName(), FaultType.ERROR));
+                            }
+                        } catch (Exception e) {
+                            e.printStackTrace();
+                        }
+                        return Optional.empty();
+                    });
+        }
+    }
+
+    /**
+     * Registers fault suppliers for a PhotonVision camera.
      *
-     * @param camera The camera to manage.
+     * @param camera the camera to register
      */
     public static void register(PhotonCamera camera) {
         register(

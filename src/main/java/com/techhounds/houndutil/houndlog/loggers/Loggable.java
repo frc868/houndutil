@@ -1,8 +1,7 @@
 package com.techhounds.houndutil.houndlog.loggers;
 
 /**
- * Defines a loggable. This was mainly necessary due to wanting to include both
- * {@link Logger}s and {@link DeviceLogger}s in {@link LoggingManager}.
+ * Base interface for any item that can be logged by HoundLog.
  * 
  * @author dr
  */
@@ -16,4 +15,17 @@ public interface Loggable {
      * Code to run on every loop iteration for this Loggable.
      */
     public void run();
+
+    /**
+     * Set the parent LogGroup of this Loggable.
+     */
+    public void setParent(LogGroup parent);
+
+    /**
+     * Gets the full path of this Loggable. This path includes each parent
+     * LogGroup's name in order, combined with the name of this Loggable.
+     * 
+     * @return the full path of this Loggable
+     */
+    public String getFullPath();
 }
