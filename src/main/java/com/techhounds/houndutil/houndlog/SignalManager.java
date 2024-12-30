@@ -39,6 +39,7 @@ public class SignalManager {
      * Refreshes all registered status signals. This should be called periodically.
      */
     public static void refresh() {
-        BaseStatusSignal.waitForAll(0, statuses);
+        if (statuses.length > 0)
+            BaseStatusSignal.waitForAll(0, statuses);
     }
 }

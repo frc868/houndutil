@@ -140,7 +140,7 @@ public interface BaseDifferentialDrive {
      * 
      * @param speeds the ChassisSpeeds to use to drive the chassis
      */
-    public void driveClosedLoop(ChassisSpeeds speeds, DriveMode driveMode);
+    public void driveClosedLoop(ChassisSpeeds speeds);
 
     /**
      * Creates a command that moves the chassis given a left and right speed.
