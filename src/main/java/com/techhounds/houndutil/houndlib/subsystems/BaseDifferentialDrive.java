@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlib.subsystems;
 
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
@@ -150,7 +151,8 @@ public interface BaseDifferentialDrive {
      * @param rightSpeedSupplier the supplier of the right speed, in m/s
      * @return the command
      */
-    public Command teleopDriveCommand(DoubleSupplier leftSpeedSupplier, DoubleSupplier rightSpeedSupplier);
+    public Command teleopDriveCommand(DoubleSupplier leftSpeedSupplier, DoubleSupplier rightSpeedSupplier,
+            Supplier<DifferentialDriveMode> driveModeSupplier);
 
     /**
      * Creates a command that follows a PathPlanner (or Choreo) path, then stops.
