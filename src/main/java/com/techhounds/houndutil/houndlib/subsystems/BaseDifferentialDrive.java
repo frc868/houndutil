@@ -147,11 +147,14 @@ public interface BaseDifferentialDrive {
      * 
      * @apiNote this should handle deadbands, rate limiting, and any desired
      *          joystick curves.
-     * @param leftSpeedSupplier  the supplier of the left speed, in m/s
-     * @param rightSpeedSupplier the supplier of the right speed, in m/s
+     * @param leftStickThrustSupplier    the supplier for the left joystick thrust
+     * @param rightStickThrustSupplier   the supplier for the right joystick thrust
+     * @param rightStickRotationSupplier the supplier for the right joystick
+     *                                   rotation (left-right)
      * @return the command
      */
-    public Command teleopDriveCommand(DoubleSupplier leftSpeedSupplier, DoubleSupplier rightSpeedSupplier,
+    public Command teleopDriveCommand(DoubleSupplier leftStickThrustSupplier, DoubleSupplier rightStickThrustSupplier,
+            DoubleSupplier rightStickRotationSupplier,
             Supplier<DifferentialDriveMode> driveModeSupplier);
 
     /**
