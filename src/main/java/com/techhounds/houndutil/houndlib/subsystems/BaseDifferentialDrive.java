@@ -23,6 +23,16 @@ import edu.wpi.first.wpilibj2.command.Command;
  */
 public interface BaseDifferentialDrive {
     /**
+     * The method with which to control the robot. ARCADE uses one joystick for
+     * thrust (power), and one joystick for direction. TANK uses one joystick for
+     * the left side, and one joystick for the right side.
+     */
+    public enum DifferentialDriveMode {
+        ARCADE,
+        TANK
+    }
+
+    /**
      * Gets the current (estimated) pose of the chassis, with respect to the origin.
      * 
      * @return the pose of the chassis
