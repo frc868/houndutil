@@ -52,7 +52,7 @@ public class SendableLogItem implements Loggable {
      */
     @Override
     public void init() {
-        publishSendable(getTable());
+        publishSendable(getTable().getSubTable(key));
     }
 
     /**
@@ -85,8 +85,9 @@ public class SendableLogItem implements Loggable {
         String tableName;
         if (parent != null) {
             tableName = parent.getFullPath();
+        } else {
+            tableName = "unassigned";
         }
-        tableName = "unassigned";
         return NetworkTableInstance.getDefault().getTable(tableName);
     }
 }
