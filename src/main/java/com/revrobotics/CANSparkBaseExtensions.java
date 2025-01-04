@@ -25,7 +25,8 @@ public class CANSparkBaseExtensions {
     }
 
     /**
-     * Enable center aligned mode for the duty cycle sensor.
+     * Enable center aligned mode for the absolute encoder. This makes the sensor
+     * report [-0.5, 0.5] instead of [0, 1].
      * 
      * @param sparkBase the controller object
      */
@@ -35,7 +36,8 @@ public class CANSparkBaseExtensions {
     }
 
     /**
-     * Disable center aligned mode for the duty cycle sensor.
+     * Disable center aligned mode for the duty cycle sensor. This makes the sensor
+     * report [0, 1] instead of [-0.5, 0.5].
      * 
      * @param sparkBase the controller object
      */
@@ -46,11 +48,12 @@ public class CANSparkBaseExtensions {
 
     /**
      * Enable mode which sets the output of the PID controllers to be voltage
-     * instead of duty cycle.
+     * instead of duty cycle. By default, SPARK motor controllers use duty cycle
+     * output
      *
      * <p>
-     * To disable, change or disable voltage compensation. Those settings will
-     * overwrite this one
+     * To disable, disable voltage compensation. Those settings will
+     * overwrite this one.
      * 
      * @param sparkBase the controller object
      */
