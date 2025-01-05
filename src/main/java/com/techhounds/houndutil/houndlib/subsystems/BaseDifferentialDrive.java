@@ -5,8 +5,6 @@ import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.techhounds.houndutil.houndlib.MotorHoldMode;
-import com.techhounds.houndutil.houndlib.subsystems.BaseSwerveDrive.DriveMode;
-
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
