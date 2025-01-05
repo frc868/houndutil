@@ -15,11 +15,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 public class AutoRoutine {
     private String name;
     private Command command;
-    private List<PathPlannerPath> pathPlannerPaths;
+    private List<PathPlannerPath> pathPlannerPaths = List.of();
     private Pose2d initialPose;
 
     /**
-     * Creates an AutoRoutine.
+     * Creates an AutoRoutine. Use for auto routines that do not use trajectories or
+     * localization.
      * 
      * @param name    the name of the routine, this will be pushed to
      *                NetworkTables
@@ -68,7 +69,7 @@ public class AutoRoutine {
     /**
      * Gets the paths associated with the routine.
      * 
-     * @return the paths for the routine
+     * @return the paths for the routine (empty if no paths)
      */
     public List<PathPlannerPath> getPathPlannerPaths() {
         return pathPlannerPaths;
@@ -78,7 +79,8 @@ public class AutoRoutine {
      * Gets the initial pose for the routine. When the DriverStation is set to the
      * red alliance, this is reflected over a field length of 16.54m.
      * 
-     * @return
+     * @return the initial pose for the routine, or the pose at (0,0) if no
+     *         trajectories are used.
      */
     public Pose2d getInitialPose() {
         if (pathPlannerPaths != null) {

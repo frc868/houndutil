@@ -14,7 +14,8 @@ import edu.wpi.first.math.geometry.Translation3d;
 public class Reflector {
     /**
      * Reflects a {@link Pose2d} to the opposite side of a field given a field
-     * length. Inverts the gyro heading.
+     * length. Inverts the heading of the pose (e.g. facing towards one alliance
+     * wall will get transformed into facing the other).
      * 
      * @param pose        the pose to reflect
      * @param fieldLength the length of the field, in meters
@@ -31,7 +32,8 @@ public class Reflector {
 
     /**
      * Reflects a {@link Pose3d} to the opposite side of a field given a field
-     * length. Inverts the gyro heading.
+     * length. Inverts the heading of the pose (e.g. facing towards one alliance
+     * wall will get transformed into facing the other).
      * 
      * @param pose        the pose to reflect
      * @param fieldLength the length of the field, in meters

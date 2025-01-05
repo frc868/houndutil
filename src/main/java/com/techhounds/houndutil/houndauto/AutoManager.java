@@ -26,15 +26,19 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 /**
- * Handles scheduling of autos and display of paths to NetworkTables.
+ * Handles scheduling of autos, odometry resetting, and display of paths to
+ * NetworkTables. Provides an interface for a drive team to select an autonomous
+ * routine, and preview the path that will be followed along with the robot's
+ * estimated starting position, given any localization.
+ * 
  * Uses the {@code /HoundLog/autonomous} table.
  * 
  * <p>
  * 
  * Use {@code init()} in {@code robotInit},
- * {@code periodicUpdate()}
- * in {@code disabledPeriodic}, {@code runSelectedRoutine()} in
- * {@code autonomousInit}, and {@code endRoutine()} in {@code autonomousExit}.
+ * {@code periodicUpdate()} in {@code disabledPeriodic},
+ * {@code runSelectedRoutine()} in {@code autonomousInit}, and
+ * {@code endRoutine()} in {@code autonomousExit}.
  * 
  * <p>
  * 
@@ -113,8 +117,10 @@ public class AutoManager {
     }
 
     /**
-     * Set the function associated with resetting odometry. This function should
-     * take in a {@code Pose2d}, reset the odometry, and reset the encoders.
+     * Set the function associated with resetting odometry. This function must be
+     * set if you are running an autonomous routine with paths or have any
+     * dependencies on localization. This function should take in a {@code Pose2d}
+     * and set the robot's pose to that value.
      * 
      * @param consumer the {@code Pose2d} consumer
      */
@@ -132,7 +138,7 @@ public class AutoManager {
             if (resetOdometryConsumer != null) {
                 resetOdometryConsumer.accept(selectedRoutine.getInitialPose());
             }
-            if (selectedRoutine.getPathPlannerPaths() != null) {
+            if (selectedRoutine.getPathPlannerPaths().size() > 0) {
                 field.getObject("startingPose").setPose(selectedRoutine.getInitialPose());
                 displayPaths(selectedRoutine.getPathPlannerPaths());
             }
@@ -143,7 +149,7 @@ public class AutoManager {
     /**
      * Display the selected routine's trajectories on the field object.
      */
-    public void displayPaths(List<PathPlannerPath> paths) {
+    private void displayPaths(List<PathPlannerPath> paths) {
         ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
         for (PathPlannerPath path : paths) {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
@@ -166,8 +172,7 @@ public class AutoManager {
      */
     public void runSelectedRoutine() {
         if (this.resetOdometryConsumer == null) {
-            throw new NullPointerException(
-                    "Reset Odometry Consumer must not be null.");
+            DriverStation.reportError("[houndauto] No odometry reset consumer set.", false);
         }
 
         if (this.getSelectedRoutine() == null) {
