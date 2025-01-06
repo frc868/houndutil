@@ -83,7 +83,7 @@ public class AutoRoutine {
      *         trajectories are used.
      */
     public Pose2d getInitialPose() {
-        if (pathPlannerPaths != null) {
+        if (pathPlannerPaths.size() > 0) {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red)
                 return Reflector.reflectPose2d(initialPose, 16.54);
             else
