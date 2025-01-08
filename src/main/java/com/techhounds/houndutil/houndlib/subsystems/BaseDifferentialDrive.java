@@ -28,7 +28,8 @@ public interface BaseDifferentialDrive {
      */
     public enum DifferentialDriveMode {
         ARCADE,
-        TANK
+        TANK,
+        CURVATURE;
     }
 
     /**
