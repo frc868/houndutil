@@ -1,81 +1,76 @@
 package com.techhounds.houndutil.houndlog;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.DoubleConsumer;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
-import com.ctre.phoenix6.hardware.CANcoder;
-import com.ctre.phoenix6.hardware.Pigeon2;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkFlex;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkAbsoluteEncoder;
-import com.techhounds.houndutil.houndlog.interfaces.Log;
-import com.techhounds.houndutil.houndlog.interfaces.LoggedObject;
-import com.techhounds.houndutil.houndlog.interfaces.SendableLog;
-import com.techhounds.houndutil.houndlog.interfaces.Tunable;
-import com.techhounds.houndutil.houndlog.loggers.Logger;
-import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.logitems.BooleanArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.BooleanLogItem;
-import com.techhounds.houndutil.houndlog.logitems.DoubleArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
-import com.techhounds.houndutil.houndlog.logitems.FloatArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.FloatLogItem;
-import com.techhounds.houndutil.houndlog.logitems.IntegerArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.IntegerLogItem;
-import com.techhounds.houndutil.houndlog.logitems.StringArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.StringLogItem;
-import com.techhounds.houndutil.houndlog.logitems.StructLogItem;
-import com.techhounds.houndutil.houndlog.logitems.StructArrayLogItem;
-import com.techhounds.houndutil.houndlog.logitems.TunableBoolean;
-import com.techhounds.houndutil.houndlog.logitems.TunableDouble;
-
-import edu.wpi.first.math.controller.ArmFeedforward;
-import edu.wpi.first.math.controller.ElevatorFeedforward;
-import edu.wpi.first.math.controller.PIDController;
-import edu.wpi.first.math.controller.ProfiledPIDController;
-import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Pose3d;
-import edu.wpi.first.math.geometry.Rotation2d;
-import edu.wpi.first.math.geometry.Rotation3d;
-import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.geometry.Transform3d;
-import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.geometry.Translation3d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.geometry.Twist3d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.util.function.BooleanConsumer;
 import edu.wpi.first.util.sendable.Sendable;
+import edu.wpi.first.util.struct.Struct;
+import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DoubleSolenoid;
-import edu.wpi.first.wpilibj.PneumaticHub;
-import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.simulation.DCMotorSim;
-import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
-import com.techhounds.houndutil.houndlog.loggers.DeviceLogger;
+import com.techhounds.houndutil.houndlog.annotations.Log;
+import com.techhounds.houndutil.houndlog.annotations.LogProfile;
+import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
+import com.techhounds.houndutil.houndlog.annotations.SendableLog;
+import com.techhounds.houndutil.houndlog.annotations.Tunable;
+import com.techhounds.houndutil.houndlog.loggers.BooleanArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.FloatArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.FloatLogItem;
+import com.techhounds.houndutil.houndlog.loggers.IntegerArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.IntegerLogItem;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
+import com.techhounds.houndutil.houndlog.loggers.LogItem;
+import com.techhounds.houndutil.houndlog.loggers.Loggable;
+import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
+import com.techhounds.houndutil.houndlog.loggers.StringArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.StringLogItem;
+import com.techhounds.houndutil.houndlog.loggers.StructArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.StructLogItem;
+import com.techhounds.houndutil.houndlog.loggers.TunableBoolean;
+import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
+
 import static java.util.Map.entry;
 
 /**
- * Deals with objects that have been annotated with @Log.
+ * Handles all objects that have been annotated with {@code @Log}, adding them
+ * to the {@link LoggingManager}.
  * 
- * Contains default logging configurations for objects like a PIDController.
+ * Recurses through all objects that have been annotated with
+ * {@code @LoggedObject}, and iterates through all fields and methods checking
+ * for annotations.
  */
 public class LogAnnotationHandler {
+    /**
+     * Generates loggers for a given object that has been marked with
+     * {@code @LoggedObject}.
+     * 
+     * @param loggedObject the object to handle
+     */
     protected static void handleLoggedObject(Object loggedObject) {
         handleLoggedObject(loggedObject, "", new ArrayList<String>());
     }
 
+    /**
+     * Generates loggers for a given object that has been marked with
+     * {@code @LoggedObject}.
+     * 
+     * @param loggedObject the object to handle
+     * @param name         the name of the object
+     * @param subkeys      a list of logged subclasses containing this object
+     */
     protected static void handleLoggedObject(Object loggedObject, String name, ArrayList<String> subkeys) {
         handleLoggedObjectImpl(
                 loggedObject,
@@ -84,6 +79,14 @@ public class LogAnnotationHandler {
                 name, subkeys);
     }
 
+    /**
+     * Generates loggers for a class that has been annotated with
+     * {@code LoggedObject}. Used for classes with <b>static</b> fields and methods.
+     * 
+     * @param loggedClass the class to handle
+     * @param name        the name of the object
+     * @param subkeys     a list of logged subclasses containing this object
+     */
     protected static void handleLoggedClass(Class<?> loggedClass, String name, ArrayList<String> subkeys) {
         handleLoggedObjectImpl(
                 null,
@@ -92,9 +95,22 @@ public class LogAnnotationHandler {
                 name, subkeys);
     }
 
+    /**
+     * Implementation for handling a logged object. Checks for {@code @Log},
+     * {@code @Tunable}, and {@code @SendableLog} annotations on fields and methods
+     * in the object, and recursively calls
+     * {@link LogAnnotationHandler#handleLoggedObject} for any discovered
+     * {@code @LoggedObject} fields.
+     * 
+     * @param loggedObject the object to handle
+     * @param fields       the fields to search
+     * @param methods      the methods to search
+     * @param name         the name of the objects
+     * @param subkeys      a list of logged subclasses containing this object
+     */
     private static void handleLoggedObjectImpl(Object loggedObject, Field[] fields, Method[] methods, String name,
             ArrayList<String> subkeys) {
-        ArrayList<Logger> loggers = new ArrayList<Logger>();
+        ArrayList<Loggable> loggers = new ArrayList<Loggable>();
         for (Method method : methods) {
             Log subLogAnnotation = method.getAnnotation(Log.class);
             if (subLogAnnotation != null) {
@@ -114,7 +130,7 @@ public class LogAnnotationHandler {
                     }
                 };
 
-                Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
+                Optional<Loggable> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                 if (optLogger.isPresent()) {
                     loggers.add(optLogger.get());
                 }
@@ -179,7 +195,7 @@ public class LogAnnotationHandler {
                         }
 
                     } else {
-                        Optional<Logger> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
+                        Optional<Loggable> optLogger = getLoggerForValue(valueSupplier, subLogAnnotation, varName);
                         if (optLogger.isPresent()) {
                             loggers.add(optLogger.get());
                         }
@@ -198,7 +214,7 @@ public class LogAnnotationHandler {
 
                 try {
                     Sendable sendable = (Sendable) field.get(loggedObject);
-                    loggers.add(new SendableLogger(formattedName, sendable));
+                    loggers.add(new SendableLogItem(formattedName, sendable));
                 } catch (Exception e) {
                     e.printStackTrace();
                 }
@@ -207,10 +223,18 @@ public class LogAnnotationHandler {
         }
         if (name != null)
             subkeys.add(name);
-        LoggingManager.getInstance().addGroup(String.join("/", subkeys),
-                new LogGroup(loggers.toArray(new Logger[loggers.size()])));
+        LoggingManager.getInstance().addGroup(
+                new LogGroup(String.join("/", subkeys), loggers.toArray(new Loggable[loggers.size()])));
     }
 
+    /**
+     * Generates the name for a logged field given the field's name and the desired
+     * subkeys.
+     * 
+     * @param logAnnotation the log annotation
+     * @param varName       the name of the variable
+     * @return the fully qualified name of the object
+     */
     public static String getName(Log logAnnotation, String varName) {
         ArrayList<String> nameComponents = new ArrayList<String>();
         nameComponents.addAll(Arrays.asList(logAnnotation.groups()));
@@ -219,13 +243,16 @@ public class LogAnnotationHandler {
     }
 
     /**
+     * Generates the correct logger (group or single item) for a given value, if
+     * possible.
      * 
-     * @param field
-     * @param object the object to get the value from
-     * @return
+     * @param valueSupplier supplier for the value of the object
+     * @param logAnnotation the log annotation attached to the variable
+     * @param varName       the name of the variable
+     * @return a logger, if one exists for the given object type
      */
     @SuppressWarnings("unchecked")
-    private static Optional<Logger> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
+    private static Optional<Loggable> getLoggerForValue(Supplier<Object> valueSupplier, Log logAnnotation,
             String varName) {
         try {
             Supplier<Object> checkedValueSupplier;
@@ -240,215 +267,127 @@ public class LogAnnotationHandler {
                 checkedValueSupplier = valueSupplier;
             }
 
-            Map<Class<?>, Supplier<Logger>> classToLoggerMap = Map.ofEntries(
+            // for primitives, use the appropriate logger
+            Map<Class<?>, Supplier<Loggable>> classToLoggerMap = Map.ofEntries(
                     entry(boolean[].class,
                             () -> new BooleanArrayLogItem(name,
-                                    () -> (boolean[]) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (boolean[]) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(Boolean.class,
                             () -> new BooleanLogItem(name,
-                                    () -> (boolean) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (boolean) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(double[].class,
                             () -> new DoubleArrayLogItem(name,
-                                    () -> (double[]) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (double[]) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(Double.class,
                             () -> new DoubleLogItem(name,
-                                    () -> (double) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (double) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(float[].class,
                             () -> new FloatArrayLogItem(name,
-                                    () -> (float[]) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (float[]) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(Float.class,
                             () -> new FloatLogItem(name,
-                                    () -> (float) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (float) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(int[].class,
                             () -> new IntegerArrayLogItem(name,
-                                    () -> (int[]) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (int[]) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(Integer.class,
                             () -> new IntegerLogItem(name,
-                                    () -> (int) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (int) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(String[].class,
                             () -> new StringArrayLogItem(name,
-                                    () -> (String[]) checkedValueSupplier.get(), logAnnotation.logLevel())),
+                                    () -> (String[]) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(String.class,
                             () -> new StringLogItem(name,
-                                    () -> (String) checkedValueSupplier.get(), logAnnotation.logLevel())),
-                    entry(TalonFX.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildTalonFXLogItems((TalonFX) checkedValueSupplier.get()))),
-                    entry(CANSparkMax.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildCANSparkMaxLogItems((CANSparkMax) checkedValueSupplier.get()))),
-                    entry(CANSparkFlex.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildCANSparkFlexLogItems((CANSparkFlex) checkedValueSupplier.get()))),
-                    entry(CANcoder.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildCANcoderLogItems((CANcoder) checkedValueSupplier.get()))),
-                    entry(SparkAbsoluteEncoder.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildSparkAbsoluteEncoderLogItems(
-                                            (SparkAbsoluteEncoder) checkedValueSupplier.get()))),
-                    entry(AHRS.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildNavXLogItems((AHRS) checkedValueSupplier.get()))),
-                    entry(Pigeon2.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildPigeon2LogItems((Pigeon2) checkedValueSupplier.get()))),
-                    entry(DoubleSolenoid.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildDoubleSolenoidLogItems((DoubleSolenoid) checkedValueSupplier.get()))),
-                    entry(PowerDistribution.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildPDHLogItems((PowerDistribution) checkedValueSupplier.get()))),
-                    entry(PneumaticHub.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildPneumaticHubLogItems((PneumaticHub) checkedValueSupplier.get()))),
-                    entry(PIDController.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder
-                                            .buildPIDControllerLogItems((PIDController) checkedValueSupplier.get()))),
-                    entry(ProfiledPIDController.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildProfiledPIDControllerLogItems(
-                                            (ProfiledPIDController) checkedValueSupplier.get()))),
-                    entry(DCMotorSim.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildDCMotorSimLogItems(
-                                            (DCMotorSim) checkedValueSupplier.get()))),
-                    entry(SingleJointedArmSim.class,
-                            () -> new DeviceLogger(name,
-                                    LogProfileBuilder.buildSingleJointedArmSimLogItems(
-                                            (SingleJointedArmSim) checkedValueSupplier.get()))),
+                                    () -> (String) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
-                                    () -> ((DigitalInput) checkedValueSupplier.get()).get())),
-                    entry(Pose2d.class,
-                            () -> new StructLogItem<Pose2d>(name, Pose2d.struct,
-                                    () -> (Pose2d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Pose2d[].class,
-                            () -> new StructArrayLogItem<Pose2d>(name, Pose2d.struct,
-                                    () -> (Pose2d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Pose3d.class,
-                            () -> new StructLogItem<Pose3d>(name, Pose3d.struct,
-                                    () -> (Pose3d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Pose3d[].class,
-                            () -> new StructArrayLogItem<Pose3d>(name, Pose3d.struct,
-                                    () -> (Pose3d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Rotation2d.class,
-                            () -> new StructLogItem<Rotation2d>(name, Rotation2d.struct,
-                                    () -> (Rotation2d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Rotation2d[].class,
-                            () -> new StructArrayLogItem<Rotation2d>(name, Rotation2d.struct,
-                                    () -> (Rotation2d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Rotation3d.class,
-                            () -> new StructLogItem<Rotation3d>(name, Rotation3d.struct,
-                                    () -> (Rotation3d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Rotation3d[].class,
-                            () -> new StructArrayLogItem<Rotation3d>(name, Rotation3d.struct,
-                                    () -> (Rotation3d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Transform2d.class,
-                            () -> new StructLogItem<Transform2d>(name, Transform2d.struct,
-                                    () -> (Transform2d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Transform2d[].class,
-                            () -> new StructArrayLogItem<Transform2d>(name, Transform2d.struct,
-                                    () -> (Transform2d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Transform3d.class,
-                            () -> new StructLogItem<Transform3d>(name, Transform3d.struct,
-                                    () -> (Transform3d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Transform3d[].class,
-                            () -> new StructArrayLogItem<Transform3d>(name, Transform3d.struct,
-                                    () -> (Transform3d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Translation2d.class,
-                            () -> new StructLogItem<Translation2d>(name, Translation2d.struct,
-                                    () -> (Translation2d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Translation2d[].class,
-                            () -> new StructArrayLogItem<Translation2d>(name, Translation2d.struct,
-                                    () -> (Translation2d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Translation3d.class,
-                            () -> new StructLogItem<Translation3d>(name, Translation3d.struct,
-                                    () -> (Translation3d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Translation3d[].class,
-                            () -> new StructArrayLogItem<Translation3d>(name, Translation3d.struct,
-                                    () -> (Translation3d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Twist2d.class,
-                            () -> new StructLogItem<Twist2d>(name, Twist2d.struct,
-                                    () -> (Twist2d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Twist2d[].class,
-                            () -> new StructArrayLogItem<Twist2d>(name, Twist2d.struct,
-                                    () -> (Twist2d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Twist3d.class,
-                            () -> new StructLogItem<Twist3d>(name, Twist3d.struct,
-                                    () -> (Twist3d) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(Twist3d[].class,
-                            () -> new StructArrayLogItem<Twist3d>(name, Twist3d.struct,
-                                    () -> (Twist3d[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(ArmFeedforward.class,
-                            () -> new StructLogItem<ArmFeedforward>(name, ArmFeedforward.struct,
-                                    () -> (ArmFeedforward) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(ElevatorFeedforward.class,
-                            () -> new StructLogItem<ElevatorFeedforward>(name, ElevatorFeedforward.struct,
-                                    () -> (ElevatorFeedforward) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(ChassisSpeeds.class,
-                            () -> new StructLogItem<ChassisSpeeds>(name, ChassisSpeeds.struct,
-                                    () -> (ChassisSpeeds) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(SwerveModulePosition.class,
-                            () -> new StructLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
-                                    () -> (SwerveModulePosition) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(SwerveModuleState.class,
-                            () -> new StructLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
-                                    () -> (SwerveModuleState) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(SwerveModulePosition[].class,
-                            () -> new StructArrayLogItem<SwerveModulePosition>(name, SwerveModulePosition.struct,
-                                    () -> (SwerveModulePosition[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel())),
-                    entry(SwerveModuleState[].class,
-                            () -> new StructArrayLogItem<SwerveModuleState>(name, SwerveModuleState.struct,
-                                    () -> (SwerveModuleState[]) checkedValueSupplier.get(),
-                                    logAnnotation.logLevel()))
+                                    () -> ((DigitalInput) checkedValueSupplier.get()).get())));
 
-            );
-
-            Supplier<Logger> supp = classToLoggerMap.get(value.getClass());
-            if (supp == null) {
-                // if no match, use toString (helpful for logging enums)
-                return Optional
-                        .of(new StringLogItem(name, () -> checkedValueSupplier.get().toString(),
-                                logAnnotation.logLevel()));
-            } else {
+            Supplier<Loggable> supp = classToLoggerMap.get(value.getClass());
+            if (supp != null) {
                 return Optional.of(supp.get());
             }
+
+            // if something is covered by a profile, use it
+            Map<Class<?>, Function<Object, LogItem<?>[]>> profiles = LoggingManager.getInstance().getProfiles();
+            Function<Object, LogItem<?>[]> profile = profiles.get(value.getClass());
+            if (profile != null) {
+                return Optional.of(new LogGroup(name,
+                        profile.apply(checkedValueSupplier.get())));
+            }
+
+            // if a struct, use the struct logger
+            if (value instanceof StructSerializable) {
+                try {
+                    Class<?> clazz = value.getClass();
+                    Field structField = clazz.getField("struct");
+
+                    if (Modifier.isStatic(structField.getModifiers())
+                            && Struct.class.isAssignableFrom(structField.getType())) {
+                        Struct<Object> structValue = (Struct<Object>) structField.get(null);
+
+                        return Optional.of(new StructLogItem<Object>(name, structValue,
+                                () -> checkedValueSupplier.get(),
+                                logAnnotation.logType()));
+                    }
+                } catch (NoSuchFieldException | IllegalAccessException e) {
+                    // Handle exceptions, such as the field not being accessible
+                    e.printStackTrace();
+                }
+                // if an array of structs, use the struct array logger
+            } else if (value instanceof Object[]) {
+                Object[] arr = (Object[]) value;
+                if (arr.length > 0 && arr[0] instanceof StructSerializable) {
+                    try {
+                        Class<?> clazz = arr[0].getClass();
+                        Field structField = clazz.getField("struct");
+
+                        if (Modifier.isStatic(structField.getModifiers())
+                                && Struct.class.isAssignableFrom(structField.getType())) {
+                            Struct<Object> structValue = (Struct<Object>) structField.get(null);
+
+                            return Optional.of(new StructArrayLogItem<Object>(name, structValue,
+                                    () -> (Object[]) checkedValueSupplier.get(),
+                                    logAnnotation.logType()));
+                        }
+                    } catch (NoSuchFieldException | IllegalAccessException e) {
+                        // Handle exceptions, such as the field not being accessible
+                        e.printStackTrace();
+                    }
+                }
+            }
+
+            // if no match, use toString (valid for logging enums, for example)
+            return Optional.of(new StringLogItem(name, () -> checkedValueSupplier.get().toString(),
+                    logAnnotation.logType()));
         } catch (Exception e) {
             e.printStackTrace();
             return Optional.empty();
+        }
+    }
+
+    /**
+     * Generates map of log profiles for a given annotated class.
+     * 
+     * @param clazz    the class to search for log profiles
+     * @param profiles the map to add the profiles to
+     */
+    protected static void handleLogProfile(Class<?> clazz, Map<Class<?>, Function<Object, LogItem<?>[]>> profiles) {
+        for (Method method : clazz.getMethods()) {
+            LogProfile profileAnnotation = method.getAnnotation(LogProfile.class);
+            if (profileAnnotation != null) {
+                Class<?> forClass = profileAnnotation.value();
+                method.setAccessible(true);
+
+                profiles.put(forClass, (o) -> {
+                    try {
+                        return (LogItem<?>[]) method.invoke(null, o);
+                    } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
+                        e.printStackTrace();
+                        return new LogItem[0];
+                    }
+                });
+            }
         }
     }
 }

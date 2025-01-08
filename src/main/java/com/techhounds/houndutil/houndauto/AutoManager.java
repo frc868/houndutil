@@ -8,11 +8,12 @@ import java.util.stream.Collectors;
 
 import com.pathplanner.lib.path.PathPlannerPath;
 import com.pathplanner.lib.path.PathPlannerTrajectory;
-import com.techhounds.houndutil.houndlog.LogGroup;
+import com.techhounds.houndutil.houndlog.LogType;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.enums.LogType;
-import com.techhounds.houndutil.houndlog.loggers.SendableLogger;
-import com.techhounds.houndutil.houndlog.logitems.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
+import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -24,40 +25,67 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj2.command.Commands;
 
+/**
+ * Handles scheduling of autos, odometry resetting, and display of paths to
+ * NetworkTables. Provides an interface for a drive team to select an autonomous
+ * routine, and preview the path that will be followed along with the robot's
+ * estimated starting position, given any localization.
+ * 
+ * Uses the {@code /HoundLog/autonomous} table.
+ * 
+ * <p>
+ * 
+ * Use {@code init()} in {@code robotInit},
+ * {@code periodicUpdate()} in {@code disabledPeriodic},
+ * {@code runSelectedRoutine()} in {@code autonomousInit}, and
+ * {@code endRoutine()} in {@code autonomousExit}.
+ * 
+ * <p>
+ * 
+ * Note: this is automatically handled by {@code HoundRobot}.
+ */
 public class AutoManager {
     private static AutoManager instance;
     private HashMap<String, AutoRoutine> routines = new HashMap<String, AutoRoutine>();
     private AutoRoutine lastRoutine;
     private SendableChooser<AutoRoutine> chooser = new SendableChooser<AutoRoutine>();
     private Field2d field = new Field2d();
+    /**
+     * The scheduled command without the additional composition (extra odometry
+     * triggers, timer sets).
+     */
     private Command baseCommand;
+    /** The full scheduled command, used for exiting the routine. */
     private Command currentCommand;
+    /** A consumer that takes in a Pose2d to reset the odometry of a drivetrain. */
     private Consumer<Pose2d> resetOdometryConsumer;
-    private HashMap<String, Command> eventMap = new HashMap<String, Command>();
-
     private Timer timer = new Timer();
 
-    /**
-     * Initialize the AutoManager.
-     * Set up the Shuffleboard tab and display a trajectory if one is already set in
-     * the chooser.
-     */
     private AutoManager() {
-        // lastRoutine = chooser.getSelected();
-        chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("Waiting...")));
-        setupShuffleboardTab();
     }
 
     /**
-     * Returns a singleton of AutonManager.
+     * Returns the AutoManager instance.
      * 
-     * @return a singleton AutonManager.
+     * @return the instance
      */
     public static AutoManager getInstance() {
         if (instance == null) {
             instance = new AutoManager();
         }
         return instance;
+    }
+
+    /**
+     * Initializes logging for the AutoManager.
+     */
+    public void init() {
+        chooser.setDefaultOption("None", new AutoRoutine("None", Commands.print("No path selected.")));
+        LoggingManager.getInstance().addGroup(
+                new LogGroup("autonomous",
+                        new DoubleLogItem("autoTimer", timer::get, LogType.NT),
+                        new SendableLogItem("field", field),
+                        new SendableLogItem("chooser", chooser)));
     }
 
     /**
@@ -89,8 +117,10 @@ public class AutoManager {
     }
 
     /**
-     * Set the function associated with resetting odometry. This function should
-     * take in a {@code Pose2d}, reset the odometry, and reset the encoders.
+     * Set the function associated with resetting odometry. This function must be
+     * set if you are running an autonomous routine with paths or have any
+     * dependencies on localization. This function should take in a {@code Pose2d}
+     * and set the robot's pose to that value.
      * 
      * @param consumer the {@code Pose2d} consumer
      */
@@ -99,18 +129,7 @@ public class AutoManager {
     }
 
     /**
-     * Create a Shuffleboard tab with the field and chooser objects.
-     */
-    public void setupShuffleboardTab() {
-        LoggingManager.getInstance().addGroup("autonomous",
-                new LogGroup(
-                        new DoubleLogItem("autoTimer", timer::get, LogType.NT),
-                        new SendableLogger("field", field),
-                        new SendableLogger("chooser", chooser)));
-    }
-
-    /**
-     * Updates the Shuffleboard visualization with the new selected auton path. This
+     * Updates the NetworkTables field with the new selected auto path. This
      * should be put in {@code disabledPeriodic()}.
      */
     public void periodicUpdate() {
@@ -119,7 +138,7 @@ public class AutoManager {
             if (resetOdometryConsumer != null) {
                 resetOdometryConsumer.accept(selectedRoutine.getInitialPose());
             }
-            if (selectedRoutine.getPathPlannerPaths() != null) {
+            if (selectedRoutine.getPathPlannerPaths().size() > 0) {
                 field.getObject("startingPose").setPose(selectedRoutine.getInitialPose());
                 displayPaths(selectedRoutine.getPathPlannerPaths());
             }
@@ -130,7 +149,7 @@ public class AutoManager {
     /**
      * Display the selected routine's trajectories on the field object.
      */
-    public void displayPaths(List<PathPlannerPath> paths) {
+    private void displayPaths(List<PathPlannerPath> paths) {
         ArrayList<Pose2d> poses = new ArrayList<Pose2d>();
         for (PathPlannerPath path : paths) {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
@@ -153,8 +172,7 @@ public class AutoManager {
      */
     public void runSelectedRoutine() {
         if (this.resetOdometryConsumer == null) {
-            throw new NullPointerException(
-                    "Reset Odometry Consumer must not be null, set it in the drivetrain constructor.");
+            DriverStation.reportError("[houndauto] No odometry reset consumer set.", false);
         }
 
         if (this.getSelectedRoutine() == null) {
@@ -186,16 +204,5 @@ public class AutoManager {
         if (currentCommand != null) {
             currentCommand.cancel();
         }
-    }
-
-    public void addEvent(String key, Command command) {
-        eventMap.put(key, command);
-    }
-
-    public HashMap<String, Command> getEventMap() {
-        if (eventMap.size() == 0) {
-            throw new NullPointerException("You must add events to the event map!");
-        }
-        return eventMap;
     }
 }
