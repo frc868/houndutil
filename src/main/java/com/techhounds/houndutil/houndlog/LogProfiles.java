@@ -4,11 +4,11 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.kauailabs.navx.frc.AHRS;
-import com.revrobotics.CANSparkBase;
-import com.revrobotics.CANSparkFlex;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.SparkAbsoluteEncoder;
+import com.revrobotics.spark.SparkAbsoluteEncoder;
+import com.revrobotics.spark.SparkBase;
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
+import com.studica.frc.AHRS;
 
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.controller.PIDController;
@@ -75,46 +75,46 @@ public class LogProfiles {
     }
 
     /**
-     * Builds CANSparkMax log items.
+     * Builds SparkMax log items.
      * 
-     * @param obj the CANSparkMax object to use
+     * @param obj the SparkMax object to use
      * @return the array of LogItems
      */
     @LogProfile(TalonFX.class)
     public static LogItem<?>[] logTalonFX(TalonFX obj) {
-        StatusSignal<Double> position = obj.getPosition();
-        StatusSignal<Double> velocity = obj.getVelocity();
-        StatusSignal<Double> acceleration = obj.getAcceleration();
-        StatusSignal<Double> temp = obj.getDeviceTemp();
-        StatusSignal<Double> outputVoltage = obj.getMotorVoltage();
-        StatusSignal<Double> outputCurrent = obj.getTorqueCurrent();
+        StatusSignal<?> position = obj.getPosition();
+        StatusSignal<?> velocity = obj.getVelocity();
+        StatusSignal<?> acceleration = obj.getAcceleration();
+        StatusSignal<?> temp = obj.getDeviceTemp();
+        StatusSignal<?> outputVoltage = obj.getMotorVoltage();
+        StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
 
         SignalManager.register(position, velocity, acceleration, temp, outputVoltage, outputCurrent);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
-                new DoubleLogItem("position", () -> position.getValue(), LogType.NT),
-                new DoubleLogItem("velocity", () -> velocity.getValue(), LogType.NT),
-                new DoubleLogItem("acceleration", () -> acceleration.getValue(), LogType.NT),
-                new DoubleLogItem("temperature", () -> temp.getValue(), LogType.NT),
-                new DoubleLogItem("outputVoltage", () -> outputVoltage.getValue(), LogType.NT),
-                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValue(), LogType.NT),
-                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValue(), LogType.NT),
+                new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("velocity", () -> velocity.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("acceleration", () -> acceleration.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("temperature", () -> temp.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("outputVoltage", () -> outputVoltage.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValueAsDouble(), LogType.NT),
         };
     }
 
-    @LogProfile(CANSparkFlex.class)
-    public static LogItem<?>[] logCANSparkFlex(CANSparkFlex obj) {
+    @LogProfile(SparkFlex.class)
+    public static LogItem<?>[] logSparkFlex(SparkFlex obj) {
         FaultLogger.register(obj);
-        return logCANSparkBase(obj);
+        return logSparkBase(obj);
     }
 
-    @LogProfile(CANSparkMax.class)
-    public static LogItem<?>[] logCANSparkMax(CANSparkMax obj) {
+    @LogProfile(SparkMax.class)
+    public static LogItem<?>[] logSparkMax(SparkMax obj) {
         FaultLogger.register(obj);
-        return logCANSparkBase(obj);
+        return logSparkBase(obj);
     }
 
-    private static LogItem<?>[] logCANSparkBase(CANSparkBase obj) {
+    private static LogItem<?>[] logSparkBase(SparkBase obj) {
         return new LogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
                 new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
@@ -128,30 +128,30 @@ public class LogProfiles {
     }
 
     /**
-     * Builds CANSparkMax log items.
+     * Builds SparkMax log items.
      * 
-     * @param obj the CANSparkMax object to use
+     * @param obj the SparkMax object to use
      * @return the array of LogItems
      */
     @LogProfile(CANcoder.class)
     public static LogItem<?>[] logCANcoder(CANcoder obj) {
-        StatusSignal<Double> absolutePosition = obj.getAbsolutePosition();
-        StatusSignal<Double> position = obj.getPosition();
-        StatusSignal<Double> velocity = obj.getVelocity();
+        StatusSignal<?> absolutePosition = obj.getAbsolutePosition();
+        StatusSignal<?> position = obj.getPosition();
+        StatusSignal<?> velocity = obj.getVelocity();
 
         SignalManager.register(absolutePosition, position, velocity);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
-                new DoubleLogItem("absolutePosition", () -> absolutePosition.getValue(), LogType.NT),
-                new DoubleLogItem("position", () -> position.getValue(), LogType.NT),
-                new DoubleLogItem("velocity", () -> velocity.getValue(), LogType.NT),
+                new DoubleLogItem("absolutePosition", () -> absolutePosition.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("velocity", () -> velocity.getValueAsDouble(), LogType.NT),
         };
     }
 
     /**
-     * Builds CANSparkMax log items.
+     * Builds SparkMax log items.
      * 
-     * @param obj the CANSparkMax object to use
+     * @param obj the SparkMax object to use
      * @return the array of LogItems
      */
     @LogProfile(SparkAbsoluteEncoder.class)
@@ -159,7 +159,6 @@ public class LogProfiles {
         return new LogItem<?>[] {
                 new DoubleLogItem("position", obj::getPosition, LogType.NT),
                 new DoubleLogItem("velocity", obj::getVelocity, LogType.NT),
-                new DoubleLogItem("zeroOffset", obj::getZeroOffset, LogType.NT),
         };
     }
 
@@ -201,17 +200,17 @@ public class LogProfiles {
      */
     @LogProfile(Pigeon2.class)
     public static LogItem<?>[] logPigeon2(Pigeon2 obj) {
-        StatusSignal<Double> pitch = obj.getPitch();
-        StatusSignal<Double> roll = obj.getRoll();
-        StatusSignal<Double> yaw = obj.getYaw();
+        StatusSignal<?> pitch = obj.getPitch();
+        StatusSignal<?> roll = obj.getRoll();
+        StatusSignal<?> yaw = obj.getYaw();
 
         SignalManager.register(pitch, roll, yaw);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
-                new DoubleLogItem("pitch", () -> pitch.getValue(), LogType.NT),
-                new DoubleLogItem("roll", () -> roll.getValue(), LogType.NT),
-                new DoubleLogItem("yaw", () -> yaw.getValue(), LogType.NT),
-                new DoubleLogItem("yawRad", () -> Units.degreesToRadians(yaw.getValue()), LogType.NT),
+                new DoubleLogItem("pitch", () -> pitch.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("roll", () -> roll.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("yaw", () -> yaw.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("yawRad", () -> Units.degreesToRadians(yaw.getValueAsDouble()), LogType.NT),
         };
     }
 
@@ -327,14 +326,14 @@ public class LogProfiles {
                         LogType.NT),
                 new BooleanLogItem("atSetpoint", () -> obj.atSetpoint(),
                         LogType.NT),
-                new DoubleLogItem("positionError", () -> obj.getPositionError(), LogType.NT),
+                new DoubleLogItem("error", () -> obj.getError(), LogType.NT),
                 new TunableDouble("tunables/kP", obj.getP(), (d) -> obj.setP(d)),
                 new TunableDouble("tunables/kI", obj.getI(), (d) -> obj.setI(d)),
                 new TunableDouble("tunables/kD", obj.getD(), (d) -> obj.setD(d)),
-                new TunableDouble("tunables/positionTolerance", obj.getPositionTolerance(),
+                new TunableDouble("tunables/errorTolerance", obj.getErrorTolerance(),
                         (d) -> obj.setTolerance(d)),
-                new TunableDouble("tunables/velocityTolerance", obj.getVelocityTolerance(),
-                        (d) -> obj.setTolerance(obj.getPositionTolerance(), d)),
+                new TunableDouble("tunables/errorDerivativeTolerance", obj.getErrorDerivativeTolerance(),
+                        (d) -> obj.setTolerance(obj.getErrorTolerance(), d)),
         };
     }
 

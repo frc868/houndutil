@@ -102,7 +102,7 @@ public class AprilTagPhotonCamera {
 
         photonCamera = new PhotonCamera(name);
         photonPoseEstimator = new PhotonPoseEstimator(AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
-                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, photonCamera, robotToCam);
+                PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
         photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
         if (RobotBase.isSimulation()) {
@@ -138,7 +138,8 @@ public class AprilTagPhotonCamera {
         boolean newResult = Math.abs(timestamp - lastTimestamp) > 1e-5;
         targetCount = result.targets.size();
 
-        Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update();
+        PhotonPipelineResult pipelineResult = photonCamera.getLatestResult();
+        Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update(pipelineResult);
 
         if (newResult) {
             if (photonEstimatedRobotPose.isPresent()) {

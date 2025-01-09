@@ -1,7 +1,7 @@
 package com.techhounds.houndutil.houndlib.robots;
 
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
@@ -41,9 +41,9 @@ public class KitBotRobot extends HoundRobot {
     /**
      * The motor controller for the left side of the drivetrain.
      */
-    protected CANSparkMax leftMotor;
+    protected SparkMax leftMotor;
     /** The motor controller for the right side of the drivetrain. */
-    protected CANSparkMax rightMotor;
+    protected SparkMax rightMotor;
     /**
      * The helper object to apply inputs to the motor controllers based on the
      * joysticks.
@@ -69,14 +69,15 @@ public class KitBotRobot extends HoundRobot {
     public KitBotRobot(int leftMotorId, int rightMotorId, double initialSpeedLimit) {
         super();
 
-        leftMotor = new CANSparkMax(leftMotorId, MotorType.kBrushless);
-        rightMotor = new CANSparkMax(rightMotorId, MotorType.kBrushless);
+        leftMotor = new SparkMax(leftMotorId, MotorType.kBrushless);
+        rightMotor = new SparkMax(rightMotorId, MotorType.kBrushless);
+        // TODO: deprecated
         rightMotor.setInverted(true);
         speedLimit = new TunableDouble("main/speedLimit", initialSpeedLimit);
         drive = new DifferentialDrive(leftMotor, rightMotor);
         LoggingManager.getInstance().addGroup(new LogGroup("drivetrain",
-                new LogGroup("leftMotor", LogProfiles.logCANSparkMax(leftMotor)),
-                new LogGroup("rightMotor", LogProfiles.logCANSparkMax(rightMotor)),
+                new LogGroup("leftMotor", LogProfiles.logSparkMax(leftMotor)),
+                new LogGroup("rightMotor", LogProfiles.logSparkMax(rightMotor)),
                 new SendableLogItem("drive", drive)));
     }
 

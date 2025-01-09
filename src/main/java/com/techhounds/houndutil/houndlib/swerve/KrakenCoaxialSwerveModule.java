@@ -12,7 +12,6 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.AbsoluteSensorRangeValue;
 import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
@@ -25,6 +24,11 @@ import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 
@@ -65,14 +69,14 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
     private SwerveModuleState previousState = new SwerveModuleState();
 
     // status signals to collect, stored here so we can update them all at once
-    private final StatusSignal<Double> drivePosition;
-    private final StatusSignal<Double> driveVelocity;
-    private final StatusSignal<Double> driveAcceleration;
-    private final StatusSignal<Double> driveMotorVoltage;
-    private final StatusSignal<Double> steerPosition;
-    private final StatusSignal<Double> steerVelocity;
-    private final StatusSignal<Double> steerAcceleration;
-    private final StatusSignal<Double> steerMotorVoltage;
+    private final StatusSignal<Angle> drivePosition;
+    private final StatusSignal<AngularVelocity> driveVelocity;
+    private final StatusSignal<AngularAcceleration> driveAcceleration;
+    private final StatusSignal<Voltage> driveMotorVoltage;
+    private final StatusSignal<Angle> steerPosition;
+    private final StatusSignal<AngularVelocity> steerVelocity;
+    private final StatusSignal<AngularAcceleration> steerAcceleration;
+    private final StatusSignal<Voltage> steerMotorVoltage;
 
     /**
      * Initalizes a SwerveModule.
@@ -123,7 +127,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = steerCanCoderInverted ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
-        config.AbsoluteSensorRange = AbsoluteSensorRangeValue.Signed_PlusMinusHalf;
+        config.AbsoluteSensorDiscontinuityPoint = 0.5;
         config.MagnetOffset = steerCanCoderOffset;
         steerCanCoder.getConfigurator().apply(config);
 
@@ -155,12 +159,11 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
         steerConfigurator.apply(steerConfig);
 
-        driveMotorSim = new DCMotorSim(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
-                SWERVE_CONSTANTS.DRIVE_GEARING,
-                SWERVE_CONSTANTS.DRIVE_MOI);
-        steerMotorSim = new DCMotorSim(SWERVE_CONSTANTS.STEER_GEARBOX_REPR,
-                SWERVE_CONSTANTS.STEER_GEARING,
-                SWERVE_CONSTANTS.STEER_MOI);
+        driveMotorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
+                SWERVE_CONSTANTS.DRIVE_MOI, SWERVE_CONSTANTS.DRIVE_GEARING), SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR);
+
+        steerMotorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(SWERVE_CONSTANTS.STEER_GEARBOX_REPR,
+                SWERVE_CONSTANTS.STEER_MOI, SWERVE_CONSTANTS.STEER_GEARING), SWERVE_CONSTANTS.STEER_GEARBOX_REPR);
 
         drivePosition = driveMotor.getPosition();
         driveVelocity = driveMotor.getVelocity();
@@ -184,17 +187,17 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public double getDriveMotorPosition() {
-        return BaseStatusSignal.getLatencyCompensatedValue(drivePosition, driveVelocity);
+        return BaseStatusSignal.getLatencyCompensatedValue(drivePosition, driveVelocity).magnitude();
     }
 
     @Override
     public double getDriveMotorVelocity() {
-        return BaseStatusSignal.getLatencyCompensatedValue(driveVelocity, driveAcceleration);
+        return BaseStatusSignal.getLatencyCompensatedValue(driveVelocity, driveAcceleration).magnitude();
     }
 
     @Override
     public double getDriveMotorVoltage() {
-        return driveMotorVoltage.getValue();
+        return driveMotorVoltage.getValue().magnitude();
     }
 
     /**
@@ -208,17 +211,17 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
 
     @Override
     public double getSteerMotorPosition() {
-        return BaseStatusSignal.getLatencyCompensatedValue(steerPosition, steerVelocity);
+        return BaseStatusSignal.getLatencyCompensatedValue(steerPosition, steerVelocity).magnitude();
     }
 
     @Override
     public double getSteerMotorVelocity() {
-        return BaseStatusSignal.getLatencyCompensatedValue(steerVelocity, steerAcceleration);
+        return BaseStatusSignal.getLatencyCompensatedValue(steerVelocity, steerAcceleration).magnitude();
     }
 
     @Override
     public double getSteerMotorVoltage() {
-        return steerMotorVoltage.getValue();
+        return steerMotorVoltage.getValue().magnitude();
     }
 
     /**
