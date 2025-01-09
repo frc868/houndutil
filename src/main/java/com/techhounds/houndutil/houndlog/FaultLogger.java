@@ -4,11 +4,8 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.CANSparkFlex;
-import com.revrobotics.CANSparkMax;
-import com.revrobotics.CANSparkBase.FaultID;
-import com.techhounds.houndutil.houndlib.SparkConfigurator;
-
+import com.revrobotics.spark.SparkFlex;
+import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.hal.PowerDistributionFaults;
 import edu.wpi.first.hal.PowerDistributionStickyFaults;
 import edu.wpi.first.hal.REVPHFaults;
@@ -21,7 +18,9 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -183,13 +182,22 @@ public final class FaultLogger {
      *
      * @param spark the SPARK Flex to register
      */
-    public static void register(CANSparkFlex spark) {
-        for (FaultID fault : FaultID.values()) {
-            register(() -> spark.getFault(fault), SparkConfigurator.name(spark), fault.name(), FaultType.ERROR);
+    public static void register(SparkFlex spark) {
+        Map<String, BooleanSupplier> faults = new LinkedHashMap<>(Map.of(
+                "Motor Type Fault", () -> spark.getFaults().motorType,
+                "Sensor Fault", () -> spark.getFaults().sensor,
+                "CAN Fault", () -> spark.getFaults().can,
+                "Temperature Fault", () -> spark.getFaults().temperature,
+                "Gate Driver Fault", () -> spark.getFaults().gateDriver,
+                "ESC Fault", () -> spark.getFaults().escEeprom,
+                "Firmware Fault", () -> spark.getFaults().firmware));
+        for (String faultName : faults.keySet()) {
+            register(faults.get(faultName), "SPARK Flex [" + spark.getDeviceId() + "]", faultName,
+                    FaultType.ERROR);
         }
         register(
                 () -> spark.getMotorTemperature() > 80,
-                SparkConfigurator.name(spark),
+                "SPARK Flex [" + spark.getDeviceId() + "]",
                 "motor above 80°C",
                 FaultType.WARNING);
 
@@ -200,13 +208,22 @@ public final class FaultLogger {
      *
      * @param spark the SPARK MAX to register
      */
-    public static void register(CANSparkMax spark) {
-        for (FaultID fault : FaultID.values()) {
-            register(() -> spark.getFault(fault), SparkConfigurator.name(spark), fault.name(), FaultType.ERROR);
+    public static void register(SparkMax spark) {
+        Map<String, BooleanSupplier> faults = new LinkedHashMap<>(Map.of(
+                "Motor Type Fault", () -> spark.getFaults().motorType,
+                "Sensor Fault", () -> spark.getFaults().sensor,
+                "CAN Fault", () -> spark.getFaults().can,
+                "Temperature Fault", () -> spark.getFaults().temperature,
+                "Gate Driver Fault", () -> spark.getFaults().gateDriver,
+                "ESC Fault", () -> spark.getFaults().escEeprom,
+                "Firmware Fault", () -> spark.getFaults().firmware));
+        for (String faultName : faults.keySet()) {
+            register(faults.get(faultName), "SPARK MAX [" + spark.getDeviceId() + "]", faultName,
+                    FaultType.ERROR);
         }
         register(
                 () -> spark.getMotorTemperature() > 80,
-                SparkConfigurator.name(spark),
+                "SPARK MAX [" + spark.getDeviceId() + "]",
                 "motor above 80°C",
                 FaultType.WARNING);
     }
@@ -267,7 +284,7 @@ public final class FaultLogger {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
         }
         register(
-                () -> talon.getDeviceTemp().getValue() > 80,
+                () -> talon.getDeviceTemp().getValueAsDouble() > 80,
                 "Talon FX [" + talon.getDeviceID() + "]",
                 "motor above 80°C",
                 FaultType.WARNING);

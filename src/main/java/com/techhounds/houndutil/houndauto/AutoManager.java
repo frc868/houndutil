@@ -6,8 +6,10 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import com.pathplanner.lib.config.ModuleConfig;
+import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.pathplanner.lib.path.PathPlannerTrajectory;
+import com.pathplanner.lib.trajectory.PathPlannerTrajectory;
 import com.techhounds.houndutil.houndlog.LogType;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
@@ -16,6 +18,7 @@ import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
@@ -60,6 +63,13 @@ public class AutoManager {
     /** A consumer that takes in a Pose2d to reset the odometry of a drivetrain. */
     private Consumer<Pose2d> resetOdometryConsumer;
     private Timer timer = new Timer();
+
+    /**
+     * Base robot config object required by PathPlanner to generate trajectories;
+     * only used for visualization.
+     */
+    private RobotConfig pathPlannerRobotConfig = new RobotConfig(50, 1,
+            new ModuleConfig(0.05, 4.5, 1.0, DCMotor.getKrakenX60(1), 60, 1));
 
     private AutoManager() {
     }
@@ -129,6 +139,15 @@ public class AutoManager {
     }
 
     /**
+     * Sets the RobotConfig object to use when generating
+     * 
+     * @param consumer the {@code Pose2d} consumer
+     */
+    public void setRobotConfig(RobotConfig robotConfig) {
+        this.pathPlannerRobotConfig = robotConfig;
+    }
+
+    /**
      * Updates the NetworkTables field with the new selected auto path. This
      * should be put in {@code disabledPeriodic()}.
      */
@@ -155,11 +174,12 @@ public class AutoManager {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red) {
                 path = path.flipPath();
             }
-            PathPlannerTrajectory trajectory = path.getTrajectory(new ChassisSpeeds(),
-                    path.getStartingDifferentialPose().getRotation());
+            PathPlannerTrajectory trajectory = path.generateTrajectory(new ChassisSpeeds(),
+                    path.getStartingDifferentialPose().getRotation(),
+                    pathPlannerRobotConfig);
 
             poses.addAll(trajectory.getStates().stream()
-                    .map((state) -> new Pose2d(state.positionMeters, state.targetHolonomicRotation))
+                    .map((state) -> state.pose)
                     .collect(Collectors.toList()));
         }
 
