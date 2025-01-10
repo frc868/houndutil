@@ -367,9 +367,11 @@ public class LogAnnotationHandler {
     }
 
     /**
-     * Generates map of log profiles for a given annotated class.
+     * Generates map of log profiles for a given annotated class (containing methods
+     * annotated with {@code @LogProfile}, each taking in an object and outputting
+     * an array of LogItems).
      * 
-     * @param clazz    the class to search for log profiles
+     * @param clazz    the class to search for {@code @LogProfile} annotations
      * @param profiles the map to add the profiles to
      */
     protected static void handleLogProfile(Class<?> clazz, Map<Class<?>, Function<Object, LogItem<?>[]>> profiles) {

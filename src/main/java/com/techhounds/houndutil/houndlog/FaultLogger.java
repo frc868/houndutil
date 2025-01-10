@@ -43,21 +43,44 @@ public final class FaultLogger {
     }
 
     /**
-     * The type of fault, used for detecting whether the fallible is in a failure
-     * state and displaying to NetworkTables.
+     * The type of fault, used for displaying an icon next to the fault displayed in
+     * the Alerts widget.
      */
     public static enum FaultType {
+        /**
+         * Indicates that a device isn't failing, but there is something that a
+         * programmer or driver may want to know (i.e. FMS connected).
+         */
         INFO,
+        /**
+         * Indicates an issue that is not critical, but might impact performance or need
+         * attention (i.e. motor temperature approaching limit, CAN utilization high).
+         */
         WARNING,
+        /**
+         * Indicates an issue that prevents normal operation and requires immediate
+         * attention (i.e. motor controller disconnected, sensor disconnected, breaker
+         * tripped).
+         */
         ERROR,
     }
 
-    /** Represents an alert widget on NetworkTables. */
+    /**
+     * Represents an alert widget on NetworkTables. Active faults are automatically
+     * added to this widget, and are sent over NetworkTables. This class should not
+     * be instantiated directly.
+     */
     public static class Alerts {
         private final StringArrayPublisher errors;
         private final StringArrayPublisher warnings;
         private final StringArrayPublisher infos;
 
+        /**
+         * Creates an Alerts widget.
+         * 
+         * @param base the base NetworkTable to add this widget to
+         * @param name the name of the widget
+         */
         public Alerts(NetworkTable base, String name) {
             NetworkTable table = base.getSubTable(name);
             table.getStringTopic(".type").publish().set("Alerts");
@@ -66,6 +89,11 @@ public final class FaultLogger {
             infos = table.getStringArrayTopic("infos").publish();
         }
 
+        /**
+         * Sets this Alerts widget to a given set of faults.
+         * 
+         * @param faults the faults to publish
+         */
         public void set(Set<Fault> faults) {
             errors.set(filteredStrings(faults, FaultType.ERROR));
             warnings.set(filteredStrings(faults, FaultType.WARNING));
@@ -129,17 +157,13 @@ public final class FaultLogger {
     }
 
     /**
-     * Reports a fault.
+     * Reports a fault. Call this periodically to display this fault over an
+     * extended period of time.
      *
      * @param fault the fault to report
      */
     public static void report(Fault fault) {
         newFaults.add(fault);
-        // switch (fault.type) {
-        // case ERROR -> DriverStation.reportError(fault.toString(), false);
-        // case WARNING -> DriverStation.reportWarning(fault.toString(), false);
-        // case INFO -> System.out.println(fault.toString());
-        // }
     }
 
     /**

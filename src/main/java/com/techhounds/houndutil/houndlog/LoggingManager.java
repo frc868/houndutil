@@ -20,10 +20,18 @@ import edu.wpi.first.wpilibj.Timer;
  * 
  * <p>
  * 
- * Call {@code LoggingManager.getInstance().registerRobotContainer(this)} in the
+ * To use, call {@link LoggingManager#registerObject} on your RobotContainer (or
+ * root class that contains your subsystems/loggers). You may call
+ * {@link LoggingManager#registerObject} or {@link LoggingManager#registerClass}
+ * on other objects if they are not referenced in the root class.
+ * 
+ * <p>
+ * 
+ * Call {@code LoggingManager.getInstance().registerObject(this)} in the
  * {@code RobotContainer} constructor. If not using {@link HoundRobot}, call
  * {@code LoggingManager.getInstance().init()} in {@code robotInit()} and
- * {@code LoggingManager.getInstance().run()} in {@code robotPeriodic()}.
+ * {@code LoggingManager.getInstance().run()} in {@code robotPeriodic()}. These
+ * calls are handled directly by {@link HoundRobot}, if used.
  */
 @LoggedObject
 public class LoggingManager {
@@ -56,7 +64,9 @@ public class LoggingManager {
     }
 
     /**
-     * Registers an object to search for log annotations.
+     * Registers an object to recursively search for log annotations (uses an empty
+     * name, so all loggers are added at the root of the {@code HoundLog} table).
+     * Register the {@code RobotContainer} with this method.
      * 
      * @param object the object to register
      */
@@ -69,10 +79,27 @@ public class LoggingManager {
     }
 
     /**
-     * Registers a class to search for log annotations. Used for classes with
-     * <b>static</b> fields and methods.
+     * Registers an object to recursively search for log annotations.
      * 
-     * @param clazz the subsystems to register
+     * @param object  the object to register
+     * @param name    the name of the object to set in the NetworkTables hierarchy
+     * @param subkeys the subkeys to set in the NetworkTables hierarchy
+     */
+    public void registerObject(Object object, String name, ArrayList<String> subkeys) {
+        try {
+            LogAnnotationHandler.handleLoggedObject(object);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Registers a class to search for log annotations. Used for classes with
+     * <b>static</b> fields and methods, like {@link RobotController}.
+     * 
+     * @param clazz   the subsystems to register
+     * @param name    the name of the object to set in the NetworkTables hierarchy
+     * @param subkeys the subkeys to set in the NetworkTables hierarchy
      */
     public void registerClass(Class<?> clazz, String name, ArrayList<String> subkeys) {
         try {
@@ -85,7 +112,8 @@ public class LoggingManager {
     /**
      * Registers a class to search for log profiles. These are methods that take in
      * a single object and return an array of LogItems, and are annotated with
-     * {@code @LogProfile}.
+     * {@code @LogProfile}. HoundLog comes with a set of default profiles, but you
+     * may extend this with custom profiles.
      * 
      * @param clazz the class to register
      */

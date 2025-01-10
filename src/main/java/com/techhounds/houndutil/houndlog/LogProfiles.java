@@ -34,14 +34,11 @@ import com.techhounds.houndutil.houndlog.loggers.LogItem;
 import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
 
 /**
- * Creates an array of {@link LogItem}s given . Logs useful information about
- * each device.
- * Reduces verbosity by a TON.
- * 
- * @author dr
+ * The default set of log profiles that comes with HoundLog. Covers the devices
+ * from the majority of FRC vendors, and logs the most important data from each
+ * to NT/DataLog, depending on if they need to be streamed.
  */
 public class LogProfiles {
-
     public static String revFaultsToString(short value) {
         StringBuilder result = new StringBuilder(16);
 
@@ -114,6 +111,12 @@ public class LogProfiles {
         return logSparkBase(obj);
     }
 
+    /**
+     * Builds log items for a SparkBase object.
+     * 
+     * @param obj the SparkBase object to use
+     * @return the array of LogItems
+     */
     private static LogItem<?>[] logSparkBase(SparkBase obj) {
         return new LogItem<?>[] {
                 new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
@@ -378,6 +381,12 @@ public class LogProfiles {
         };
     }
 
+    /**
+     * Builds DCMotorSim log items.
+     * 
+     * @param obj the {@link DCMotorSim} to use
+     * @return the array of LogItems
+     */
     @LogProfile(DCMotorSim.class)
     public static LogItem<?>[] logDCMotorSim(DCMotorSim obj) {
         return new LogItem<?>[] {
@@ -389,6 +398,12 @@ public class LogProfiles {
         };
     }
 
+    /**
+     * Builds SingleJointedArmSim log items.
+     * 
+     * @param obj the {@link SingleJointedArmSim} to use
+     * @return the array of LogItems
+     */
     @LogProfile(SingleJointedArmSim.class)
     public static LogItem<?>[] logSingleJointedArmSim(SingleJointedArmSim obj) {
         return new LogItem<?>[] {
@@ -398,7 +413,12 @@ public class LogProfiles {
         };
     }
 
-    @LogProfile(RobotController.class)
+    /**
+     * Builds RobotController log items. This must be called manually with the
+     * creation of a log group.
+     * 
+     * @return the array of LogItems
+     */
     public static LogItem<?>[] logRobotController() {
         return new LogItem<?>[] {
                 new DoubleLogItem("batteryVoltage", RobotController::getBatteryVoltage, LogType.NT),
