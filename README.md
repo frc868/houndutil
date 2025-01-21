@@ -19,6 +19,11 @@ git submodule add https://github.com/frc868/houndutil
 
 This will clone and add the houndutil submodule to your repository.
 
+If cloning a project that already has houndutil, run the following command after cloning:
+```sh
+git submodule update --init --recursive
+```
+
 Now, edit `build.gradle` and `settings.gradle`.
 
 In `build.gradle`, add:
