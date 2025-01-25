@@ -17,6 +17,7 @@ import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 import com.techhounds.houndutil.houndlog.loggers.SendableLogItem;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.wpilibj.DriverStation;
@@ -69,7 +70,12 @@ public class AutoManager {
      * only used for visualization.
      */
     private RobotConfig pathPlannerRobotConfig = new RobotConfig(50, 1,
-            new ModuleConfig(0.05, 4.5, 1.0, DCMotor.getKrakenX60(1), 60, 1));
+            new ModuleConfig(0.05, 4.5, 1.0, DCMotor.getKrakenX60(1), 60, 1),
+            new Translation2d[] {
+                    new Translation2d(0.25, 0.25),
+                    new Translation2d(0.25, -0.25),
+                    new Translation2d(-0.25, 0.25),
+                    new Translation2d(-0.25, -0.25) });
 
     private AutoManager() {
     }
