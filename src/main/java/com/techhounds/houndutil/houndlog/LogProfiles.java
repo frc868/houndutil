@@ -16,6 +16,7 @@ import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
@@ -95,7 +96,30 @@ public class LogProfiles {
                 new DoubleLogItem("temperature", () -> temp.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("outputVoltage", () -> outputVoltage.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("outputCurrent", () -> outputCurrent.getValueAsDouble(), LogType.NT),
-                new DoubleLogItem("outputCurrent", () -> outputCurrent.getValueAsDouble(), LogType.NT),
+                new DoubleLogItem("closedLoopReference",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopReference().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopReferenceSlope",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopReferenceSlope().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopError",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopError().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopOutput",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopOutput().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopFeedforward",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopFeedForward().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopProportionalOutput",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopProportionalOutput().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopIntegratedOutput",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopIntegratedOutput().getValueAsDouble() : 0.0,
+                        LogType.NT),
+                new DoubleLogItem("closedLoopDerivativeOutput",
+                        () -> DriverStation.isTest() ? obj.getClosedLoopDerivativeOutput().getValueAsDouble() : 0.0,
+                        LogType.NT),
         };
     }
 
