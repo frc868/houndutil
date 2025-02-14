@@ -228,14 +228,15 @@ public class AprilTagPhotonCamera {
     }
 
     /**
-     * Gets the transform3d robot relative of detected apriltags. Used for precision
+     * Gets the transform3d robot relative of detected apriltag of tagId. Used for
+     * precision
      * alignment.
      * 
+     * @param tagId the id of the apriltag to get the relative transform of
      * @return an array of Transform3d of where the camera believes the apriltags
      *         are located relative to the vehicle.
      */
-    public Transform3d[] getRelativePosesOfTargets() {
-        List<Transform3d> poses = new ArrayList<Transform3d>();
+    public Transform3d getRelativeTransformsOfTarget(int tagId) {
 
         PhotonPipelineResult result = photonCamera.getLatestResult();
         double timestamp = result.getTimestampSeconds();
@@ -246,14 +247,13 @@ public class AprilTagPhotonCamera {
 
         if (newResult) {
             for (int i = 0; i < pipelineResult.targets.size(); i++) {
-                Transform3d camToTarget = pipelineResult.targets.get(i).getBestCameraToTarget();
-                poses.add(camToTarget.plus(robotToCam));
+                if (pipelineResult.targets.get(i).getFiducialId() == tagId) {
+                    Transform3d camToTarget = pipelineResult.targets.get(i).getBestCameraToTarget();
+                    return camToTarget;
+                }
             }
         }
-
-        Transform3d[] poseArray = new Transform3d[poses.size()];
-        poses.toArray(poseArray);
-        return poseArray;
+        return null;
     }
 
     /**
