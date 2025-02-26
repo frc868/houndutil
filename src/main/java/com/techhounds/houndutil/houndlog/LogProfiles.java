@@ -87,7 +87,7 @@ public class LogProfiles {
         StatusSignal<?> outputVoltage = obj.getMotorVoltage();
         StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
 
-        SignalManager.register(position, velocity, acceleration, temp, outputVoltage, outputCurrent);
+        SignalManager.register(obj.getNetwork(), position, velocity, acceleration, temp, outputVoltage, outputCurrent);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
@@ -166,7 +166,7 @@ public class LogProfiles {
         StatusSignal<?> position = obj.getPosition();
         StatusSignal<?> velocity = obj.getVelocity();
 
-        SignalManager.register(absolutePosition, position, velocity);
+        SignalManager.register(obj.getNetwork(), absolutePosition, position, velocity);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("absolutePosition", () -> absolutePosition.getValueAsDouble(), LogType.NT),
@@ -231,7 +231,7 @@ public class LogProfiles {
         StatusSignal<?> roll = obj.getRoll();
         StatusSignal<?> yaw = obj.getYaw();
 
-        SignalManager.register(pitch, roll, yaw);
+        SignalManager.register(obj.getNetwork(), pitch, roll, yaw);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("pitch", () -> pitch.getValueAsDouble(), LogType.NT),

@@ -362,6 +362,7 @@ public class LogAnnotationHandler {
                     logAnnotation.logType()));
         } catch (Exception e) {
             e.printStackTrace();
+            System.err.println("Failed to log " + varName);
             return Optional.empty();
         }
     }

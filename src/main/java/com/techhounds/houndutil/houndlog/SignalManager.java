@@ -1,6 +1,9 @@
 package com.techhounds.houndutil.houndlog;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 
@@ -9,17 +12,20 @@ import com.ctre.phoenix6.BaseStatusSignal;
  * status signals from multiple devices.
  */
 public class SignalManager {
-    private static ArrayList<BaseStatusSignal> statusesList = new ArrayList<>();
-    private static BaseStatusSignal[] statuses;
+    // private static ArrayList<BaseStatusSignal> statusesList = new ArrayList<>();
+    private static Map<String, ArrayList<BaseStatusSignal>> statusMap = new HashMap<>();
+    private static BaseStatusSignal[][] finalizedStatusMap;
 
     /**
      * Registers status signals to be updated by the SignalManager.
      * 
      * @param statuses the status signals to register
      */
-    public static void register(BaseStatusSignal... statuses) {
+    public static void register(String bus, BaseStatusSignal... statuses) {
+        statusMap.putIfAbsent(bus, new ArrayList<>());
+
         for (var status : statuses) {
-            statusesList.add(status);
+            statusMap.get(bus).add(status);
         }
     }
 
@@ -28,18 +34,25 @@ public class SignalManager {
      * signals have been registered.
      */
     public static void finalizeAll() {
-        statuses = new BaseStatusSignal[statusesList.size()];
+        int keys = statusMap.keySet().size();
+        finalizedStatusMap = new BaseStatusSignal[keys][];
+        AtomicInteger index = new AtomicInteger(0);
+        statusMap.keySet().forEach((k) -> {
+            finalizedStatusMap[index.get()] = new BaseStatusSignal[0];
+            statusMap.get(k).toArray(finalizedStatusMap[index.getAndIncrement()]);
+            statusMap.get(k).clear();
+        });
 
-        statusesList.toArray(statuses);
-
-        statusesList.clear();
     }
 
     /**
      * Refreshes all registered status signals. This should be called periodically.
      */
     public static void refresh() {
-        if (statuses.length > 0)
-            BaseStatusSignal.waitForAll(0, statuses);
+        for (int i = 0; i < finalizedStatusMap.length; i++) {
+            if (finalizedStatusMap[i].length > 0) {
+                BaseStatusSignal.waitForAll(i, finalizedStatusMap[i]);
+            }
+        }
     }
 }

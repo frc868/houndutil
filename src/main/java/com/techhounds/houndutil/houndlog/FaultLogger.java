@@ -302,7 +302,7 @@ public final class FaultLogger {
                 talon.getStickyFault_UnstableSupplyV(),
                 talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
 
-        // faultSignals.forEach((s) -> SignalManager.register(s));
+        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
@@ -332,7 +332,7 @@ public final class FaultLogger {
                 cancoder.getStickyFault_Undervoltage(),
                 cancoder.getStickyFault_UnlicensedFeatureInUse());
 
-        // faultSignals.forEach((s) -> SignalManager.register(s));
+        faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "CANcoder [" + cancoder.getDeviceID() + "]", signal.getName(),
@@ -374,7 +374,7 @@ public final class FaultLogger {
                 pigeon.getStickyFault_Undervoltage(),
                 pigeon.getStickyFault_UnlicensedFeatureInUse());
 
-        // faultSignals.forEach((s) -> SignalManager.register(s));
+        faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Pigeon 2 [" + pigeon.getDeviceID() + "]", signal.getName(),

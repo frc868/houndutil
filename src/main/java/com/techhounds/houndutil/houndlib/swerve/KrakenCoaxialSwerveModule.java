@@ -181,6 +181,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         // register all signals with the SignalManager so that any downstream callers
         // get updated signals
         SignalManager.register(
+                canBus,
                 drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
                 steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
     }
