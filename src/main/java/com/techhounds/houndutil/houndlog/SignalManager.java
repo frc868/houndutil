@@ -38,11 +38,10 @@ public class SignalManager {
         finalizedStatusMap = new BaseStatusSignal[keys][];
         AtomicInteger index = new AtomicInteger(0);
         statusMap.keySet().forEach((k) -> {
-            finalizedStatusMap[index.get()] = new BaseStatusSignal[0];
+            finalizedStatusMap[index.get()] = new BaseStatusSignal[statusMap.get(k).size()];
             statusMap.get(k).toArray(finalizedStatusMap[index.getAndIncrement()]);
             statusMap.get(k).clear();
         });
-
     }
 
     /**
@@ -51,7 +50,7 @@ public class SignalManager {
     public static void refresh() {
         for (int i = 0; i < finalizedStatusMap.length; i++) {
             if (finalizedStatusMap[i].length > 0) {
-                BaseStatusSignal.waitForAll(i, finalizedStatusMap[i]);
+                BaseStatusSignal.waitForAll(0, finalizedStatusMap[i]);
             }
         }
     }
