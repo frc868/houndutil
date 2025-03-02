@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
+import org.photonvision.PhotonPoseEstimator.ConstrainedSolvepnpParams;
 import org.photonvision.PhotonPoseEstimator.PoseStrategy;
 import org.photonvision.simulation.PhotonCameraSim;
 import org.photonvision.simulation.SimCameraProperties;
@@ -16,6 +17,8 @@ import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
+import edu.wpi.first.apriltag.AprilTag;
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.VecBuilder;
@@ -64,22 +67,29 @@ public class AprilTagPhotonCamera {
         public double STDDEV_LATENCY;
     }
 
-    private String name;
-    private PhotonCamera photonCamera;
-    private PhotonCameraSim cameraSim;
-    private PhotonPoseEstimator photonPoseEstimator;
-    private Transform3d robotToCam;
+    protected String name;
+    protected PhotonCamera photonCamera;
+    protected PhotonCameraSim cameraSim;
+    protected PhotonPoseEstimator photonPoseEstimator;
+    protected PhotonPoseEstimator trigSolvePoseEstimator;
+    protected Transform3d robotToCam;
 
     @Log
-    private Pose3d estimatedRobotPose = new Pose3d();
+    protected Pose3d estimatedRobotPose = new Pose3d();
     @Log
-    private Pose3d[] detectedAprilTags = new Pose3d[0];
+    protected Pose3d estimatedTrigPose = new Pose3d();
     @Log
-    private boolean hasPose = false;
+    protected Pose3d[] detectedAprilTags = new Pose3d[0];
     @Log
-    private int targetCount = 0;
+    protected Pose3d[] detectedTrigAprilTags = new Pose3d[0];
+    @Log
+    protected boolean hasPose = false;
+    protected boolean hasTrigPose = false;
+    @Log
+    protected int targetCount = 0;
 
-    private double lastTimestamp = 0;
+    protected double lastTimestamp = 0;
+    protected double lastTrigTimestamp = 0;
 
     /**
      * Initializes the PhotonVision camera.
@@ -101,9 +111,21 @@ public class AprilTagPhotonCamera {
         this.robotToCam = robotToCam;
 
         photonCamera = new PhotonCamera(name);
-        photonPoseEstimator = new PhotonPoseEstimator(AprilTagFields.kDefaultField.loadAprilTagLayoutField(),
+
+        AprilTagFieldLayout reefscapeLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+
+        ArrayList<AprilTag> reefTags = new ArrayList<>(reefscapeLayout.getTags());
+        reefTags.removeIf((a) -> !((a.ID >= 6 && a.ID <= 11) || (a.ID >= 17 && a.ID <= 22)));
+        AprilTagFieldLayout reefOnlyLayout = new AprilTagFieldLayout(reefTags, reefscapeLayout.getFieldLength(),
+                reefscapeLayout.getFieldWidth());
+
+        photonPoseEstimator = new PhotonPoseEstimator(reefscapeLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
-        photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
+        photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
+
+        trigSolvePoseEstimator = new PhotonPoseEstimator(reefOnlyLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+                robotToCam);
+        // trigSolvePoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
         if (RobotBase.isSimulation()) {
             var cameraProp = new SimCameraProperties();
@@ -136,7 +158,6 @@ public class AprilTagPhotonCamera {
         PhotonPipelineResult result = photonCamera.getLatestResult();
         double timestamp = result.getTimestampSeconds();
         boolean newResult = Math.abs(timestamp - lastTimestamp) > 1e-5;
-        targetCount = result.targets.size();
 
         PhotonPipelineResult pipelineResult = photonCamera.getLatestResult();
         Optional<EstimatedRobotPose> photonEstimatedRobotPose = photonPoseEstimator.update(pipelineResult);
@@ -144,12 +165,15 @@ public class AprilTagPhotonCamera {
         if (newResult) {
             if (photonEstimatedRobotPose.isPresent()) {
                 estimatedRobotPose = photonEstimatedRobotPose.get().estimatedPose;
+
                 detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                         robotToCam);
 
                 // reject the pose if we are over 1m off the ground, or over 1m under the
                 // ground.
+
                 if (estimatedRobotPose.getZ() > 1 || estimatedRobotPose.getZ() < -1) {
+                    hasPose = photonEstimatedRobotPose.isPresent();
                     return Optional.empty();
                 }
             } else {
@@ -160,6 +184,68 @@ public class AprilTagPhotonCamera {
             lastTimestamp = timestamp;
         }
         return photonEstimatedRobotPose;
+    }
+
+    /**
+     * Gets an estimated pose of the robot on the field using the trigonometric pose
+     * algorithm.
+     * 
+     * @param prevEstimatedRobotPose the previous global pose generated by the
+     *                               overall pose estimator. used for legacy
+     *                               reasons, in case single-tag algorithms that
+     *                               rank based on distance to the previous pose are
+     *                               desired.
+     * @return if possible, an {@link EstimatedRobotPose}, with the estimated pose,
+     *         timestamp, and targets used.
+     */
+    public Optional<EstimatedRobotPose> getEstimatedTrigPose() {
+        PhotonPipelineResult result = photonCamera.getLatestResult();
+        double timestamp = result.getTimestampSeconds();
+        boolean newResult = Math.abs(timestamp - lastTrigTimestamp) > 1e-5;
+        targetCount = result.targets.size();
+
+        PhotonPipelineResult pipelineResult = photonCamera.getLatestResult();
+
+        Optional<EstimatedRobotPose> photonEstimatedRobotPose = trigSolvePoseEstimator.update(pipelineResult);
+
+        if (newResult) {
+            if (photonEstimatedRobotPose.isPresent()) {
+                estimatedTrigPose = photonEstimatedRobotPose.get().estimatedPose;
+                detectedTrigAprilTags = getPosesFromTargets(result.targets, estimatedTrigPose,
+                        robotToCam);
+
+                var tagPose = photonPoseEstimator.getFieldTags()
+                        .getTagPose(photonEstimatedRobotPose.get().targetsUsed.get(0).getFiducialId());
+
+                // reject if we are >1.5m away from the reef
+                if (tagPose.isPresent()) {
+                    double dist = tagPose.get().toPose2d().getTranslation()
+                            .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
+                    if (dist > 2) {
+                        estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
+                        return Optional.empty();
+                    }
+                }
+
+                // reject the pose if we are over 1m off the ground, or over 1m under the
+                // ground.
+                if (estimatedTrigPose.getZ() > 1 || estimatedTrigPose.getZ() < -1) {
+                    estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
+                    return Optional.empty();
+                }
+            } else {
+                detectedTrigAprilTags = new Pose3d[0];
+                estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
+            }
+            hasPose = photonEstimatedRobotPose.isPresent();
+            lastTrigTimestamp = timestamp;
+        }
+        return photonEstimatedRobotPose;
+    }
+
+    public void addHeadingData(double timestampSeconds, Rotation2d heading) {
+        photonPoseEstimator.addHeadingData(timestampSeconds, heading);
+        trigSolvePoseEstimator.addHeadingData(timestampSeconds, heading);
     }
 
     /**
@@ -214,7 +300,7 @@ public class AprilTagPhotonCamera {
      * @return an array of {@link Pose3d}s with the positions of where the camera
      *         believes the AprilTags it detected are located.
      */
-    private Pose3d[] getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose3d estimatedRobotPose,
+    protected Pose3d[] getPosesFromTargets(List<PhotonTrackedTarget> targets, Pose3d estimatedRobotPose,
             Transform3d robotToCam) {
         List<Pose3d> poses = new ArrayList<Pose3d>();
         for (int i = 0; i < targets.size(); i++) {
@@ -309,6 +395,20 @@ public class AprilTagPhotonCamera {
     }
 
     /**
+     * Gets the last estimated precise robot pose. Used for creating a log object
+     * containing
+     * estimated robot poses from all valid cameras at once.
+     * 
+     * This method does <b>not</b> call
+     * {@link AprilTagPhotonCamera#getEstimatedTrigPose()}.
+     * 
+     * @return the last estimated robot pose.
+     */
+    public Pose3d getLoggedEstimatedTrigRobotPose() {
+        return estimatedTrigPose;
+    }
+
+    /**
      * Gets the last estimated AprilTag positions. Used for creating a log object
      * containing estimated AprilTag positions from all valid cameras at once.
      * 
@@ -319,5 +419,18 @@ public class AprilTagPhotonCamera {
      */
     public Pose3d[] getLoggedDetectedAprilTags() {
         return detectedAprilTags;
+    }
+
+    /**
+     * Gets the last estimated AprilTag positions. Used for creating a log object
+     * containing estimated AprilTag positions from all valid cameras at once.
+     * 
+     * This method does <b>not</b> call
+     * {@link AprilTagPhotonCamera#getEstimatedGlobalPose()}.
+     * 
+     * @return the last estimated AprilTag positions.
+     */
+    public Pose3d[] getLoggedDetectedTrigAprilTags() {
+        return detectedTrigAprilTags;
     }
 }
