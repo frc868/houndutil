@@ -217,11 +217,11 @@ public class AprilTagPhotonCamera {
                 var tagPose = photonPoseEstimator.getFieldTags()
                         .getTagPose(photonEstimatedRobotPose.get().targetsUsed.get(0).getFiducialId());
 
-                // reject if we are >1.5m away from the reef
+                // reject if we are >3m away from the reef
                 if (tagPose.isPresent()) {
                     double dist = tagPose.get().toPose2d().getTranslation()
                             .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
-                    if (dist > 2) {
+                    if (dist > 3) {
                         estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                         return Optional.empty();
                     }
