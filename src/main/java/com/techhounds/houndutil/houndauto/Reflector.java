@@ -30,6 +30,21 @@ public class Reflector {
         return new Pose2d(transformedTranslation, transformedHeading);
     }
 
+    public static Pose2d rotatePoseAcrossField(Pose2d pose, double fieldLength, double fieldWidth) {
+        double halfFieldX = fieldLength / 2.0;
+        double halfFieldY = fieldWidth / 2.0;
+
+        // Reflect around the field center
+        Translation2d rotatedTranslation = new Translation2d(
+                2 * halfFieldX - pose.getTranslation().getX(),
+                2 * halfFieldY - pose.getTranslation().getY());
+
+        Rotation2d rotatedHeading = pose.getRotation().rotateBy(Rotation2d.fromDegrees(180));
+
+        return new Pose2d(rotatedTranslation, rotatedHeading);
+
+    }
+
     /**
      * Reflects a {@link Pose3d} to the opposite side of a field given a field
      * length. Inverts the heading of the pose (e.g. facing towards one alliance
