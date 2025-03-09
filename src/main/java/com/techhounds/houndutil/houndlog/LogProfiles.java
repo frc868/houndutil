@@ -86,8 +86,10 @@ public class LogProfiles {
         StatusSignal<?> temp = obj.getDeviceTemp();
         StatusSignal<?> outputVoltage = obj.getMotorVoltage();
         StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
+        StatusSignal<?> closedLoopReference = obj.getClosedLoopReference();
 
-        SignalManager.register(obj.getNetwork(), position, velocity, acceleration, temp, outputVoltage, outputCurrent);
+        SignalManager.register(obj.getNetwork(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
+                closedLoopReference);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
@@ -96,9 +98,7 @@ public class LogProfiles {
                 new DoubleLogItem("temperature", () -> temp.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("outputVoltage", () -> outputVoltage.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("outputCurrent", () -> outputCurrent.getValueAsDouble(), LogType.NT),
-                new DoubleLogItem("closedLoopReference",
-                        () -> DriverStation.isTest() ? obj.getClosedLoopReference().getValueAsDouble() : 0.0,
-                        LogType.NT),
+                new DoubleLogItem("closedLoopReference", () -> closedLoopReference.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("closedLoopReferenceSlope",
                         () -> DriverStation.isTest() ? obj.getClosedLoopReferenceSlope().getValueAsDouble() : 0.0,
                         LogType.NT),
