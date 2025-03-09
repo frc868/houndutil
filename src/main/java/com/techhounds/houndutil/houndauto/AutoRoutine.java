@@ -4,6 +4,7 @@ import java.util.List;
 import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj2.command.Command;
@@ -77,7 +78,7 @@ public class AutoRoutine {
 
     /**
      * Gets the initial pose for the routine. When the DriverStation is set to the
-     * red alliance, this is reflected over a field length of 16.54m.
+     * red alliance, this is rotated across the field.
      * 
      * @return the initial pose for the routine, or the pose at (0,0) if no
      *         trajectories are used.
@@ -85,7 +86,8 @@ public class AutoRoutine {
     public Pose2d getInitialPose() {
         if (pathPlannerPaths.size() > 0) {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red)
-                return Reflector.reflectPose2d(initialPose, 16.54);
+                return Reflector.rotatePoseAcrossField(initialPose, Units.inchesToMeters(690.876),
+                        Units.inchesToMeters(317));
             else
                 return initialPose;
         } else {
