@@ -170,7 +170,6 @@ public class AprilTagPhotonCamera {
 
                 // reject the pose if we are over 1m off the ground, or over 1m under the
                 // ground.
-
                 if (estimatedRobotPose.getZ() > 1 || estimatedRobotPose.getZ() < -1) {
                     hasPose = photonEstimatedRobotPose.isPresent();
                     return Optional.empty();
@@ -220,7 +219,7 @@ public class AprilTagPhotonCamera {
                 if (tagPose.isPresent()) {
                     double dist = tagPose.get().toPose2d().getTranslation()
                             .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
-                    if (dist > 3) {
+                    if (dist > 2.5) {
                         estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                         return Optional.empty();
                     }
