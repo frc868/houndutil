@@ -22,6 +22,7 @@ import edu.wpi.first.wpilibj.PowerDistribution;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 
 import com.techhounds.houndutil.houndlog.annotations.LogProfile;
@@ -419,6 +420,21 @@ public class LogProfiles {
                 new DoubleLogItem("angularVelocityRadPerSec", obj::getAngularVelocityRadPerSec, LogType.NT),
                 new DoubleLogItem("angularVelocityRPM", obj::getAngularVelocityRPM, LogType.NT),
                 new DoubleLogItem("currentDrawAmps", obj::getCurrentDrawAmps, LogType.NT),
+        };
+    }
+
+    /**
+     * Builds ElevatorSim log items.
+     * 
+     * @param obj the ElevatorSim object to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ElevatorSim.class)
+    public static LogItem<?>[] logElevatorSim(ElevatorSim obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("positionMeters", () -> obj.getPositionMeters(), LogType.NT),
+                new DoubleLogItem("velocityMetersPerSecond", () -> obj.getVelocityMetersPerSecond(), LogType.NT),
+                new DoubleLogItem("currentDrawAmps", () -> obj.getCurrentDrawAmps(), LogType.NT),
         };
     }
 
