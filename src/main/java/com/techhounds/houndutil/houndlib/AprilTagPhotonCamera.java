@@ -113,18 +113,12 @@ public class AprilTagPhotonCamera {
 
         AprilTagFieldLayout reefscapeLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
 
-        ArrayList<AprilTag> reefTags = new ArrayList<>(reefscapeLayout.getTags());
-        reefTags.removeIf((a) -> !((a.ID >= 6 && a.ID <= 11) || (a.ID >= 17 && a.ID <= 22)));
-        AprilTagFieldLayout reefOnlyLayout = new AprilTagFieldLayout(reefTags, reefscapeLayout.getFieldLength(),
-                reefscapeLayout.getFieldWidth());
-
         photonPoseEstimator = new PhotonPoseEstimator(reefscapeLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
         photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
 
-        trigSolvePoseEstimator = new PhotonPoseEstimator(reefOnlyLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+        trigSolvePoseEstimator = new PhotonPoseEstimator(reefscapeLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                 robotToCam);
-        // trigSolvePoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.LOWEST_AMBIGUITY);
 
         if (RobotBase.isSimulation()) {
             var cameraProp = new SimCameraProperties();
@@ -203,6 +197,9 @@ public class AprilTagPhotonCamera {
         targetCount = result.targets.size();
 
         PhotonPipelineResult pipelineResult = photonCamera.getLatestResult();
+
+        pipelineResult.targets.removeIf(
+                (t) -> !((t.fiducialId >= 6 && t.fiducialId <= 11) || (t.fiducialId >= 17 && t.fiducialId <= 22)));
 
         Optional<EstimatedRobotPose> photonEstimatedRobotPose = trigSolvePoseEstimator.update(pipelineResult);
 
