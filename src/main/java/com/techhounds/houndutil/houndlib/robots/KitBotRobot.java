@@ -2,6 +2,9 @@ package com.techhounds.houndutil.houndlib.robots;
 
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
+import com.revrobotics.spark.SparkBase.PersistMode;
+import com.revrobotics.spark.SparkBase.ResetMode;
+import com.revrobotics.spark.config.SparkMaxConfig;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
@@ -44,6 +47,8 @@ public class KitBotRobot extends HoundRobot {
     protected SparkMax leftMotor;
     /** The motor controller for the right side of the drivetrain. */
     protected SparkMax rightMotor;
+    private SparkMaxConfig rightMotorConfig = new SparkMaxConfig();
+
     /**
      * The helper object to apply inputs to the motor controllers based on the
      * joysticks.
@@ -71,8 +76,10 @@ public class KitBotRobot extends HoundRobot {
 
         leftMotor = new SparkMax(leftMotorId, MotorType.kBrushless);
         rightMotor = new SparkMax(rightMotorId, MotorType.kBrushless);
-        // TODO: deprecated
-        rightMotor.setInverted(true);
+        
+        rightMotorConfig.inverted(true);
+        rightMotor.configure(rightMotorConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
+
         speedLimit = new TunableDouble("main/speedLimit", initialSpeedLimit);
         drive = new DifferentialDrive(leftMotor, rightMotor);
         LoggingManager.getInstance().addGroup(new LogGroup("drivetrain",
