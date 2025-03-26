@@ -16,7 +16,6 @@ import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
-import edu.wpi.first.apriltag.AprilTag;
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
@@ -78,9 +77,9 @@ public class AprilTagPhotonCamera {
     @Log
     protected Pose3d estimatedTrigPose = new Pose3d();
     @Log
-    protected Pose3d[] detectedAprilTags = new Pose3d[0];
+    protected Pose3d[] detectedAprilTags = new Pose3d[] { Pose3d.kZero };
     @Log
-    protected Pose3d[] detectedTrigAprilTags = new Pose3d[0];
+    protected Pose3d[] detectedTrigAprilTags = new Pose3d[] { Pose3d.kZero };
     @Log
     protected boolean hasPose = false;
     protected boolean hasTrigPose = false;
