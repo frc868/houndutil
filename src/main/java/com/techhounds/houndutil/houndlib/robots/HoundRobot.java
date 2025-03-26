@@ -7,6 +7,7 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.TriConsumer;
 import com.techhounds.houndutil.houndlog.FaultLogger;
@@ -79,6 +80,8 @@ public class HoundRobot extends TimedRobot {
         LoggingManager.getInstance().init();
         addPeriodic(FaultLogger::update, 0.100, 0.010);
         SignalManager.finalizeAll();
+
+        FollowPathCommand.warmupCommand().schedule();
 
         // LiveWindow is essentially deprecated, and HoundLog is a much better
         // replacement. LiveWindow is still active during test mode by default, but it
