@@ -215,7 +215,7 @@ public class AprilTagPhotonCamera {
                 if (tagPose.isPresent()) {
                     double dist = tagPose.get().toPose2d().getTranslation()
                             .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
-                    if (dist > 2.5) {
+                    if (dist > 3) {
                         estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                         return Optional.empty();
                     }
