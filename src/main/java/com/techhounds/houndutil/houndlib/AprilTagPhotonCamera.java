@@ -110,7 +110,7 @@ public class AprilTagPhotonCamera {
 
         photonCamera = new PhotonCamera(name);
 
-        AprilTagFieldLayout reefscapeLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeAndyMark);
+        AprilTagFieldLayout reefscapeLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
 
         photonPoseEstimator = new PhotonPoseEstimator(reefscapeLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
