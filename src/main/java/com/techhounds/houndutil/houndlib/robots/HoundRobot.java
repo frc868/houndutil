@@ -1,5 +1,6 @@
 package com.techhounds.houndutil.houndlib.robots;
 
+import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -7,11 +8,14 @@ import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
 
+import com.pathplanner.lib.commands.FollowPathCommand;
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.TriConsumer;
 import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.SignalManager;
+import com.techhounds.houndutil.houndlog.annotations.Log;
+import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
 /**
  * A {@link TimedRobot} extension class that automatically sets up all of
@@ -50,12 +54,14 @@ import com.techhounds.houndutil.houndlog.SignalManager;
  * 
  * If any modifications are needed, create use anonymous inner classes.
  */
+@LoggedObject
 public class HoundRobot extends TimedRobot {
     /**
      * Default constructor. Use if not using a RobotContainer, or initializing a
      * RobotContainer elsewhere.
      */
     public HoundRobot() {
+        LoggingManager.getInstance().registerObject(this);
     }
 
     public HoundRobot(Supplier<Object> robotContainerCtor) {
@@ -70,15 +76,28 @@ public class HoundRobot extends TimedRobot {
             });
     }
 
+    @Log(groups = "timing")
+    double loopTimeMs = 0.0;
+    @Log(groups = "timing")
+    double commandSchedulerLoopTimeMs = 0.0;
+    @Log(groups = "timing")
+    double loggingManagerLoopTimeMs = 0.0;
+    @Log(groups = "timing")
+    double signalManagerLoopTimeMs = 0.0;
+
     /**
      * Initializes HoundUtil.
      */
     @Override
     public void robotInit() {
+        LoggingManager.getInstance().registerObject(this);
+
         AutoManager.getInstance().init();
         LoggingManager.getInstance().init();
         addPeriodic(FaultLogger::update, 0.100, 0.010);
         SignalManager.finalizeAll();
+
+        FollowPathCommand.warmupCommand().schedule();
 
         // LiveWindow is essentially deprecated, and HoundLog is a much better
         // replacement. LiveWindow is still active during test mode by default, but it
@@ -91,9 +110,21 @@ public class HoundRobot extends TimedRobot {
      */
     @Override
     public void robotPeriodic() {
+        double loopStartTime = RobotController.getFPGATime();
+
+        double commandSchedulerStartTime = RobotController.getFPGATime();
         CommandScheduler.getInstance().run();
+        commandSchedulerLoopTimeMs = (RobotController.getFPGATime() - commandSchedulerStartTime) / 1000.0;
+
+        double loggingManagerStartTime = RobotController.getFPGATime();
         LoggingManager.getInstance().run();
+        loggingManagerLoopTimeMs = (RobotController.getFPGATime() - loggingManagerStartTime) / 1000.0;
+
+        double signalManagerStartTime = RobotController.getFPGATime();
         SignalManager.refresh();
+        signalManagerLoopTimeMs = (RobotController.getFPGATime() - signalManagerStartTime) / 1000.0;
+
+        loopTimeMs = (RobotController.getFPGATime() - loopStartTime) / 1000.0;
     }
 
     @Override

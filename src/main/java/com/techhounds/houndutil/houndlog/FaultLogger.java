@@ -259,49 +259,15 @@ public final class FaultLogger {
      */
     public static void register(TalonFX talon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
-                talon.getFault_BootDuringEnable(),
                 talon.getFault_BridgeBrownout(),
                 talon.getFault_DeviceTemp(),
-                talon.getFault_ForwardHardLimit(),
-                talon.getFault_ForwardSoftLimit(),
                 talon.getFault_FusedSensorOutOfSync(),
                 talon.getFault_Hardware(),
-                talon.getFault_MissingDifferentialFX(),
-                talon.getFault_OverSupplyV(),
                 talon.getFault_ProcTemp(),
-                talon.getFault_RemoteSensorDataInvalid(),
-                talon.getFault_RemoteSensorPosOverflow(),
-                talon.getFault_RemoteSensorReset(),
-                talon.getFault_ReverseHardLimit(),
-                talon.getFault_ReverseSoftLimit(),
                 talon.getFault_StatorCurrLimit(),
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
-                talon.getFault_UnlicensedFeatureInUse(),
-                talon.getFault_UnstableSupplyV(),
-                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed(),
-                talon.getStickyFault_BootDuringEnable(),
-                talon.getStickyFault_BridgeBrownout(),
-                talon.getStickyFault_DeviceTemp(),
-                talon.getStickyFault_ForwardHardLimit(),
-                talon.getStickyFault_ForwardSoftLimit(),
-                talon.getStickyFault_FusedSensorOutOfSync(),
-                talon.getStickyFault_Hardware(),
-                talon.getStickyFault_MissingDifferentialFX(),
-                talon.getStickyFault_OverSupplyV(),
-                talon.getStickyFault_ProcTemp(),
-                talon.getStickyFault_RemoteSensorDataInvalid(),
-                talon.getStickyFault_RemoteSensorPosOverflow(),
-                talon.getStickyFault_RemoteSensorReset(),
-                talon.getStickyFault_ReverseHardLimit(),
-                talon.getStickyFault_ReverseSoftLimit(),
-                talon.getStickyFault_StatorCurrLimit(),
-                talon.getStickyFault_SupplyCurrLimit(),
-                talon.getStickyFault_Undervoltage(),
-                talon.getStickyFault_UnlicensedFeatureInUse(),
-                talon.getStickyFault_UnstableSupplyV(),
-                talon.getStickyFault_UsingFusedCANcoderWhileUnlicensed());
-
+                talon.getFault_UnstableSupplyV());
         faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
@@ -322,15 +288,8 @@ public final class FaultLogger {
     public static void register(CANcoder cancoder) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
                 cancoder.getFault_BadMagnet(),
-                cancoder.getFault_BootDuringEnable(),
                 cancoder.getFault_Hardware(),
-                cancoder.getFault_Undervoltage(),
-                cancoder.getFault_UnlicensedFeatureInUse(),
-                cancoder.getStickyFault_BadMagnet(),
-                cancoder.getStickyFault_BootDuringEnable(),
-                cancoder.getStickyFault_Hardware(),
-                cancoder.getStickyFault_Undervoltage(),
-                cancoder.getStickyFault_UnlicensedFeatureInUse());
+                cancoder.getFault_Undervoltage());
 
         faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork(), s));
 
@@ -347,7 +306,6 @@ public final class FaultLogger {
      */
     public static void register(Pigeon2 pigeon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
-                pigeon.getFault_BootDuringEnable(),
                 pigeon.getFault_BootIntoMotion(),
                 pigeon.getFault_BootupAccelerometer(),
                 pigeon.getFault_BootupGyroscope(),
@@ -358,21 +316,7 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedAccelerometer(),
                 pigeon.getFault_SaturatedGyroscope(),
                 pigeon.getFault_SaturatedMagnetometer(),
-                pigeon.getFault_Undervoltage(),
-                pigeon.getFault_UnlicensedFeatureInUse(),
-                pigeon.getStickyFault_BootDuringEnable(),
-                pigeon.getStickyFault_BootIntoMotion(),
-                pigeon.getStickyFault_BootupAccelerometer(),
-                pigeon.getStickyFault_BootupGyroscope(),
-                pigeon.getStickyFault_BootupMagnetometer(),
-                pigeon.getStickyFault_DataAcquiredLate(),
-                pigeon.getStickyFault_Hardware(),
-                pigeon.getStickyFault_LoopTimeSlow(),
-                pigeon.getStickyFault_SaturatedAccelerometer(),
-                pigeon.getStickyFault_SaturatedGyroscope(),
-                pigeon.getStickyFault_SaturatedMagnetometer(),
-                pigeon.getStickyFault_Undervoltage(),
-                pigeon.getStickyFault_UnlicensedFeatureInUse());
+                pigeon.getFault_Undervoltage());
 
         faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork(), s));
 

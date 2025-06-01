@@ -214,9 +214,10 @@ public class AutoManager {
 
             timer.reset();
             timer.start();
-            currentCommand = baseCommand
-                    .beforeStarting(() -> resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose()))
-                    .andThen(Commands.runOnce(timer::stop))
+            currentCommand = Commands.sequence(
+                    Commands.waitSeconds(0.01),
+                    baseCommand,
+                    Commands.runOnce(timer::stop))
                     .withName("auto");
             currentCommand.schedule();
         }

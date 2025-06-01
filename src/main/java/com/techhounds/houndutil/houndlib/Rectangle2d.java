@@ -48,10 +48,10 @@ public class Rectangle2d {
      */
     public void drawOnField(Field2d field) {
         field.getObject(topLeft.toString() + " " + bottomRight.toString()).setPoses(
-                new Pose2d(topLeft, new Rotation2d()),
-                new Pose2d(topLeft.getX(), bottomRight.getY(), new Rotation2d()),
-                new Pose2d(bottomRight, new Rotation2d()),
-                new Pose2d(bottomRight.getX(), topLeft.getY(), new Rotation2d()),
-                new Pose2d(topLeft, new Rotation2d()));
+                new Pose2d(topLeft, Rotation2d.kZero),
+                new Pose2d(topLeft.getX(), bottomRight.getY(), Rotation2d.kZero),
+                new Pose2d(bottomRight, Rotation2d.kZero),
+                new Pose2d(bottomRight.getX(), topLeft.getY(), Rotation2d.kZero),
+                new Pose2d(topLeft, Rotation2d.kZero));
     }
 }

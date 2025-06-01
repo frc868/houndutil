@@ -17,6 +17,7 @@ import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.util.struct.StructSerializable;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LogProfile;
@@ -301,7 +302,10 @@ public class LogAnnotationHandler {
                                     () -> (String) checkedValueSupplier.get(), logAnnotation.logType())),
                     entry(DigitalInput.class,
                             () -> new BooleanLogItem(name,
-                                    () -> ((DigitalInput) checkedValueSupplier.get()).get())));
+                                    () -> ((DigitalInput) checkedValueSupplier.get()).get())),
+                    entry(Trigger.class,
+                            () -> new BooleanLogItem(name,
+                                    () -> ((Trigger) checkedValueSupplier.get()).getAsBoolean())));
 
             Supplier<Loggable> supp = classToLoggerMap.get(value.getClass());
             if (supp != null) {

@@ -3,6 +3,7 @@ package com.techhounds.houndutil.houndlib.leds;
 import java.util.List;
 import java.util.Random;
 import java.util.function.Consumer;
+import java.util.function.DoubleSupplier;
 
 import com.techhounds.houndutil.houndlib.DoubleContainer;
 import com.techhounds.houndutil.houndlib.IntegerContainer;
@@ -27,6 +28,17 @@ public class LEDPatterns {
     public static Consumer<AddressableLEDBuffer> solid(Color color, BaseLEDSection section) {
         return (AddressableLEDBuffer buffer) -> {
             for (int i = section.start(); i <= section.end(); i++) {
+                buffer.setLED(i, color);
+            }
+        };
+    }
+
+    public static Consumer<AddressableLEDBuffer> bubble(Color color, BaseLEDSection section, DoubleSupplier width,
+            DoubleSupplier movement) {
+        return (AddressableLEDBuffer buffer) -> {
+            double startPosition = (section.length() - width.getAsDouble()) * movement.getAsDouble() + section.start();
+
+            for (int i = (int) startPosition; i <= width.getAsDouble(); i++) {
                 buffer.setLED(i, color);
             }
         };

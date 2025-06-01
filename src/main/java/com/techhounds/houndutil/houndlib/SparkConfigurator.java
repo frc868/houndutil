@@ -1,7 +1,6 @@
 package com.techhounds.houndutil.houndlib;
 
 import java.util.ArrayList;
-import java.util.List;
 import java.util.function.Function;
 
 import com.revrobotics.REVLibError;
@@ -10,9 +9,6 @@ import com.revrobotics.spark.SparkBaseExtensions;
 import com.revrobotics.spark.SparkFlex;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
-
-import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.Timer;
 
 /**
  * A utility class for configuring SPARK MAX and SPARK Flex motor controllers.

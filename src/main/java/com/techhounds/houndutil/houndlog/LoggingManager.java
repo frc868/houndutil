@@ -11,6 +11,8 @@ import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 import com.techhounds.houndutil.houndlog.loggers.LogItem;
 import com.techhounds.houndutil.houndlog.loggers.Loggable;
+import com.techhounds.houndutil.houndlog.loggers.MetadataLogger;
+import com.techhounds.houndutil.houndlog.loggers.MetadataLogger.MetadataRecord;
 
 import edu.wpi.first.wpilibj.Timer;
 
@@ -107,6 +109,11 @@ public class LoggingManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+
+    public void registerMetadata(MetadataRecord buildConstants) {
+        MetadataLogger logItem = new MetadataLogger(buildConstants);
+        addLogger(logItem);
     }
 
     /**
