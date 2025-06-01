@@ -102,21 +102,22 @@ public class AprilTagPhotonCamera {
      *                      simulation. if unsure, use 0.2px.
      * @param stdDevErrorPx the standard deviation of the error of the camera
      *                      calibration, used for simulation. if unsure, use 0.1px.
+     * @param fieldLayout   the field layout to be used ({@link AprilTagFields})
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
-            double avgErrorPx, double stdDevErrorPx) {
+            double avgErrorPx, double stdDevErrorPx, AprilTagFields fieldLayout) {
         this.name = name;
         this.robotToCam = robotToCam;
 
         photonCamera = new PhotonCamera(name);
 
-        AprilTagFieldLayout reefscapeLayout = AprilTagFieldLayout.loadField(AprilTagFields.k2025ReefscapeWelded);
+        AprilTagFieldLayout aprilTagFieldlayout = AprilTagFieldLayout.loadField(fieldLayout);
 
-        photonPoseEstimator = new PhotonPoseEstimator(reefscapeLayout,
+        photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldlayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
         photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
 
-        trigSolvePoseEstimator = new PhotonPoseEstimator(reefscapeLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+        trigSolvePoseEstimator = new PhotonPoseEstimator(aprilTagFieldlayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                 robotToCam);
 
         if (RobotBase.isSimulation()) {
