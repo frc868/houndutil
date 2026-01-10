@@ -1,10 +1,10 @@
 package com.techhounds.houndutil.houndlib;
 
-import com.techhounds.houndutil.houndauto.Reflector;
-
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Twist2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 
@@ -135,5 +135,12 @@ public class Utils {
 
     public static boolean shouldFlipValueToRed() {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
+    }
+
+    public static DCMotor getKrakenX44(int numMotors) {
+        // From
+        // https://docs.wcproducts.com/welcome/electronics/kraken-x44/kraken-x44-motor/overview-and-features/motor-performance
+        return new DCMotor(
+                12, 4.05, 275, 1.4, Units.rotationsPerMinuteToRadiansPerSecond(7530), numMotors);
     }
 }
