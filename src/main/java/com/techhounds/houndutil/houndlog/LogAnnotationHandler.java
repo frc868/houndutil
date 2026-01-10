@@ -340,22 +340,24 @@ public class LogAnnotationHandler {
                 }
                 // if an array of structs, use the struct array logger
             } else if (value instanceof Object[]) {
-                Object[] arr = (Object[]) value;
-                if (arr.length > 0 && arr[0] instanceof StructSerializable) {
+                Class<?> elementType = value.getClass().getComponentType();
+
+                if (StructSerializable.class.isAssignableFrom(elementType)) {
                     try {
-                        Class<?> clazz = arr[0].getClass();
-                        Field structField = clazz.getField("struct");
+                        Field structField = elementType.getField("struct");
 
                         if (Modifier.isStatic(structField.getModifiers())
                                 && Struct.class.isAssignableFrom(structField.getType())) {
+
                             Struct<Object> structValue = (Struct<Object>) structField.get(null);
 
-                            return Optional.of(new StructArrayLogItem<Object>(name, structValue,
+                            return Optional.of(new StructArrayLogItem<>(
+                                    name,
+                                    structValue,
                                     () -> (Object[]) checkedValueSupplier.get(),
                                     logAnnotation.logType()));
                         }
                     } catch (NoSuchFieldException | IllegalAccessException e) {
-                        // Handle exceptions, such as the field not being accessible
                         e.printStackTrace();
                     }
                 }
