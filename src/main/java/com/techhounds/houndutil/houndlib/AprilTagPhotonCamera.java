@@ -148,6 +148,8 @@ public class AprilTagPhotonCamera {
      */
     public void update(Pose2d prevEstimatedRobotPose, Matrix<N3, N1> singleTagStdDevs, Matrix<N3, N1> multiTagStdDevs) {
         List<PhotonPipelineResult> results = photonCamera.getAllUnreadResults();
+        estimatedRobotPoses.clear();
+        estimatedTrigPoses.clear();
 
         for (PhotonPipelineResult result : results) {
             // standard global pose
