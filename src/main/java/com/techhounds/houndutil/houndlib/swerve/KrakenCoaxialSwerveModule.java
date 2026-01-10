@@ -1,5 +1,7 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
+import static edu.wpi.first.units.Units.Rotations;
+
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
@@ -100,7 +102,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
             boolean driveMotorInverted,
             boolean steerMotorInverted,
             boolean steerCanCoderInverted,
-            double steerCanCoderOffset,
+            Angle steerCanCoderOffset,
             SwerveConstants swerveConstants) {
         this.SWERVE_CONSTANTS = swerveConstants;
 
@@ -128,7 +130,7 @@ public class KrakenCoaxialSwerveModule implements CoaxialSwerveModule {
         config.SensorDirection = steerCanCoderInverted ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
         config.AbsoluteSensorDiscontinuityPoint = 0.5;
-        config.MagnetOffset = steerCanCoderOffset;
+        config.MagnetOffset = steerCanCoderOffset.in(Rotations);
         steerCanCoder.getConfigurator().apply(config);
 
         steerMotor = new TalonFX(steerMotorChannel, canBus);
