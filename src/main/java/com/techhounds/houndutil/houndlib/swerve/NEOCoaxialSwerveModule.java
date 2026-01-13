@@ -89,7 +89,7 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Log
     private boolean isDrivePidEnabled = true;
 
-    @Log(name="drivetrain internal state")
+    @Log(name = "drivetrain internal state")
     private SwerveModuleState internalState;
 
     @Log
@@ -108,7 +108,8 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
      * @param steerMotorInverted    if the steer motor is inverted
      * @param steerCanCoderInverted if the steer encoder is inverted
      * @param steerCanCoderOffset   the offset, in radians, to add to the CANCoder
-     *                              value to make it zero when the module is facing the
+     *                              value to make it zero when the module is facing
+     *                              the
      *                              +x direction
      */
     public NEOCoaxialSwerveModule(
@@ -126,10 +127,10 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
         driveConfig
                 .idleMode(IdleMode.kBrake)
                 .smartCurrentLimit(SWERVE_CONSTANTS.DRIVE_CURRENT_LIMIT)
-                .inverted(driveMotorInverted)
-                .encoder
-                    .positionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS);
-                    //.velocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS / 60.0);
+                .inverted(driveMotorInverted).encoder
+                .positionConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS);
+        // .velocityConversionFactor(SWERVE_CONSTANTS.DRIVE_ENCODER_ROTATIONS_TO_METERS
+        // / 60.0);
         driveMotor.configure(driveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
         drivePidController = new PIDController(SWERVE_CONSTANTS.DRIVE_kP, SWERVE_CONSTANTS.DRIVE_kI,
@@ -147,10 +148,9 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
 
         steerMotor = new SparkMax(steerMotorChannel, MotorType.kBrushless);
         steerConfig
-            .idleMode(IdleMode.kBrake)
-            .smartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT)
-            .inverted(steerMotorInverted)
-            .encoder
+                .idleMode(IdleMode.kBrake)
+                .smartCurrentLimit(SWERVE_CONSTANTS.STEER_CURRENT_LIMIT)
+                .inverted(steerMotorInverted).encoder
                 .positionConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS)
                 .velocityConversionFactor(SWERVE_CONSTANTS.STEER_ENCODER_ROTATIONS_TO_RADIANS / 60.0);
         steerMotor.configure(steerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -257,11 +257,11 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     @Override
     public void setMotorHoldMode(MotorHoldMode motorHoldMode) {
         driveConfig.idleMode(motorHoldMode == MotorHoldMode.BRAKE ? IdleMode.kBrake
-        : IdleMode.kCoast);
+                : IdleMode.kCoast);
         driveMotor.configure(driveConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        
+
         steerConfig.idleMode(motorHoldMode == MotorHoldMode.BRAKE ? IdleMode.kBrake
-        : IdleMode.kCoast);
+                : IdleMode.kCoast);
         driveMotor.configure(steerConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
     }
 
@@ -323,9 +323,9 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     }
 
     public void setVoltageSteer(double voltage) {
-        if (RobotBase.isSimulation()){
+        if (RobotBase.isSimulation()) {
             steerMotorSim.setInputVoltage(MathUtil.clamp(voltage, -12, 12));
-            //System.out.println(voltage);
+            // System.out.println(voltage);
         }
         steerMotor.setVoltage(MathUtil.clamp(voltage, -12, 12));
     }
@@ -337,11 +337,11 @@ public class NEOCoaxialSwerveModule implements CoaxialSwerveModule {
     public void steerPeriodic() {
         this.steerFeedbackVoltage = steerPidController.calculate(getWheelAngle().getRadians());
         setVoltageSteer(this.steerFeedbackVoltage);
-        //steerMotor.getEncoder().setPosition(getWheelAngle().getRadians());
-        if (RobotBase.isSimulation()){
+        // steerMotor.getEncoder().setPosition(getWheelAngle().getRadians());
+        if (RobotBase.isSimulation()) {
             steerMotorSim.update(0.020);
         }
-        if (steerPidController.atGoal()){
+        if (steerPidController.atGoal()) {
             System.out.println("at goal");
             System.out.println(steerPidController.getGoal().position);
         }

@@ -107,19 +107,17 @@ public class AprilTagPhotonCamera {
      * @param fieldLayout   the field layout to be used ({@link AprilTagFields})
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
-            double avgErrorPx, double stdDevErrorPx, AprilTagFields fieldLayout) {
+            double avgErrorPx, double stdDevErrorPx, AprilTagFieldLayout fieldLayout) {
         this.name = name;
         this.robotToCam = robotToCam;
 
         photonCamera = new PhotonCamera(name);
 
-        AprilTagFieldLayout aprilTagFieldlayout = AprilTagFieldLayout.loadField(fieldLayout);
-
-        photonPoseEstimator = new PhotonPoseEstimator(aprilTagFieldlayout,
+        photonPoseEstimator = new PhotonPoseEstimator(fieldLayout,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
         photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
 
-        trigSolvePoseEstimator = new PhotonPoseEstimator(aprilTagFieldlayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+        trigSolvePoseEstimator = new PhotonPoseEstimator(fieldLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                 robotToCam);
 
         if (RobotBase.isSimulation()) {
