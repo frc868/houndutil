@@ -4,6 +4,7 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
+
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkBase;
 import com.revrobotics.spark.SparkFlex;
@@ -89,7 +90,7 @@ public class LogProfiles {
         StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
         StatusSignal<?> closedLoopReference = obj.getClosedLoopReference();
 
-        SignalManager.register(obj.getNetwork(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
+        SignalManager.register(obj.getNetwork().getName(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
                 closedLoopReference);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
@@ -167,7 +168,7 @@ public class LogProfiles {
         StatusSignal<?> position = obj.getPosition();
         StatusSignal<?> velocity = obj.getVelocity();
 
-        SignalManager.register(obj.getNetwork(), absolutePosition, position, velocity);
+        SignalManager.register(obj.getNetwork().getName(), absolutePosition, position, velocity);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("absolutePosition", () -> absolutePosition.getValueAsDouble(), LogType.NT),
@@ -232,7 +233,7 @@ public class LogProfiles {
         StatusSignal<?> roll = obj.getRoll();
         StatusSignal<?> yaw = obj.getYaw();
 
-        SignalManager.register(obj.getNetwork(), pitch, roll, yaw);
+        SignalManager.register(obj.getNetwork().getName(), pitch, roll, yaw);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("pitch", () -> pitch.getValueAsDouble(), LogType.NT),

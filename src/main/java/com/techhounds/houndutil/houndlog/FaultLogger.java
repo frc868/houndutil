@@ -268,7 +268,7 @@ public final class FaultLogger {
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
                 talon.getFault_UnstableSupplyV());
-        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
@@ -291,7 +291,7 @@ public final class FaultLogger {
                 cancoder.getFault_Hardware(),
                 cancoder.getFault_Undervoltage());
 
-        faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "CANcoder [" + cancoder.getDeviceID() + "]", signal.getName(),
@@ -318,7 +318,7 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedMagnetometer(),
                 pigeon.getFault_Undervoltage());
 
-        faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Pigeon 2 [" + pigeon.getDeviceID() + "]", signal.getName(),
