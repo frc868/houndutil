@@ -268,7 +268,7 @@ public final class FaultLogger {
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
                 talon.getFault_UnstableSupplyV());
-        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s.getName()));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
