@@ -52,6 +52,22 @@ include ':houndutil'
 rootProject.children[0].buildFileName = "submodule.gradle"
 ```
 
+In `Main.java`, change your robot to a HoundRobot:
+
+```java
+RobotBase.startRobot(() -> new HoundRobot(() -> new RobotContainer()));
+``` 
+
+in the main method. It should look like this:
+
+```java
+public static void main(String... args) {
+    RobotBase.startRobot(() -> new HoundRobot(() -> new RobotContainer()));
+}
+```
+
+Remove `Robot.java` completely. Calling the `CommandScheduler` will be done by HoundRobot.
+
 Now, import `houndutil` items by using:
 
 ```java
