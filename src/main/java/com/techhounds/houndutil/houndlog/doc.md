@@ -48,7 +48,7 @@ In this example, we're creating a new SingleItemLogger that is of type `Double` 
 
 ### Basic `DeviceLogger`
 ```java
-DeviceLogger logger = new DeviceLogger<SparkMax>(l_primary, "Drivetrain", "Left Primary Motor Controller", new LogItem<?>[] {new LogItem<Double>(LogType.NUMBER, "Encoder Position", l_primary.getEncoder()::getPosition), LogLevel.INFO});
+DeviceLogger logger = new DeviceLogger<TalonFX>(l_primary, "Drivetrain", "Left Primary Motor Controller", new LogItem<?>[] {new LogItem<Double>(LogType.NUMBER, "Encoder Position", l_primary.getPosition().getValueAsDouble()), LogLevel.INFO});
 
 LoggingManager.getInstance().addLogger(logger);
 ```
