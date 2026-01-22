@@ -5,31 +5,31 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
- * Base scaffolding for an single-jointed arm mechanism. Should use PID or
+ * Base scaffolding for an single-jointed pivot mechanism. Should use PID or
  * profiled PID
  * control to move between setpoints or to an arbitrary position. Use SI units
- * (for arms, the most common SI unit is radians).
+ * (for pivoting mechanisms, the most common SI unit is radians).
  * <p>
- * To use, implement {@code BaseSingleJointedArm<MechanismPosition>}, where
+ * To use, implement {@code BaseSingleJointedPivot<MechanismPosition>}, where
  * {@code MechanismPosition} is an enum with the various setpoints that can be
  * used.
  * <p>
- * Examples of single-jointed arm-type mechanisms include: typical arms,
+ * Examples of single-jointed pivot-type mechanisms include: typical arms,
  * turrets, and rotational-deployment intakes
  */
-public interface BaseSingleJointedArm<T extends Enum<T>> {
+public interface BasePivot<T extends Enum<T>> {
     /**
      * Gets the position of the mechanism.
      * 
      * <p>
-     * 0 should be <i>at the point where the arm is parallel to the ground</i>, or
+     * 0 should be <i>at the point where the pivoting mechanism is parallel to the ground</i>, or
      * where the force of gravity is strongest. In CAD, this looks like the line
      * between
-     * the pivot and the center of mass of the arm being parallel to the ground. The
-     * position should increase as the arm moves up, and decrease as the arm moves
+     * the pivot and the center of mass of the mechanism being parallel to the ground. The
+     * position should increase as the mechanism moves up, and decrease as the mechanism moves
      * down.
      * <p>
-     * Note that this calibration is not necessary if the arm is horizontal.
+     * Note that this calibration is not necessary if the mechanism is horizontal.
      * 
      * @return the position of the mechanism, in meters
      */
@@ -42,7 +42,7 @@ public interface BaseSingleJointedArm<T extends Enum<T>> {
     void resetPosition();
 
     /**
-     * Explicit function to set the voltage of the motors attached to the arm,
+     * Explicit function to set the voltage of the motors attached to the pivot,
      * should handle safeties and clamping here.
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
@@ -83,7 +83,7 @@ public interface BaseSingleJointedArm<T extends Enum<T>> {
 
     /**
      * Creates a command that sets the current goal position to the setpoint plus
-     * the delta (if a delta of pi/4 is set, the arm should move up 45 degrees), and
+     * the delta (if a delta of pi/4 is set, the pivot should move up 45 degrees), and
      * cancels once the mechanism has reached that goal.
      * 
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
@@ -103,7 +103,7 @@ public interface BaseSingleJointedArm<T extends Enum<T>> {
     public Command holdCurrentPositionCommand();
 
     /**
-     * Creates an instantaneous command that resets the position of the arm.
+     * Creates an instantaneous command that resets the position of the pivot.
      * 
      * @return the command
      */

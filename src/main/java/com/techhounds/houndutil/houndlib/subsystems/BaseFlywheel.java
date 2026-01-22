@@ -5,15 +5,15 @@ import java.util.function.Supplier;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
- * Base scaffolding for an shooter mechanism. Should use PID + Feedforward
+ * Base scaffolding for any flywheel mechanism. Should use PID + Feedforward
  * control to spin at specific velocities. Use SI units
- * (for shooters, the most common SI unit would be radians/sec).
+ * (for flywheels, the most common SI unit would be radians/sec).
  */
-public interface BaseShooter {
+public interface BaseFlywheel {
     /**
      * Gets the velocity of the flywheel. 0 should indicate it being stopped, and
      * the velocity should increase in the forward direction (i.e. the velocity
-     * should be positive in the "correct" shooting direction).
+     * should be positive in the "correct" direction).
      * 
      * @return the velocity of the flywheel, in rad/sec
      */
