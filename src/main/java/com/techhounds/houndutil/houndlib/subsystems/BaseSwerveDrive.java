@@ -9,6 +9,7 @@ import com.pathplanner.lib.path.PathPlannerPath;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 /**
  * Base scaffolding for a swerve drivetrain. Intended to support pose
@@ -180,4 +181,33 @@ public interface BaseSwerveDrive {
      * @return the command
      */
     public Command coastMotorsCommand();
+
+    /**
+     * Creates a command to run the drive SysId routine quasistatic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdDriveQuasistatic(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the drive SysId routine dynamic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdDriveDynamic(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the steer SysId routine quasistatic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdSteerQuasistatic(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the steer SysId routine dynamic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdSteerDynamic(SysIdRoutine.Direction direction);
+
 }
