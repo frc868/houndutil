@@ -680,4 +680,9 @@ public class KrakenSwerveDrive {
     public SysIdRoutine getSysIdSteer() {
         return sysIdSteer;
     }
+
+    @Log(groups = "control")
+    public ChassisSpeeds getFieldRelativeSpeeds() {
+        return ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), getRotation());
+    }
 }
