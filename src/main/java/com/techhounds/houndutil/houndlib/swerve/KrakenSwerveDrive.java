@@ -395,6 +395,11 @@ public class KrakenSwerveDrive {
         return poseEstimator.getEstimatedPosition();
     }
 
+    @Log
+    public Pose2d getPrecisePose() {
+        return precisePoseEstimator.getEstimatedPosition();
+    }
+
     /**
      * Gets the current rotation of the chassis, with respect to the origin.
      * 
