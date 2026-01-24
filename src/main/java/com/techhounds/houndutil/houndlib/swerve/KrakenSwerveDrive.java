@@ -43,6 +43,7 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.Threads;
+import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -627,7 +628,7 @@ public class KrakenSwerveDrive {
         // TODO implement
         driveClosedLoop(speeds, DriveMode.ROBOT_RELATIVE);
     }
-    
+
     /**
      * Sets the states of the swerve modules to accomplish the given chassis speeds,
      * with closed-loop velocity control.
@@ -741,5 +742,19 @@ public class KrakenSwerveDrive {
         } finally {
             stateLock.writeLock().unlock();
         }
+    }
+
+    /**
+     * Draws the robot on a Field2d. This will include the angles of the swerve
+     * modules on the outsides of the robot box in Glass.
+     * 
+     * @param field the field to draw the robot on (usually
+     *              {@code AutoManager.getInstance().getField()})
+     */
+    public void drawRobotOnField(Field2d field) {
+        field.setRobotPose(getPose());
+        if (RobotBase.isSimulation())
+            field.getObject("simPose").setPose(simOdometry.getPoseMeters());
+        field.getObject("precisePose").setPose(precisePoseEstimator.getEstimatedPosition());
     }
 }
