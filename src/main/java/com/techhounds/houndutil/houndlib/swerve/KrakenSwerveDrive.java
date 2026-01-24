@@ -1,7 +1,15 @@
 package com.techhounds.houndutil.houndlib.swerve;
 
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
+
+import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.techhounds.houndutil.houndlib.Utils;
@@ -18,7 +26,15 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.MutAngle;
+import edu.wpi.first.units.measure.MutAngularVelocity;
+import edu.wpi.first.units.measure.MutDistance;
+import edu.wpi.first.units.measure.MutLinearVelocity;
+import edu.wpi.first.units.measure.MutVoltage;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 @LoggedObject
 public class KrakenSwerveDrive {
@@ -31,6 +47,7 @@ public class KrakenSwerveDrive {
     private final SwerveDrivePoseEstimator poseEstimator;
     private final SwerveDrivePoseEstimator precisePoseEstimator;
     private final SwerveDriveKinematics kinematics;
+    private final Orchestra orchestra = new Orchestra();
 
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
 
@@ -49,10 +66,23 @@ public class KrakenSwerveDrive {
     private SwerveModuleState[] commandedModuleStates = new SwerveModuleState[] { new SwerveModuleState(),
             new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState() };
 
+    private final MutVoltage sysidDriveAppliedVoltageMeasure = Volts.mutable(0);
+    private final MutDistance sysidDrivePositionMeasure = Meters.mutable(0);
+    private final MutLinearVelocity sysidDriveVelocityMeasure = MetersPerSecond.mutable(0);
+
+    private final SysIdRoutine sysIdDrive;
+
+    private final MutVoltage sysidSteerAppliedVoltageMeasure = Volts.mutable(0);
+    private final MutAngle sysidSteerPositionMeasure = Rotations.mutable(0);
+    private final MutAngularVelocity sysidSteerVelocityMeasure = RotationsPerSecond.mutable(0);
+
+    private final SysIdRoutine sysIdSteer;
+
     public KrakenSwerveDrive(KrakenCoaxialSwerveModule frontLeft, KrakenCoaxialSwerveModule frontRight,
             KrakenCoaxialSwerveModule backLeft, KrakenCoaxialSwerveModule backRight, Pigeon2 pigeon,
             DriveMode driveMode, SwerveDrivePoseEstimator poseEstimator, SwerveDrivePoseEstimator precisePoseEstimator,
-            SwerveDriveKinematics kinematics, SwerveConstants constants) {
+            SwerveDriveKinematics kinematics, SwerveConstants constants, Subsystem subsystem,
+            SysIdRoutine.Config sysIdConfigDrive, SysIdRoutine.Config sysIdConfigSteer) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
@@ -72,6 +102,98 @@ public class KrakenSwerveDrive {
         if (RobotBase.isSimulation()) {
             simOdometry = new SwerveDriveOdometry(kinematics, getRotation(), getModulePositions(), new Pose2d());
         }
+
+        orchestra.addInstrument(frontLeft.getDriveMotor());
+        orchestra.addInstrument(frontRight.getDriveMotor());
+        orchestra.addInstrument(backLeft.getDriveMotor());
+        orchestra.addInstrument(backRight.getDriveMotor());
+        orchestra.addInstrument(frontLeft.getSteerMotor());
+        orchestra.addInstrument(frontRight.getSteerMotor());
+        orchestra.addInstrument(backLeft.getSteerMotor());
+        orchestra.addInstrument(backRight.getSteerMotor());
+
+        sysIdDrive = new SysIdRoutine(
+                sysIdConfigDrive,
+                new SysIdRoutine.Mechanism(
+                        (Voltage volts) -> {
+                            drive(new ChassisSpeeds(
+                                    constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * volts.magnitude() / 12.0,
+                                    0,
+                                    0));
+                        },
+                        log -> {
+                            log.motor("frontLeft")
+                                    .voltage(sysidDriveAppliedVoltageMeasure
+                                            .mut_replace(frontLeft.getDriveMotorVoltage(), Volts))
+                                    .linearPosition(sysidDrivePositionMeasure
+                                            .mut_replace(frontLeft.getDriveMotorPosition(), Meters))
+                                    .linearVelocity(sysidDriveVelocityMeasure
+                                            .mut_replace(frontLeft.getDriveMotorVelocity(), MetersPerSecond));
+                            log.motor("frontRight")
+                                    .voltage(sysidDriveAppliedVoltageMeasure
+                                            .mut_replace(frontRight.getDriveMotorVoltage(), Volts))
+                                    .linearPosition(sysidDrivePositionMeasure
+                                            .mut_replace(frontRight.getDriveMotorPosition(), Meters))
+                                    .linearVelocity(sysidDriveVelocityMeasure
+                                            .mut_replace(frontRight.getDriveMotorVelocity(), MetersPerSecond));
+                            log.motor("backLeft")
+                                    .voltage(sysidDriveAppliedVoltageMeasure
+                                            .mut_replace(backLeft.getDriveMotorVoltage(), Volts))
+                                    .linearPosition(sysidDrivePositionMeasure
+                                            .mut_replace(backLeft.getDriveMotorPosition(), Meters))
+                                    .linearVelocity(sysidDriveVelocityMeasure
+                                            .mut_replace(backLeft.getDriveMotorVelocity(), MetersPerSecond));
+                            log.motor("backRight")
+                                    .voltage(sysidDriveAppliedVoltageMeasure
+                                            .mut_replace(backRight.getDriveMotorVoltage(), Volts))
+                                    .linearPosition(sysidDrivePositionMeasure
+                                            .mut_replace(backRight.getDriveMotorPosition(), Meters))
+                                    .linearVelocity(sysidDriveVelocityMeasure
+                                            .mut_replace(backRight.getDriveMotorVelocity(), MetersPerSecond));
+                        },
+                        subsystem));
+
+        sysIdSteer = new SysIdRoutine(
+                sysIdConfigSteer,
+                new SysIdRoutine.Mechanism(
+                        (Voltage volts) -> {
+                            drive(new ChassisSpeeds(
+                                    constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * volts.magnitude() /
+                                            12.0,
+                                    0,
+                                    0));
+                        },
+                        log -> {
+                            log.motor("frontLeft")
+                                    .voltage(sysidSteerAppliedVoltageMeasure
+                                            .mut_replace(frontLeft.getSteerMotorVoltage(), Volts))
+                                    .angularPosition(sysidSteerPositionMeasure
+                                            .mut_replace(frontLeft.getSteerMotorPosition(), Rotations))
+                                    .angularVelocity(sysidSteerVelocityMeasure
+                                            .mut_replace(frontLeft.getSteerMotorVelocity(), RotationsPerSecond));
+                            log.motor("frontRight")
+                                    .voltage(sysidSteerAppliedVoltageMeasure
+                                            .mut_replace(frontRight.getSteerMotorVoltage(), Volts))
+                                    .angularPosition(sysidSteerPositionMeasure
+                                            .mut_replace(frontRight.getSteerMotorPosition(), Rotations))
+                                    .angularVelocity(sysidSteerVelocityMeasure
+                                            .mut_replace(frontRight.getSteerMotorVelocity(), RotationsPerSecond));
+                            log.motor("backLeft")
+                                    .voltage(sysidSteerAppliedVoltageMeasure
+                                            .mut_replace(backLeft.getSteerMotorVoltage(), Volts))
+                                    .angularPosition(sysidSteerPositionMeasure
+                                            .mut_replace(backLeft.getSteerMotorPosition(), Rotations))
+                                    .angularVelocity(sysidSteerVelocityMeasure
+                                            .mut_replace(backLeft.getSteerMotorVelocity(), RotationsPerSecond));
+                            log.motor("backRight")
+                                    .voltage(sysidSteerAppliedVoltageMeasure
+                                            .mut_replace(backRight.getSteerMotorVoltage(), Volts))
+                                    .angularPosition(sysidSteerPositionMeasure
+                                            .mut_replace(backRight.getSteerMotorPosition(), Rotations))
+                                    .angularVelocity(sysidSteerVelocityMeasure
+                                            .mut_replace(backRight.getSteerMotorVelocity(), RotationsPerSecond));
+                        },
+                        subsystem));
     }
 
     /**
@@ -238,7 +360,6 @@ public class KrakenSwerveDrive {
      * Sets the state (velocity and azimuth angle) of each swerve module, without
      * closed-loop velocity control.
      * 
-     * @apiNote use for standard tele-operated driving
      * @param state an array of SwerveModuleStates to set the modules to
      */
     public void setStates(SwerveModuleState[] states) {
@@ -252,7 +373,6 @@ public class KrakenSwerveDrive {
      * Sets the state (velocity and azimuth angle) of each swerve module, with
      * closed-loop velocity control.
      * 
-     * @apiNote use for trajectory following
      * @param state an array of SwerveModuleStates to set the modules to
      */
     public void setStatesClosedLoop(SwerveModuleState[] states) {
@@ -266,8 +386,6 @@ public class KrakenSwerveDrive {
      * Sets the states of the swerve modules to accomplish the given chassis speeds.
      * Uses the currently set DriveMode.
      * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
      * @param speeds the ChassisSpeeds to use to drive the swerve modules
      */
     public void drive(ChassisSpeeds speeds) {
@@ -276,8 +394,6 @@ public class KrakenSwerveDrive {
 
     /**
      * Sets the states of the swerve modules to accomplish the given chassis speeds.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
      * 
      * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
      * @param driveMode the DriveMode to use for the chassis' reference point
@@ -321,8 +437,6 @@ public class KrakenSwerveDrive {
      * Sets the states of the swerve modules to accomplish the given chassis speeds,
      * with closed-loop velocity control.
      * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
      * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
      * @param driveMode the DriveMode to use for the chassis' reference point
      */
@@ -358,5 +472,14 @@ public class KrakenSwerveDrive {
 
         commandedModuleStates = states;
         setStatesClosedLoop(states);
+    }
+
+    /**
+     * Exposes the orchestra to load music or play
+     * 
+     * @return the orchestra
+     */
+    public Orchestra getOrchestra() {
+        return orchestra;
     }
 }

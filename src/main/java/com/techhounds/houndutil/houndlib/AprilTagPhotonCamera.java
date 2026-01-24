@@ -104,7 +104,7 @@ public class AprilTagPhotonCamera {
      *                      simulation. if unsure, use 0.2px.
      * @param stdDevErrorPx the standard deviation of the error of the camera
      *                      calibration, used for simulation. if unsure, use 0.1px.
-     * @param fieldLayout   the field layout to be used ({@link AprilTagFields})
+     * @param fieldLayout   the field layout to be used ({@link AprilTagFieldLayout})
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
             double avgErrorPx, double stdDevErrorPx, AprilTagFieldLayout fieldLayout) {
