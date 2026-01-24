@@ -482,4 +482,22 @@ public class KrakenSwerveDrive {
     public Orchestra getOrchestra() {
         return orchestra;
     }
+
+    /**
+     * Gets the SysId routine for the drive motors.
+     * 
+     * @return the SysIdRoutine
+     */
+    public SysIdRoutine getSysIdDrive() {
+        return sysIdDrive;
+    }
+
+    /**
+     * Gets the SysId routine for the steering motors.
+     * 
+     * @return the SysIdRoutine
+     */
+    public SysIdRoutine getSysIdSteer() {
+        return sysIdSteer;
+    }
 }
