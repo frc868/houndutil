@@ -187,27 +187,27 @@ public interface BaseSwerveDrive {
      * @param direction the motor direction for the test
      * @return the command
      */
-    public Command sysIdDriveQuasistatic(SysIdRoutine.Direction direction);
+    public Command sysIdDriveQuasistaticCommand(SysIdRoutine.Direction direction);
 
     /**
      * Creates a command to run the drive SysId routine dynamic.
      * @param direction the motor direction for the test
      * @return the command
      */
-    public Command sysIdDriveDynamic(SysIdRoutine.Direction direction);
+    public Command sysIdDriveDynamicCommand(SysIdRoutine.Direction direction);
 
     /**
      * Creates a command to run the steer SysId routine quasistatic.
      * @param direction the motor direction for the test
      * @return the command
      */
-    public Command sysIdSteerQuasistatic(SysIdRoutine.Direction direction);
+    public Command sysIdSteerQuasistaticCommand(SysIdRoutine.Direction direction);
 
     /**
      * Creates a command to run the steer SysId routine dynamic.
      * @param direction the motor direction for the test
      * @return the command
      */
-    public Command sysIdSteerDynamic(SysIdRoutine.Direction direction);
+    public Command sysIdSteerDynamicCommand(SysIdRoutine.Direction direction);
 
 }
