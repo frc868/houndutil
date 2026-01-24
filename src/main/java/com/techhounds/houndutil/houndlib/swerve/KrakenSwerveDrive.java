@@ -56,6 +56,7 @@ public class KrakenSwerveDrive {
     private final Orchestra orchestra = new Orchestra();
 
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
+    private final OdometryThread odometryThread;
 
     private SwerveDriveOdometry simOdometry;
 
@@ -210,6 +211,9 @@ public class KrakenSwerveDrive {
                                             .mut_replace(backRight.getSteerMotorVelocity(), RotationsPerSecond));
                         },
                         subsystem));
+
+        odometryThread = new OdometryThread();
+        odometryThread.start();
     }
 
     /**
