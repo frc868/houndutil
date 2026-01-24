@@ -20,6 +20,7 @@ import com.techhounds.houndutil.houndlib.swerve.KrakenCoaxialSwerveModule.Swerve
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
+import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.filter.LinearFilter;
 import edu.wpi.first.math.filter.MedianFilter;
@@ -30,6 +31,8 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
@@ -689,5 +692,47 @@ public class KrakenSwerveDrive {
     @Log(groups = "control")
     public ChassisSpeeds getFieldRelativeSpeeds() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), getRotation());
+    }
+
+    /**
+     * Adds a vision measurement to the pose estimator. Used by a vision
+     * subsystem.
+     * 
+     * @param visionRobotPoseMeters    the estimated robot pose from vision
+     * @param timestampSeconds         the timestamp of the vision measurement
+     * @param visionMeasurementStdDevs the standard deviations of the measurement
+     */
+    public void addVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
+            Matrix<N3, N1> visionMeasurementStdDevs) {
+        try {
+            // since the pose estimator is used by another thread, we need to lock it to be
+            // able to add a vision measurement
+            stateLock.writeLock().lock();
+            poseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds, visionMeasurementStdDevs);
+        } finally {
+            stateLock.writeLock().unlock();
+        }
+
+    }
+
+    /**
+     * Adds a precise vision measurement to the pose estimator. Used by a vision
+     * subsystem.
+     * 
+     * @param visionRobotPoseMeters    the estimated robot pose from vision
+     * @param timestampSeconds         the timestamp of the vision measurement
+     * @param visionMeasurementStdDevs the standard deviations of the measurement
+     */
+    public void addPreciseVisionMeasurement(Pose2d visionRobotPoseMeters, double timestampSeconds,
+            Matrix<N3, N1> visionMeasurementStdDevs) {
+        try {
+            // since the pose estimator is used by another thread, we need to lock it to be
+            // able to add a vision measurement
+            stateLock.writeLock().lock();
+            precisePoseEstimator.addVisionMeasurement(visionRobotPoseMeters, timestampSeconds,
+                    visionMeasurementStdDevs);
+        } finally {
+            stateLock.writeLock().unlock();
+        }
     }
 }
