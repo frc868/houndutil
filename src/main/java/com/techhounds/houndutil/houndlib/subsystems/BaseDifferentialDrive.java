@@ -3,8 +3,8 @@ package com.techhounds.houndutil.houndlib.subsystems;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.techhounds.houndutil.houndlib.MotorHoldMode;
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -105,9 +105,9 @@ public interface BaseDifferentialDrive {
     /**
      * Sets the motors into either brake or coast mode.
      * 
-     * @param motorHoldMode the MotorHoldMode to set the motors to
+     * @param neutralMode the NeutralModeValue to set the motors to
      */
-    public void setMotorHoldModes(MotorHoldMode motorHoldMode);
+    public void setMotorNeutralModes(NeutralModeValue neutralMode);
 
     /**
      * Sets the stator current limit on each motor. Useful for a temporary

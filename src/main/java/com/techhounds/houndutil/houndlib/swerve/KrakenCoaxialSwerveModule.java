@@ -18,7 +18,6 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
-import com.techhounds.houndutil.houndlib.MotorHoldMode;
 import com.techhounds.houndutil.houndlog.SignalManager;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
@@ -402,17 +401,15 @@ public class KrakenCoaxialSwerveModule {
         return new SwerveModuleState(getDriveMotorVelocity() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE, getWheelAngle());
     }
 
-    public void setMotorHoldMode(MotorHoldMode motorHoldMode) {
+    public void setMotorNeutralMode(NeutralModeValue neutralMode) {
         MotorOutputConfigs driveConfigs = new MotorOutputConfigs();
         driveMotor.getConfigurator().refresh(driveConfigs);
-        driveConfigs.NeutralMode = motorHoldMode == MotorHoldMode.BRAKE ? NeutralModeValue.Brake
-                : NeutralModeValue.Coast;
+        driveConfigs.NeutralMode = neutralMode;
         driveMotor.getConfigurator().apply(driveConfigs);
 
         MotorOutputConfigs steerConfigs = new MotorOutputConfigs();
         steerMotor.getConfigurator().refresh(steerConfigs);
-        steerConfigs.NeutralMode = motorHoldMode == MotorHoldMode.BRAKE ? NeutralModeValue.Brake
-                : NeutralModeValue.Coast;
+        steerConfigs.NeutralMode = neutralMode;
         steerMotor.getConfigurator().apply(steerConfigs);
     }
 

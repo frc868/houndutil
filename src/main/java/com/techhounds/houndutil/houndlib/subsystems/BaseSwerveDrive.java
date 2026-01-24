@@ -3,9 +3,9 @@ package com.techhounds.houndutil.houndlib.subsystems;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.techhounds.houndutil.houndlib.MotorHoldMode;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -71,148 +71,6 @@ public interface BaseSwerveDrive {
         ROBOT_RELATIVE,
         FIELD_ORIENTED
     }
-
-    /**
-     * Gets the currently set drive mode.
-     * 
-     * @return the drive mode
-     */
-    public DriveMode getDriveMode();
-
-    /**
-     * Gets the current (estimated) pose of the chassis, with respect to the origin.
-     * 
-     * @return the pose of the chassis
-     */
-    public Pose2d getPose();
-
-    /**
-     * Gets the current rotation of the chassis, with respect to the origin.
-     * 
-     * @return the rotation of the chassis, as a Rotation2d
-     */
-    public Rotation2d getRotation();
-
-    /**
-     * Gets an array containing the distance travelled and the azimuth angle for
-     * each swerve module. Used mainly for odometry.
-     * 
-     * @return the array of SwerveModulePositions
-     */
-    public SwerveModulePosition[] getModulePositions();
-
-    /**
-     * Gets an array containing the current velocity and the azimuth angle for
-     * each swerve module.
-     * 
-     * @return the array of SwerveModuleStates
-     */
-    public SwerveModuleState[] getModuleStates();
-
-    /**
-     * Gets the current <i>robot-relative</i> velocity of the chassis as a whole,
-     * dependent on the states of the swerve modules.
-     * 
-     * @return the velocity of the chassis, as a ChassisSpeeds
-     */
-    public ChassisSpeeds getChassisSpeeds();
-
-    /**
-     * Gets the pose estimator object for fusing latency-compensated vision
-     * measurements with odometry data.
-     * 
-     * @return the SwerveDrivePoseEstimator object.
-     */
-    public SwerveDrivePoseEstimator getPoseEstimator();
-
-    /**
-     * Updates the pose estimator with odometry data.
-     */
-    public void updatePoseEstimator();
-
-    /**
-     * Resets the pose estimator to a specific position on the field. Useful for
-     * known starting locations before the autonomous period.
-     * 
-     * @param pose the pose to reset the chassis position to
-     */
-    public void resetPoseEstimator(Pose2d pose);
-
-    /**
-     * Resets the gyro such that the chassis is facing forward with respect to the
-     * origin.
-     */
-    public void resetGyro();
-
-    /**
-     * Sets the motors on the swerve modules into either brake or coast mode.
-     * 
-     * @param motorHoldMode the MotorHoldMode to set the motors in each swerve
-     *                      module to
-     */
-    public void setMotorHoldModes(MotorHoldMode motorHoldMode);
-
-    /**
-     * Sets the stator current limit on each swerve module. Useful for a temporary
-     * high-power mode.
-     * 
-     * @param currentLimit the stator current limit to set, in amps
-     */
-    public void setDriveCurrentLimit(int currentLimit);
-
-    /**
-     * Stops all swerve modules.
-     */
-    public void stop();
-
-    /**
-     * Sets the state (velocity and azimuth angle) of each swerve module, without
-     * closed-loop velocity control.
-     * 
-     * @apiNote use for standard tele-operated driving
-     * @param state an array of SwerveModuleStates to set the modules to
-     */
-    public void setStates(SwerveModuleState[] state);
-
-    /**
-     * Sets the state (velocity and azimuth angle) of each swerve module, with
-     * closed-loop velocity control.
-     * 
-     * @apiNote use for trajectory following
-     * @param state an array of SwerveModuleStates to set the modules to
-     */
-    public void setStatesClosedLoop(SwerveModuleState[] state);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds.
-     * Uses the currently set DriveMode.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds the ChassisSpeeds to use to drive the swerve modules
-     */
-    public void drive(ChassisSpeeds speeds);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
-     * @param driveMode the DriveMode to use for the chassis' reference point
-     */
-    public void drive(ChassisSpeeds speeds, DriveMode driveMode);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds,
-     * with closed-loop velocity control.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
-     * @param driveMode the DriveMode to use for the chassis' reference point
-     */
-    public void driveClosedLoop(ChassisSpeeds speeds, DriveMode driveMode);
 
     /**
      * Creates a command that moves the chassis given x, y, and theta speeds.

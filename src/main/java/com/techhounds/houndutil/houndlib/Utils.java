@@ -136,11 +136,4 @@ public class Utils {
     public static boolean shouldFlipValueToRed() {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
     }
-
-    public static DCMotor getKrakenX44(int numMotors) {
-        // From
-        // https://docs.wcproducts.com/welcome/electronics/kraken-x44/kraken-x44-motor/overview-and-features/motor-performance
-        return new DCMotor(
-                12, 4.05, 275, 1.4, Units.rotationsPerMinuteToRadiansPerSecond(7530), numMotors);
-    }
 }
