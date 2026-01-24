@@ -14,6 +14,7 @@ import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.pathplanner.lib.util.DriveFeedforwards;
 import com.techhounds.houndutil.houndlib.Utils;
 import com.techhounds.houndutil.houndlib.subsystems.BaseSwerveDrive.DriveMode;
 import com.techhounds.houndutil.houndlib.swerve.KrakenCoaxialSwerveModule.SwerveConstants;
@@ -621,6 +622,12 @@ public class KrakenSwerveDrive {
         setStates(states);
     }
 
+
+    public void driveClosedLoop(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
+        // TODO implement
+        driveClosedLoop(speeds, DriveMode.ROBOT_RELATIVE);
+    }
+    
     /**
      * Sets the states of the swerve modules to accomplish the given chassis speeds,
      * with closed-loop velocity control.
