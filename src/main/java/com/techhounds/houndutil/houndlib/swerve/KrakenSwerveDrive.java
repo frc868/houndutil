@@ -9,7 +9,9 @@ import static edu.wpi.first.units.Units.Volts;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
+import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.Orchestra;
+import com.ctre.phoenix6.StatusCode;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.techhounds.houndutil.houndlib.Utils;
@@ -19,6 +21,8 @@ import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
+import edu.wpi.first.math.filter.LinearFilter;
+import edu.wpi.first.math.filter.MedianFilter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -33,6 +37,8 @@ import edu.wpi.first.units.measure.MutLinearVelocity;
 import edu.wpi.first.units.measure.MutVoltage;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.Threads;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -78,11 +84,19 @@ public class KrakenSwerveDrive {
 
     private final SysIdRoutine sysIdSteer;
 
+    private final int odometryThreadPriority;
+    private double averageOdometryLoopTime = 0;
+    @Log(groups = "odometry")
+    // DAQ = data acquisition, from CTRE's odometry thread
+    private int successfulDaqs = 0;
+    @Log(groups = "odometry")
+    private int failedDaqs = 0;
+
     public KrakenSwerveDrive(KrakenCoaxialSwerveModule frontLeft, KrakenCoaxialSwerveModule frontRight,
             KrakenCoaxialSwerveModule backLeft, KrakenCoaxialSwerveModule backRight, Pigeon2 pigeon,
             DriveMode driveMode, SwerveDrivePoseEstimator poseEstimator, SwerveDrivePoseEstimator precisePoseEstimator,
             SwerveDriveKinematics kinematics, SwerveConstants constants, Subsystem subsystem,
-            SysIdRoutine.Config sysIdConfigDrive, SysIdRoutine.Config sysIdConfigSteer) {
+            SysIdRoutine.Config sysIdConfigDrive, SysIdRoutine.Config sysIdConfigSteer, int odometryThreadPriority) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
         this.backLeft = backLeft;
@@ -98,6 +112,8 @@ public class KrakenSwerveDrive {
         this.kinematics = kinematics;
 
         this.constants = constants;
+
+        this.odometryThreadPriority = odometryThreadPriority;
 
         if (RobotBase.isSimulation()) {
             simOdometry = new SwerveDriveOdometry(kinematics, getRotation(), getModulePositions(), new Pose2d());
@@ -194,6 +210,166 @@ public class KrakenSwerveDrive {
                                             .mut_replace(backRight.getSteerMotorVelocity(), RotationsPerSecond));
                         },
                         subsystem));
+    }
+
+    /**
+     * Thread enabling 250Hz odometry. Optimized from CTRE's internal swerve code.
+     * 250Hz odometry reduces discretization error in the odometry loop, and
+     * significantly improves odometry during high speed maneuvers.
+     */
+    public class OdometryThread {
+        // Testing shows 1 (minimum realtime) is sufficient for tighter odometry loops.
+        // If the odometry period is far away from the desired frequency, increasing
+        // the priority may help
+
+        private final Thread m_thread;
+        private volatile boolean m_running = false;
+
+        private final BaseStatusSignal[] allSignals;
+
+        private final MedianFilter peakRemover = new MedianFilter(3);
+        private final LinearFilter lowPass = LinearFilter.movingAverage(50);
+        private double lastTime = 0;
+        private double currentTime = 0;
+
+        private KrakenCoaxialSwerveModule[] modules = new KrakenCoaxialSwerveModule[] {
+                frontLeft, frontRight, backLeft, backRight };
+        private SwerveModulePosition[] modulePositions = new SwerveModulePosition[4];
+
+        private int lastThreadPriority = odometryThreadPriority;
+        private volatile int threadPriorityToSet = odometryThreadPriority;
+        private final int UPDATE_FREQUENCY = 250;
+
+        public OdometryThread() {
+            m_thread = new Thread(this::run);
+            /*
+             * Mark this thread as a "daemon" (background) thread
+             * so it doesn't hold up program shutdown
+             */
+            m_thread.setDaemon(true);
+
+            /* 4 signals for each module + 2 for Pigeon2 */
+
+            allSignals = new BaseStatusSignal[(4 * 4) + 2];
+            for (int i = 0; i < 4; ++i) {
+                BaseStatusSignal[] signals = modules[i].getSignals();
+                allSignals[(i * 4) + 0] = signals[0];
+                allSignals[(i * 4) + 1] = signals[1];
+                allSignals[(i * 4) + 2] = signals[2];
+                allSignals[(i * 4) + 3] = signals[3];
+            }
+            allSignals[allSignals.length - 2] = pigeon.getYaw();
+            allSignals[allSignals.length - 1] = pigeon.getAngularVelocityZWorld();
+        }
+
+        /**
+         * Starts the odometry thread.
+         */
+        public void start() {
+            m_running = true;
+            m_thread.start();
+        }
+
+        /**
+         * Stops the odometry thread.
+         */
+        public void stop() {
+            stop(0);
+        }
+
+        /**
+         * Stops the odometry thread with a timeout.
+         *
+         * @param millis The time to wait in milliseconds
+         */
+        public void stop(long millis) {
+            m_running = false;
+            try {
+                m_thread.join(millis);
+            } catch (final InterruptedException ex) {
+                Thread.currentThread().interrupt();
+            }
+        }
+
+        public void run() {
+            /* Make sure all signals update at the correct update frequency */
+            BaseStatusSignal.setUpdateFrequencyForAll(UPDATE_FREQUENCY, allSignals);
+            Threads.setCurrentThreadPriority(true, odometryThreadPriority);
+
+            /* Run as fast as possible, our signals will control the timing */
+            while (m_running) {
+                /* Synchronously wait for all signals in drivetrain */
+                /* Wait up to twice the period of the update frequency */
+                StatusCode status;
+                status = BaseStatusSignal.waitForAll(2.0 / UPDATE_FREQUENCY, allSignals);
+
+                try {
+                    stateLock.writeLock().lock();
+
+                    lastTime = currentTime;
+                    currentTime = RobotController.getFPGATime();
+                    /*
+                     * We don't care about the peaks, as they correspond to GC events, and we want
+                     * the period generally low passed
+                     */
+                    averageOdometryLoopTime = lowPass.calculate(peakRemover.calculate((currentTime - lastTime) / 1000));
+
+                    /* Get status of first element */
+                    if (status.isOK()) {
+                        successfulDaqs++;
+                    } else {
+                        failedDaqs++;
+                    }
+
+                    /* Now update odometry */
+                    /* Keep track of the change in azimuth rotations */
+                    for (int i = 0; i < 4; ++i) {
+                        modulePositions[i] = modules[i].getPosition();
+                    }
+                    double yawDegrees = BaseStatusSignal.getLatencyCompensatedValue(
+                            pigeon.getYaw(), pigeon.getAngularVelocityZWorld()).magnitude();
+
+                    /* Keep track of previous and current pose to account for the carpet vector */
+                    poseEstimator.update(Rotation2d.fromDegrees(yawDegrees), modulePositions);
+                    precisePoseEstimator.update(Rotation2d.fromDegrees(yawDegrees),
+                            modulePositions);
+                    if (RobotBase.isSimulation()) {
+                        simOdometry.update(Rotation2d.fromDegrees(yawDegrees), modulePositions);
+                    }
+                } finally {
+                    stateLock.writeLock().unlock();
+                }
+
+                /**
+                 * This is inherently synchronous, since lastThreadPriority
+                 * is only written here and threadPriorityToSet is only read here
+                 */
+                if (threadPriorityToSet != lastThreadPriority) {
+                    Threads.setCurrentThreadPriority(true, threadPriorityToSet);
+                    lastThreadPriority = threadPriorityToSet;
+                }
+            }
+        }
+
+        /**
+         * Sets the DAQ thread priority to a real time priority under the specified
+         * priority level
+         *
+         * @param priority Priority level to set the DAQ thread to.
+         *                 This is a value between 0 and 99, with 99 indicating higher
+         *                 priority and 0 indicating lower priority.
+         */
+        public void setThreadPriority(int priority) {
+            threadPriorityToSet = priority;
+        }
+    }
+
+    /**
+     * Gets the average time taken for each odometry loop, in seconds.
+     * @return the average odometry loop time
+     */
+    public double getOdometryLoopTime() {
+        return averageOdometryLoopTime;
     }
 
     /**
