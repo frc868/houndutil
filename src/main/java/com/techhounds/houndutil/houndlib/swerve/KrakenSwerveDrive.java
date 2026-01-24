@@ -100,8 +100,7 @@ public class KrakenSwerveDrive {
 
     public KrakenSwerveDrive(KrakenCoaxialSwerveModule frontLeft, KrakenCoaxialSwerveModule frontRight,
             KrakenCoaxialSwerveModule backLeft, KrakenCoaxialSwerveModule backRight, Pigeon2 pigeon,
-            DriveMode driveMode, SwerveDrivePoseEstimator poseEstimator, SwerveDrivePoseEstimator precisePoseEstimator,
-            SwerveDriveKinematics kinematics, SwerveConstants constants, Subsystem subsystem,
+            DriveMode driveMode, SwerveDriveKinematics kinematics, SwerveConstants constants, Subsystem subsystem,
             SysIdRoutine.Config sysIdConfigDrive, SysIdRoutine.Config sysIdConfigSteer, int odometryThreadPriority) {
         this.frontLeft = frontLeft;
         this.frontRight = frontRight;
@@ -112,8 +111,16 @@ public class KrakenSwerveDrive {
 
         this.driveMode = driveMode;
 
-        this.poseEstimator = poseEstimator;
-        this.precisePoseEstimator = precisePoseEstimator;
+        poseEstimator = new SwerveDrivePoseEstimator(
+                kinematics,
+                getRotation(),
+                getModulePositions(),
+                new Pose2d(0, 0, Rotation2d.kZero));
+        precisePoseEstimator = new SwerveDrivePoseEstimator(
+                kinematics,
+                getRotation(),
+                getModulePositions(),
+                new Pose2d(0, 0, Rotation2d.kZero));
 
         this.kinematics = kinematics;
 
@@ -375,6 +382,7 @@ public class KrakenSwerveDrive {
 
     /**
      * Gets the average time taken for each odometry loop, in seconds.
+     * 
      * @return the average odometry loop time
      */
     public double getOdometryLoopTime() {
@@ -622,7 +630,6 @@ public class KrakenSwerveDrive {
         commandedModuleStates = states;
         setStates(states);
     }
-
 
     public void driveClosedLoop(ChassisSpeeds speeds, DriveFeedforwards feedforwards) {
         // TODO implement
