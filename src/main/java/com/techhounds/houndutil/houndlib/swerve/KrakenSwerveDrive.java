@@ -769,4 +769,11 @@ public class KrakenSwerveDrive {
     public Angle getRawYaw() {
         return pigeon.getYaw().getValue();
     }
+
+    public Pose2d getSimPose() {
+        if (simOdometry != null)
+            return simOdometry.getPoseMeters();
+        else
+            return new Pose2d();
+    }
 }
