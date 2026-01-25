@@ -34,6 +34,7 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
@@ -763,5 +764,9 @@ public class KrakenSwerveDrive {
         if (RobotBase.isSimulation())
             field.getObject("simPose").setPose(simOdometry.getPoseMeters());
         field.getObject("precisePose").setPose(precisePoseEstimator.getEstimatedPosition());
+    }
+
+    public Angle getRawYaw() {
+        return pigeon.getYaw().getValue();
     }
 }
