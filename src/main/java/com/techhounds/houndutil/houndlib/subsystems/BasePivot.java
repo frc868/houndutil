@@ -9,8 +9,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * Base scaffolding for an single-jointed pivot mechanism. Should use PID or
  * profiled PID
- * control to move between setpoints or to an arbitrary position. Use SI units
- * (for pivoting mechanisms, the most common SI unit is radians).
+ * control to move between setpoints or to an arbitrary position.
  * <p>
  * To use, implement {@code BaseSingleJointedPivot<MechanismPosition>}, where
  * {@code MechanismPosition} is an enum with the various setpoints that can be

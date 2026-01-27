@@ -18,8 +18,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * Base scaffolding for a differential drivetrain. Intended to support pose
  * estimation, open and closed-loop driving, trajectory following, and
- * lower-level manual control modes. Use SI units throughout (for distance, use
- * meters, for velocity, use meters/sec, for rotation, use radians).
+ * lower-level manual control modes.
  */
 public interface BaseDifferentialDrive {
     /**

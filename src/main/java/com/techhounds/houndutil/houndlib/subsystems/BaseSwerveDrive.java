@@ -14,9 +14,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 /**
  * Base scaffolding for a swerve drivetrain. Intended to support pose
  * estimation, open and closed-loop driving, trajectory following, and
- * lower-level manual control modes. Use SI units throughout (for distance, use
- * meters, for velocity, use meters/sec, and for the azimuth of the wheels, use
- * radians).
+ * lower-level manual control modes.
  * 
  * <br>
  * </br>
