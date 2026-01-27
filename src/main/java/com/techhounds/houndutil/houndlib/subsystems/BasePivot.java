@@ -2,6 +2,8 @@ package com.techhounds.houndutil.houndlib.subsystems;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
@@ -31,9 +33,9 @@ public interface BasePivot<T extends Enum<T>> {
      * <p>
      * Note that this calibration is not necessary if the mechanism is horizontal.
      * 
-     * @return the position of the mechanism, in meters
+     * @return the position of the mechanism as an angle
      */
-    double getPosition();
+    Angle getPosition();
 
     /**
      * Resets the position of the mechanism to a specific value (this should be the
@@ -47,7 +49,7 @@ public interface BasePivot<T extends Enum<T>> {
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
-    void setVoltage(double voltage);
+    void setVoltage(Voltage voltage);
 
     /**
      * Creates a command that continuously applies voltage to the motor controllers
@@ -76,10 +78,10 @@ public interface BasePivot<T extends Enum<T>> {
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
      * 
-     * @param goalPositionSupplier a supplier of a position to move to, in meters
+     * @param goalPositionSupplier a supplier of a position to move to
      * @return the command
      */
-    public Command moveToArbitraryPositionCommand(Supplier<Double> goalPositionSupplier);
+    public Command moveToArbitraryPositionCommand(Supplier<Angle> goalPositionSupplier);
 
     /**
      * Creates a command that sets the current goal position to the setpoint plus
@@ -89,10 +91,10 @@ public interface BasePivot<T extends Enum<T>> {
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
      * 
-     * @param delta a supplier of a delta to move, in radians
+     * @param delta a supplier of a delta to move
      * @return the command
      */
-    public Command movePositionDeltaCommand(Supplier<Double> delta);
+    public Command movePositionDeltaCommand(Supplier<Angle> delta);
 
     /**
      * Creates a command that sets the goal to the current position, and moves to
