@@ -112,31 +112,32 @@ public class KrakenCoaxialSwerveModule {
         /**
          * Multiplier to convert steer motor rotations to the overall rotation of the
          * wheel.
+         * 
          * Typically 2 * Math.PI / STEER_GEARING.
          */
         public double STEER_ENCODER_ROTATIONS_TO_RADIANS;
         /**
-         * The circumference of the wheel, in meters. This is the radius of the wheel *
-         * 2pi. This is best determined experimentally, as different wheel types
-         * compress differently and produce different effective wheel radii. You should
-         * update this value relatively often, as wheel wear will reduce the effective
-         * wheel radius, which is used for positional control.
+         * The circumference of the wheel. This is the radius of the wheel * 2pi. This
+         * is best determined experimentally, as different wheel types compress
+         * differently and produce different effective wheel radii. You should update
+         * this value relatively often, as wheel wear will reduce the effective wheel
+         * radius, which is used for positional control.
          */
         public Distance WHEEL_CIRCUMFERENCE;
 
         /**
-         * The maximum velocity of the edge of the wheel in meters per second. This can
-         * be determined theoretically based on the maximum RPM of the motor and the
-         * gear ratio, but it is recommended to determine this empirically as the
-         * effective maximum velocity will be slightly lower.
+         * The maximum velocity of the edge of the wheel. This can be determined
+         * theoretically based on the maximum RPM of the motor and the gear ratio, but
+         * it is recommended to determine this empirically as the effective maximum
+         * velocity will be slightly lower.
          * 
          * <p>
          * This is effectively the maximum velocity of the robot.
          */
         public LinearVelocity MAX_DRIVING_VELOCITY;
         /**
-         * The maximum acceleration of the edge of the wheel in meters per second per
-         * second. This should be determined empirically.
+         * The maximum acceleration of the edge of the wheel. This should be determined
+         * empirically.
          * 
          * <p>
          * This is effectively the maximum acceleration of the robot.
@@ -308,16 +309,19 @@ public class KrakenCoaxialSwerveModule {
         steerConfig.Slot0.kA = SWERVE_CONSTANTS.STEER_kA;
         steerConfig.MotionMagic.MotionMagicCruiseVelocity = SWERVE_CONSTANTS.MAX_STEER_VELOCITY.in(RadiansPerSecond)
                 / (2 * Math.PI);
-        steerConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_STEER_ACCELERATION.in(RadiansPerSecondPerSecond)
+        steerConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_STEER_ACCELERATION
+                .in(RadiansPerSecondPerSecond)
                 / (2 * Math.PI);
         steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
         steerConfigurator.apply(steerConfig);
 
         driveMotorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
-                SWERVE_CONSTANTS.DRIVE_MOI.in(KilogramSquareMeters), SWERVE_CONSTANTS.DRIVE_GEARING), SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR);
+                SWERVE_CONSTANTS.DRIVE_MOI.in(KilogramSquareMeters), SWERVE_CONSTANTS.DRIVE_GEARING),
+                SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR);
 
         steerMotorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(SWERVE_CONSTANTS.STEER_GEARBOX_REPR,
-                SWERVE_CONSTANTS.STEER_MOI.in(KilogramSquareMeters), SWERVE_CONSTANTS.STEER_GEARING), SWERVE_CONSTANTS.STEER_GEARBOX_REPR);
+                SWERVE_CONSTANTS.STEER_MOI.in(KilogramSquareMeters), SWERVE_CONSTANTS.STEER_GEARING),
+                SWERVE_CONSTANTS.STEER_GEARBOX_REPR);
 
         drivePosition = driveMotor.getPosition();
         driveVelocity = driveMotor.getVelocity();
@@ -411,7 +415,8 @@ public class KrakenCoaxialSwerveModule {
 
     @Log
     public SwerveModuleState getState() {
-        return new SwerveModuleState(getDriveMotorVelocity() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE.in(Meters), getWheelAngle());
+        return new SwerveModuleState(getDriveMotorVelocity() * SWERVE_CONSTANTS.WHEEL_CIRCUMFERENCE.in(Meters),
+                getWheelAngle());
     }
 
     public void setMotorNeutralMode(NeutralModeValue neutralMode) {
