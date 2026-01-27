@@ -12,6 +12,7 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
@@ -179,7 +180,7 @@ public interface BaseDifferentialDrive {
      * @param currentLimit the stator current limit to set, in amps
      * @return the command
      */
-    public Command setCurrentLimitCommand(int currentLimit);
+    public Command setCurrentLimitCommand(Current currentLimit);
 
     /**
      * Creates a command stops all motors and sets them to coast mode, to allow for
