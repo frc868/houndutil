@@ -147,7 +147,7 @@ public class KrakenSwerveDrive {
                 new SysIdRoutine.Mechanism(
                         (Voltage volts) -> {
                             drive(new ChassisSpeeds(
-                                    constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * volts.magnitude() / 12.0,
+                                    constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond) * volts.magnitude() / 12.0,
                                     0,
                                     0));
                         },
@@ -188,7 +188,7 @@ public class KrakenSwerveDrive {
                 new SysIdRoutine.Mechanism(
                         (Voltage volts) -> {
                             drive(new ChassisSpeeds(
-                                    constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND * volts.magnitude() /
+                                    constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond) * volts.magnitude() /
                                             12.0,
                                     0,
                                     0));
@@ -621,7 +621,7 @@ public class KrakenSwerveDrive {
         adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, 0.02);
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(adjustedChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states,
-                constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND);
+                constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond));
 
         states[0].optimize(frontLeft.getWheelAngle());
         states[1].optimize(frontRight.getWheelAngle());
@@ -667,7 +667,7 @@ public class KrakenSwerveDrive {
         adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, 0.02);
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(adjustedChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states,
-                constants.MAX_DRIVING_VELOCITY_METERS_PER_SECOND);
+                constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond));
 
         states[0].optimize(frontLeft.getWheelAngle());
         states[1].optimize(frontRight.getWheelAngle());
