@@ -140,7 +140,9 @@ public class KrakenCoaxialSwerveModule {
         public double MAX_STEER_VELOCITY_RADIANS_PER_SECOND;
         /**
          * The maximum rotational acceleration of the azimuth of the wheel. This can be
-         * determined
+         * determined theoretically based on the stall torque of the motor and the
+         * steering gear ratio, but it is recommended to determine this empirically as
+         * the effective maximum acceleration will be slightly lower.
          */
         public double MAX_STEER_ACCELERATION_RADIANS_PER_SECOND_SQUARED;
 
@@ -172,12 +174,12 @@ public class KrakenCoaxialSwerveModule {
         public DCMotor STEER_GEARBOX_REPR;
 
         /**
-         * The moment of inertia of the drive motor in kg*m/s^2. Used for simulation. If
+         * The moment of inertia of the drive motor in kg*m^2. Used for simulation. If
          * you are unsure, use 0.01.
          */
         public double DRIVE_MOI;
         /**
-         * The moment of inertia of the steer motor in kg*m/s^2. Used for simulation. If
+         * The moment of inertia of the steer motor in kg*m^2. Used for simulation. If
          * you are unsure, use 0.025.
          */
         public double STEER_MOI;
