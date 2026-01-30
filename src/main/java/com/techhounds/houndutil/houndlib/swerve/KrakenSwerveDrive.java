@@ -50,48 +50,79 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 @LoggedObject
 public class KrakenSwerveDrive {
+    /** The front left swerve module. */
     private final KrakenCoaxialSwerveModule frontLeft;
+    /** The front right swerve module. */
     private final KrakenCoaxialSwerveModule frontRight;
+    /** The back left swerve module. */
     private final KrakenCoaxialSwerveModule backLeft;
+    /** The back right swerve module. */
     private final KrakenCoaxialSwerveModule backRight;
+
+    /** The Pigeon 2.0 gyroscope, accelerometer, and magnetometer. */
     private final Pigeon2 pigeon;
+
+    /** The currently set DriveMode of the chassis. */
     private final DriveMode driveMode;
+
+    /** The pose estimator for the swerve drive. */
     private final SwerveDrivePoseEstimator poseEstimator;
+    /** The precise pose estimator for the swerve drive. */
     private final SwerveDrivePoseEstimator precisePoseEstimator;
+
+    /** The kinematics constants for the swerve drive. */
     private final SwerveDriveKinematics kinematics;
+
+    /** The orchestra for playing music through the motors. */
     private final Orchestra orchestra = new Orchestra();
 
+    /** Lock for accessing the pose estimator from multiple threads. */
     private final ReadWriteLock stateLock = new ReentrantReadWriteLock();
+    /** The odometry thread for 250Hz odometry updates. */
     private final OdometryThread odometryThread;
 
+    /** The simulation odometry, for simulation only. */
     private SwerveDriveOdometry simOdometry;
 
+    /**
+     * Whether the drivetrain has been initialized. Instantly true in sim, true only
+     * after gyro reset otherwise.
+     */
     private boolean initialized = RobotBase.isSimulation();
 
+    /** The constants for the swerve drive. */
     private final SwerveConstants constants;
 
+    /** The last commanded chassis speeds. */
     @Log(groups = "control")
     private ChassisSpeeds commandedChassisSpeeds = new ChassisSpeeds();
+    /** The adjusted chassis speeds after applying the drive mode. */
     @Log(groups = "control")
     private ChassisSpeeds adjustedChassisSpeeds = new ChassisSpeeds();
 
+    /** The last commanded module states. */
     @Log(groups = "control")
     private SwerveModuleState[] commandedModuleStates = new SwerveModuleState[] { new SwerveModuleState(),
             new SwerveModuleState(), new SwerveModuleState(), new SwerveModuleState() };
 
+    // SysId measurement variables
     private final MutVoltage sysidDriveAppliedVoltageMeasure = Volts.mutable(0);
     private final MutDistance sysidDrivePositionMeasure = Meters.mutable(0);
     private final MutLinearVelocity sysidDriveVelocityMeasure = MetersPerSecond.mutable(0);
-
+    /** The sysid routine for the drive motors */
     private final SysIdRoutine sysIdDrive;
 
+    // SysId measurement variables
     private final MutVoltage sysidSteerAppliedVoltageMeasure = Volts.mutable(0);
     private final MutAngle sysidSteerPositionMeasure = Rotations.mutable(0);
     private final MutAngularVelocity sysidSteerVelocityMeasure = RotationsPerSecond.mutable(0);
-
+    /** The sysid routine for the steer motors */
     private final SysIdRoutine sysIdSteer;
 
+    /** The priority for the odometry thread. */
     private final int odometryThreadPriority;
+
+    /** The average time spent in the odometry loop. */
     private double averageOdometryLoopTime = 0;
     @Log(groups = "odometry")
     // DAQ = data acquisition, from CTRE's odometry thread
@@ -99,6 +130,27 @@ public class KrakenSwerveDrive {
     @Log(groups = "odometry")
     private int failedDaqs = 0;
 
+    /**
+     * Initializes a swerve drive of KrakenCoaxialSwerveModules.
+     * 
+     * @param frontLeft              the front left swerve module
+     * @param frontRight             the front right swerve module
+     * @param backLeft               the back left swerve module
+     * @param backRight              the back right swerve module
+     * @param pigeon                 the Pigeon 2.0
+     *                               gyroscope/accelerometer/magnetometer
+     * @param driveMode              the DriveMode
+     * @param kinematics             the SwerveDriveKinematics
+     * @param constants              the SwerveConstants
+     * @param subsystem              the Subsystem this swerve drive belongs to
+     * @param sysIdConfigDrive       the SysId config for the drive motors
+     * @param sysIdConfigSteer       the SysId config for the steer motors
+     * @param odometryThreadPriority the priority for the odometry thread, with 1
+     *                               being the minimum and sufficient for tighter
+     *                               odometry loops, and numbers above being used in
+     *                               case the odometry period is far away from the
+     *                               desired frequency
+     */
     public KrakenSwerveDrive(KrakenCoaxialSwerveModule frontLeft, KrakenCoaxialSwerveModule frontRight,
             KrakenCoaxialSwerveModule backLeft, KrakenCoaxialSwerveModule backRight, Pigeon2 pigeon,
             DriveMode driveMode, SwerveDriveKinematics kinematics, SwerveConstants constants, Subsystem subsystem,
@@ -409,6 +461,12 @@ public class KrakenSwerveDrive {
         return poseEstimator.getEstimatedPosition();
     }
 
+    /**
+     * Gets the current (estimated) precise pose of the chassis, with respect to the
+     * origin.
+     * 
+     * @return the precise pose of the chassis
+     */
     @Log
     public Pose2d getPrecisePose() {
         return precisePoseEstimator.getEstimatedPosition();
@@ -705,6 +763,11 @@ public class KrakenSwerveDrive {
         return sysIdSteer;
     }
 
+    /**
+     * Use the current module states to get the field-relative speeds of the robot.
+     * 
+     * @return the field-relative chassis speeds
+     */
     @Log(groups = "control")
     public ChassisSpeeds getFieldRelativeSpeeds() {
         return ChassisSpeeds.fromRobotRelativeSpeeds(kinematics.toChassisSpeeds(getModuleStates()), getRotation());
@@ -766,10 +829,20 @@ public class KrakenSwerveDrive {
         field.getObject("precisePose").setPose(precisePoseEstimator.getEstimatedPosition());
     }
 
+    /**
+     * Get the yaw of the Pigeon's gyro.
+     * 
+     * @return the yaw as an Angle
+     */
     public Angle getRawYaw() {
         return pigeon.getYaw().getValue();
     }
 
+    /**
+     * Gets the simulated pose of the robot. Only works in simulation.
+     * 
+     * @return the simulated pose
+     */
     public Pose2d getSimPose() {
         if (simOdometry != null)
             return simOdometry.getPoseMeters();
