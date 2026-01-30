@@ -236,9 +236,9 @@ public class KrakenCoaxialSwerveModule {
     /**
      * Initalizes a SwerveModule.
      *
-     * @param driveMotorChannel     the CAN ID of the drive motor
-     * @param steerMotorChannel     the CAN ID of the turning motor
-     * @param canCoderChannel       the CAN ID of the CANCoder
+     * @param driveMotorId          the CAN ID of the drive motor
+     * @param steerMotorId          the CAN ID of the turning motor
+     * @param canCoderId            the CAN ID of the CANCoder
      * @param driveMotorInverted    if the drive motor is inverted
      * @param steerMotorInverted    if the steer motor is inverted
      * @param steerCanCoderInverted if the steer encoder is inverted
@@ -247,9 +247,9 @@ public class KrakenCoaxialSwerveModule {
      *                              +x direction
      */
     public KrakenCoaxialSwerveModule(
-            int driveMotorChannel,
-            int steerMotorChannel,
-            int canCoderChannel,
+            int driveMotorId,
+            int steerMotorId,
+            int canCoderId,
             String canBus,
             boolean driveMotorInverted,
             boolean steerMotorInverted,
@@ -258,7 +258,7 @@ public class KrakenCoaxialSwerveModule {
             SwerveConstants swerveConstants) {
         this.SWERVE_CONSTANTS = swerveConstants;
 
-        driveMotor = new TalonFX(driveMotorChannel, canBus);
+        driveMotor = new TalonFX(driveMotorId, canBus);
         TalonFXConfigurator driveConfigurator = driveMotor.getConfigurator();
         TalonFXConfiguration driveConfig = new TalonFXConfiguration();
         driveConfig.MotorOutput.Inverted = driveMotorInverted ? InvertedValue.Clockwise_Positive
@@ -277,7 +277,7 @@ public class KrakenCoaxialSwerveModule {
         driveConfig.Slot0.kD = SWERVE_CONSTANTS.DRIVE_kD;
         driveConfigurator.apply(driveConfig);
 
-        steerCanCoder = new CANcoder(canCoderChannel, canBus);
+        steerCanCoder = new CANcoder(canCoderId, canBus);
         MagnetSensorConfigs config = new MagnetSensorConfigs();
         config.SensorDirection = steerCanCoderInverted ? SensorDirectionValue.Clockwise_Positive
                 : SensorDirectionValue.CounterClockwise_Positive;
@@ -285,7 +285,7 @@ public class KrakenCoaxialSwerveModule {
         config.MagnetOffset = steerCanCoderOffset.in(Rotations);
         steerCanCoder.getConfigurator().apply(config);
 
-        steerMotor = new TalonFX(steerMotorChannel, canBus);
+        steerMotor = new TalonFX(steerMotorId, canBus);
         TalonFXConfigurator steerConfigurator = steerMotor.getConfigurator();
         TalonFXConfiguration steerConfig = new TalonFXConfiguration();
         steerConfig.MotorOutput.Inverted = steerMotorInverted ? InvertedValue.Clockwise_Positive
