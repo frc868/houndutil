@@ -236,14 +236,13 @@ public class KrakenCoaxialSwerveModule {
     /**
      * Initalizes a SwerveModule.
      *
-     * @param name                  the name of the module (used for logging)
      * @param driveMotorChannel     the CAN ID of the drive motor
      * @param steerMotorChannel     the CAN ID of the turning motor
      * @param canCoderChannel       the CAN ID of the CANCoder
      * @param driveMotorInverted    if the drive motor is inverted
-     * @param steerMotorInverted    if the turn motor is inverted
-     * @param steerCanCoderInverted if the turn encoder is inverted
-     * @param steerCanCoderOffset   the offset, in radians, to add to the CANCoder
+     * @param steerMotorInverted    if the steer motor is inverted
+     * @param steerCanCoderInverted if the steer encoder is inverted
+     * @param steerCanCoderOffset   the offset, to add to the CANCoder
      *                              value to make it zero when the module facing the
      *                              +x direction
      */
