@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -239,6 +240,8 @@ public class KrakenCoaxialSwerveModule {
      * @param driveMotorId          the CAN ID of the drive motor
      * @param steerMotorId          the CAN ID of the turning motor
      * @param canCoderId            the CAN ID of the CANCoder
+     * @param canBus                the name of the CAN bus the steer motor, drive
+     *                              motor, and encoder are on
      * @param driveMotorInverted    if the drive motor is inverted
      * @param steerMotorInverted    if the steer motor is inverted
      * @param steerCanCoderInverted if the steer encoder is inverted
