@@ -8,6 +8,10 @@ import com.pathplanner.lib.path.PathPlannerPath;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Transform2d;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularVelocity;
+import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
@@ -70,13 +74,13 @@ public interface BaseSwerveDrive {
      * 
      * @apiNote this should handle deadbands, rate limiting, and any desired
      *          joystick curves. should also handle controlled rotation.
-     * @param xSpeedSupplier     the supplier of the x speed, in m/s
-     * @param ySpeedSupplier     the supplier of the y speed, in m/s
-     * @param thetaSpeedSupplier the supplier of the θ speed, in rad/s
+     * @param xSpeedSupplier     the supplier of the x speed
+     * @param ySpeedSupplier     the supplier of the y speed
+     * @param thetaSpeedSupplier the supplier of the θ speed
      * @return the command
      */
-    public Command teleopDriveCommand(DoubleSupplier xSpeedSupplier, DoubleSupplier ySpeedSupplier,
-            DoubleSupplier thetaSpeedSupplier);
+    public Command teleopDriveCommand(Supplier<LinearVelocity> xSpeedSupplier, Supplier<LinearVelocity> ySpeedSupplier,
+            Supplier<AngularVelocity> thetaSpeedSupplier);
 
     /**
      * Creates an instantaneous command that enables motion-profiled rotation of the
@@ -85,7 +89,7 @@ public interface BaseSwerveDrive {
      * @param angle the angle to rotate the chassis to
      * @return the command
      */
-    public Command controlledRotateCommand(DoubleSupplier angle);
+    public Command controlledRotateCommand(Supplier<Angle> angle);
 
     /**
      * Creates an instantaneous command that disables motion-profiled rotation of
@@ -107,10 +111,10 @@ public interface BaseSwerveDrive {
      * Creates a command that turns all of the swerve modules to a specific azimuth
      * angle.
      * 
-     * @param angle the angle to turn the azimuth of the modules to, in radians
+     * @param angle the angle to turn the azimuth of the modules to
      * @return the command
      */
-    public Command turnWheelsToAngleCommand(double angle);
+    public Command turnWheelsToAngleCommand(Angle angle);
 
     /**
      * Creates a command that drives the robot chassis to a specific pose. Does not
@@ -164,10 +168,10 @@ public interface BaseSwerveDrive {
      * Creates an instantaneous command that sets the stator current limit on each
      * swerve module.
      * 
-     * @param currentLimit the stator current limit to set, in amps
+     * @param currentLimit the stator current limit to set
      * @return the command
      */
-    public Command setDriveCurrentLimitCommand(int currentLimit);
+    public Command setDriveCurrentLimitCommand(Current currentLimit);
 
     /**
      * Creates a command stops all motors and sets them to coast mode, to allow for
