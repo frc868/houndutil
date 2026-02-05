@@ -1,6 +1,5 @@
 package com.techhounds.houndutil.houndlib.subsystems;
 
-import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathConstraints;
@@ -89,7 +88,7 @@ public interface BaseSwerveDrive {
      * @param angle the angle to rotate the chassis to
      * @return the command
      */
-    public Command controlledRotateCommand(Supplier<Angle> angle);
+    public Command controlledRotateCommand(Supplier<Angle> angleSupplier);
 
     /**
      * Creates an instantaneous command that disables motion-profiled rotation of
@@ -125,7 +124,7 @@ public interface BaseSwerveDrive {
      * @param pose the supplier of the pose to drive the robot to
      * @return the command
      */
-    public Command driveToPoseCommand(Supplier<Pose2d> pose);
+    public Command driveToPoseCommand(Supplier<Pose2d> poseSupplier);
 
     /**
      * Creates a command that follows a PathPlanner (or Choreo) path, then stops.
