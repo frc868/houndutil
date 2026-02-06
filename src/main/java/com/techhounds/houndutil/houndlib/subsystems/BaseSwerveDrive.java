@@ -1,5 +1,6 @@
 package com.techhounds.houndutil.houndlib.subsystems;
 
+import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathConstraints;
@@ -78,8 +79,8 @@ public interface BaseSwerveDrive {
      * @param thetaSpeedSupplier the supplier of the θ speed
      * @return the command
      */
-    public Command teleopDriveCommand(Supplier<LinearVelocity> xSpeedSupplier, Supplier<LinearVelocity> ySpeedSupplier,
-            Supplier<AngularVelocity> thetaSpeedSupplier);
+    public Command teleopDriveCommand(DoubleSupplier xSpeedSupplier, DoubleSupplier ySpeedSupplier,
+            DoubleSupplier thetaSpeedSupplier);
 
     /**
      * Creates an instantaneous command that enables motion-profiled rotation of the
