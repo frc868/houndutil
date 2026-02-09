@@ -21,4 +21,11 @@ public interface BaseIntake {
      * @return the command
      */
     public Command reverseRollersCommand();
+
+    /**
+     * Creates a command that stops the rollers of the intake.
+     * 
+     * @return the command
+     */
+    public Command stopRollersCommand();
 }
