@@ -22,17 +22,12 @@ public class BallSimulator {
     private final BallConstants constants;
     private final List<BallState> balls = new ArrayList<>();
 
-    private final double fieldLength;
-    private final double fieldWidth;
-
     public BallSimulator(
             BallConstants constants,
             double fieldLength,
             double fieldWidth) {
 
         this.constants = constants;
-        this.fieldLength = fieldLength;
-        this.fieldWidth = fieldWidth;
     }
 
     public int addBall(BallState initialState) {
@@ -87,9 +82,5 @@ public class BallSimulator {
 
     private boolean isOutOfBounds(Translation3d p) {
         return p.getZ() < -OUT_OF_BOUNDS_MARGIN;
-        // p.getX() < -OUT_OF_BOUNDS_MARGIN ||
-        // p.getY() < -OUT_OF_BOUNDS_MARGIN ||
-        // p.getX() > fieldLength + OUT_OF_BOUNDS_MARGIN ||
-        // p.getY() > fieldWidth + OUT_OF_BOUNDS_MARGIN;
     }
 }

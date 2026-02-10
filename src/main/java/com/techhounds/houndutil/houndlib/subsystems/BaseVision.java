@@ -3,8 +3,6 @@ package com.techhounds.houndutil.houndlib.subsystems;
 import java.util.function.Supplier;
 
 import com.techhounds.houndutil.houndlib.TriConsumer;
-import com.techhounds.houndutil.houndlog.annotations.Log;
-
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
