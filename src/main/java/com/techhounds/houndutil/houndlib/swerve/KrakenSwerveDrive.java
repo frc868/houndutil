@@ -123,6 +123,7 @@ public class KrakenSwerveDrive {
     private final int odometryThreadPriority;
 
     /** The average time spent in the odometry loop. */
+    @Log(groups = "odometry")
     private double averageOdometryLoopTime = 0;
     @Log(groups = "odometry")
     // DAQ = data acquisition, from CTRE's odometry thread
