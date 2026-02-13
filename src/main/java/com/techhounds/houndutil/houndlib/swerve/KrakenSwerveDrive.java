@@ -488,6 +488,7 @@ public class KrakenSwerveDrive {
      * 
      * @return the array of SwerveModulePositions
      */
+    @Log(groups = "control")
     public SwerveModulePosition[] getModulePositions() {
         return new SwerveModulePosition[] {
                 frontLeft.getPosition(),
