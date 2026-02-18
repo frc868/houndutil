@@ -77,7 +77,7 @@ public class EqualsUtil {
      *         false
      */
     public static boolean epsilonEquals(Distance a, Distance b, Distance epsilon) {
-        return epsilonEquals(a.in(Meters), b.in(Meters, epsilon.in(Meters)));
+        return epsilonEquals(a.in(Meters), b.in(Meters), epsilon.in(Meters));
     }
 
     /**
