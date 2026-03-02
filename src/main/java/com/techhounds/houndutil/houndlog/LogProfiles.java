@@ -4,10 +4,6 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkAbsoluteEncoder;
-import com.revrobotics.spark.SparkBase;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkMax;
 import com.studica.frc.AHRS;
 
 import edu.wpi.first.hal.can.CANStatus;
@@ -17,14 +13,11 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
-import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
-import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-
 import com.techhounds.houndutil.houndlog.annotations.LogProfile;
 import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
@@ -74,9 +67,9 @@ public class LogProfiles {
     }
 
     /**
-     * Builds SparkMax log items.
+     * Builds TalonFX log items.
      * 
-     * @param obj the SparkMax object to use
+     * @param obj the TalonFX object to use
      * @return the array of LogItems
      */
     @LogProfile(TalonFX.class)
@@ -89,7 +82,7 @@ public class LogProfiles {
         StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
         StatusSignal<?> closedLoopReference = obj.getClosedLoopReference();
 
-        SignalManager.register(obj.getNetwork(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
+        SignalManager.register(obj.getNetwork().getName(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
                 closedLoopReference);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
@@ -124,41 +117,10 @@ public class LogProfiles {
         };
     }
 
-    @LogProfile(SparkFlex.class)
-    public static LogItem<?>[] logSparkFlex(SparkFlex obj) {
-        FaultLogger.register(obj);
-        return logSparkBase(obj);
-    }
-
-    @LogProfile(SparkMax.class)
-    public static LogItem<?>[] logSparkMax(SparkMax obj) {
-        FaultLogger.register(obj);
-        return logSparkBase(obj);
-    }
-
     /**
-     * Builds log items for a SparkBase object.
+     * Builds CANCoder log items.
      * 
-     * @param obj the SparkBase object to use
-     * @return the array of LogItems
-     */
-    private static LogItem<?>[] logSparkBase(SparkBase obj) {
-        return new LogItem<?>[] {
-                new DoubleLogItem("encoderPosition", obj.getEncoder()::getPosition, LogType.NT),
-                new DoubleLogItem("encoderVelocity", obj.getEncoder()::getVelocity, LogType.NT),
-                new DoubleLogItem("outputVoltage",
-                        () -> RobotBase.isReal() ? obj.getAppliedOutput() * obj.getBusVoltage()
-                                : obj.getAppliedOutput(),
-                        LogType.NT),
-                new DoubleLogItem("motorTemperature", obj::getMotorTemperature, LogType.NT),
-                new DoubleLogItem("outputCurrent", obj::getOutputCurrent, LogType.NT)
-        };
-    }
-
-    /**
-     * Builds SparkMax log items.
-     * 
-     * @param obj the SparkMax object to use
+     * @param obj the CANCoder object to use
      * @return the array of LogItems
      */
     @LogProfile(CANcoder.class)
@@ -167,26 +129,12 @@ public class LogProfiles {
         StatusSignal<?> position = obj.getPosition();
         StatusSignal<?> velocity = obj.getVelocity();
 
-        SignalManager.register(obj.getNetwork(), absolutePosition, position, velocity);
+        SignalManager.register(obj.getNetwork().getName(), absolutePosition, position, velocity);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("absolutePosition", () -> absolutePosition.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
                 new DoubleLogItem("velocity", () -> velocity.getValueAsDouble(), LogType.NT),
-        };
-    }
-
-    /**
-     * Builds SparkMax log items.
-     * 
-     * @param obj the SparkMax object to use
-     * @return the array of LogItems
-     */
-    @LogProfile(SparkAbsoluteEncoder.class)
-    public static LogItem<?>[] logSparkAbsoluteEncoder(SparkAbsoluteEncoder obj) {
-        return new LogItem<?>[] {
-                new DoubleLogItem("position", obj::getPosition, LogType.NT),
-                new DoubleLogItem("velocity", obj::getVelocity, LogType.NT),
         };
     }
 
@@ -232,7 +180,7 @@ public class LogProfiles {
         StatusSignal<?> roll = obj.getRoll();
         StatusSignal<?> yaw = obj.getYaw();
 
-        SignalManager.register(obj.getNetwork(), pitch, roll, yaw);
+        SignalManager.register(obj.getNetwork().getName(), pitch, roll, yaw);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("pitch", () -> pitch.getValueAsDouble(), LogType.NT),
@@ -298,46 +246,6 @@ public class LogProfiles {
                         obj.getCurrent(22),
                         obj.getCurrent(23),
                 }, LogType.DATALOG),
-        };
-    }
-
-    /**
-     * Builds REV Pneumatics Hub log items.
-     * 
-     * @param obj the PH instance to use
-     * @return the array of LogItems
-     */
-    @LogProfile(PneumaticHub.class)
-    public static LogItem<?>[] logPneumaticHubLog(PneumaticHub obj) {
-        FaultLogger.register(obj);
-        return new LogItem<?>[] {
-                new DoubleLogItem("inputVoltage", obj::getInputVoltage, LogType.NT),
-                new DoubleLogItem("regulatedVoltage", obj::get5VRegulatedVoltage, LogType.NT),
-
-                new DoubleArrayLogItem("pressures", () -> new double[] {
-                        obj.getPressure(0),
-                        obj.getPressure(1),
-                        obj.getPressure(2),
-                        obj.getPressure(3),
-                        obj.getPressure(4),
-                        obj.getPressure(5),
-                        obj.getPressure(6),
-                        obj.getPressure(7),
-                        obj.getPressure(8),
-                        obj.getPressure(9),
-                        obj.getPressure(10),
-                        obj.getPressure(11),
-                        obj.getPressure(12),
-                        obj.getPressure(13),
-                        obj.getPressure(14),
-                        obj.getPressure(15),
-                }, LogType.NT),
-                new BooleanLogItem("pressureSwitch", obj::getPressureSwitch, LogType.DATALOG),
-                new DoubleLogItem("compressorCurrent", obj::getCompressorCurrent, LogType.NT),
-                new BooleanLogItem("isCompressorRunning", obj::getCompressor, LogType.NT),
-                new DoubleLogItem("solenoidsTotalCurrent", obj::getSolenoidsTotalCurrent, LogType.DATALOG),
-                new DoubleLogItem("solenoidsVoltage", obj::getSolenoidsVoltage, LogType.DATALOG),
-
         };
     }
 

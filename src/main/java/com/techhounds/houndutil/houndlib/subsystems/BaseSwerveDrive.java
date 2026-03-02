@@ -5,23 +5,18 @@ import java.util.function.Supplier;
 
 import com.pathplanner.lib.path.PathConstraints;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.techhounds.houndutil.houndlib.MotorHoldMode;
 
-import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveModulePosition;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 
 /**
  * Base scaffolding for a swerve drivetrain. Intended to support pose
  * estimation, open and closed-loop driving, trajectory following, and
- * lower-level manual control modes. Use SI units throughout (for distance, use
- * meters, for velocity, use meters/sec, and for the azimuth of the wheels, use
- * radians).
+ * lower-level manual control modes.
  * 
  * <br>
  * </br>
@@ -73,155 +68,13 @@ public interface BaseSwerveDrive {
     }
 
     /**
-     * Gets the currently set drive mode.
-     * 
-     * @return the drive mode
-     */
-    public DriveMode getDriveMode();
-
-    /**
-     * Gets the current (estimated) pose of the chassis, with respect to the origin.
-     * 
-     * @return the pose of the chassis
-     */
-    public Pose2d getPose();
-
-    /**
-     * Gets the current rotation of the chassis, with respect to the origin.
-     * 
-     * @return the rotation of the chassis, as a Rotation2d
-     */
-    public Rotation2d getRotation();
-
-    /**
-     * Gets an array containing the distance travelled and the azimuth angle for
-     * each swerve module. Used mainly for odometry.
-     * 
-     * @return the array of SwerveModulePositions
-     */
-    public SwerveModulePosition[] getModulePositions();
-
-    /**
-     * Gets an array containing the current velocity and the azimuth angle for
-     * each swerve module.
-     * 
-     * @return the array of SwerveModuleStates
-     */
-    public SwerveModuleState[] getModuleStates();
-
-    /**
-     * Gets the current <i>robot-relative</i> velocity of the chassis as a whole,
-     * dependent on the states of the swerve modules.
-     * 
-     * @return the velocity of the chassis, as a ChassisSpeeds
-     */
-    public ChassisSpeeds getChassisSpeeds();
-
-    /**
-     * Gets the pose estimator object for fusing latency-compensated vision
-     * measurements with odometry data.
-     * 
-     * @return the SwerveDrivePoseEstimator object.
-     */
-    public SwerveDrivePoseEstimator getPoseEstimator();
-
-    /**
-     * Updates the pose estimator with odometry data.
-     */
-    public void updatePoseEstimator();
-
-    /**
-     * Resets the pose estimator to a specific position on the field. Useful for
-     * known starting locations before the autonomous period.
-     * 
-     * @param pose the pose to reset the chassis position to
-     */
-    public void resetPoseEstimator(Pose2d pose);
-
-    /**
-     * Resets the gyro such that the chassis is facing forward with respect to the
-     * origin.
-     */
-    public void resetGyro();
-
-    /**
-     * Sets the motors on the swerve modules into either brake or coast mode.
-     * 
-     * @param motorHoldMode the MotorHoldMode to set the motors in each swerve
-     *                      module to
-     */
-    public void setMotorHoldModes(MotorHoldMode motorHoldMode);
-
-    /**
-     * Sets the stator current limit on each swerve module. Useful for a temporary
-     * high-power mode.
-     * 
-     * @param currentLimit the stator current limit to set, in amps
-     */
-    public void setDriveCurrentLimit(int currentLimit);
-
-    /**
-     * Stops all swerve modules.
-     */
-    public void stop();
-
-    /**
-     * Sets the state (velocity and azimuth angle) of each swerve module, without
-     * closed-loop velocity control.
-     * 
-     * @apiNote use for standard tele-operated driving
-     * @param state an array of SwerveModuleStates to set the modules to
-     */
-    public void setStates(SwerveModuleState[] state);
-
-    /**
-     * Sets the state (velocity and azimuth angle) of each swerve module, with
-     * closed-loop velocity control.
-     * 
-     * @apiNote use for trajectory following
-     * @param state an array of SwerveModuleStates to set the modules to
-     */
-    public void setStatesClosedLoop(SwerveModuleState[] state);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds.
-     * Uses the currently set DriveMode.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds the ChassisSpeeds to use to drive the swerve modules
-     */
-    public void drive(ChassisSpeeds speeds);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
-     * @param driveMode the DriveMode to use for the chassis' reference point
-     */
-    public void drive(ChassisSpeeds speeds, DriveMode driveMode);
-
-    /**
-     * Sets the states of the swerve modules to accomplish the given chassis speeds,
-     * with closed-loop velocity control.
-     * 
-     * @apiNote this should handle discretization, desaturation, and optimization.
-     * 
-     * @param speeds    the ChassisSpeeds to use to drive the swerve modules.
-     * @param driveMode the DriveMode to use for the chassis' reference point
-     */
-    public void driveClosedLoop(ChassisSpeeds speeds, DriveMode driveMode);
-
-    /**
      * Creates a command that moves the chassis given x, y, and theta speeds.
      * 
      * @apiNote this should handle deadbands, rate limiting, and any desired
      *          joystick curves. should also handle controlled rotation.
-     * @param xSpeedSupplier     the supplier of the x speed, in m/s
-     * @param ySpeedSupplier     the supplier of the y speed, in m/s
-     * @param thetaSpeedSupplier the supplier of the θ speed, in rad/s
+     * @param xSpeedSupplier     the supplier of the x speed
+     * @param ySpeedSupplier     the supplier of the y speed
+     * @param thetaSpeedSupplier the supplier of the θ speed
      * @return the command
      */
     public Command teleopDriveCommand(DoubleSupplier xSpeedSupplier, DoubleSupplier ySpeedSupplier,
@@ -234,7 +87,7 @@ public interface BaseSwerveDrive {
      * @param angle the angle to rotate the chassis to
      * @return the command
      */
-    public Command controlledRotateCommand(DoubleSupplier angle);
+    public Command controlledRotateCommand(Supplier<Angle> angleSupplier);
 
     /**
      * Creates an instantaneous command that disables motion-profiled rotation of
@@ -256,10 +109,10 @@ public interface BaseSwerveDrive {
      * Creates a command that turns all of the swerve modules to a specific azimuth
      * angle.
      * 
-     * @param angle the angle to turn the azimuth of the modules to, in radians
+     * @param angle the angle to turn the azimuth of the modules to
      * @return the command
      */
-    public Command turnWheelsToAngleCommand(double angle);
+    public Command turnWheelsToAngleCommand(Angle angle);
 
     /**
      * Creates a command that drives the robot chassis to a specific pose. Does not
@@ -270,7 +123,7 @@ public interface BaseSwerveDrive {
      * @param pose the supplier of the pose to drive the robot to
      * @return the command
      */
-    public Command driveToPoseCommand(Supplier<Pose2d> pose);
+    public Command driveToPoseCommand(Supplier<Pose2d> poseSupplier);
 
     /**
      * Creates a command that follows a PathPlanner (or Choreo) path, then stops.
@@ -313,10 +166,10 @@ public interface BaseSwerveDrive {
      * Creates an instantaneous command that sets the stator current limit on each
      * swerve module.
      * 
-     * @param currentLimit the stator current limit to set, in amps
+     * @param currentLimit the stator current limit to set
      * @return the command
      */
-    public Command setDriveCurrentLimitCommand(int currentLimit);
+    public Command setDriveCurrentLimitCommand(Current currentLimit);
 
     /**
      * Creates a command stops all motors and sets them to coast mode, to allow for
@@ -328,4 +181,33 @@ public interface BaseSwerveDrive {
      * @return the command
      */
     public Command coastMotorsCommand();
+
+    /**
+     * Creates a command to run the drive SysId routine quasistatic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdDriveQuasistaticCommand(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the drive SysId routine dynamic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdDriveDynamicCommand(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the steer SysId routine quasistatic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdSteerQuasistaticCommand(SysIdRoutine.Direction direction);
+
+    /**
+     * Creates a command to run the steer SysId routine dynamic.
+     * @param direction the motor direction for the test
+     * @return the command
+     */
+    public Command sysIdSteerDynamicCommand(SysIdRoutine.Direction direction);
+
 }

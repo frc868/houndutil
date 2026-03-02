@@ -2,12 +2,13 @@ package com.techhounds.houndutil.houndlib.subsystems;
 
 import java.util.function.Supplier;
 
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * Base scaffolding for a linear mechanism. Should use PID or profiled PID
- * control to move between setpoints or to an arbitrary position. Use SI units
- * (for linear mechanisms, the most common SI unit is meters).
+ * control to move between setpoints or to an arbitrary position.
  * <p>
  * To use, implement {@code BaseLinearMechanism<MechanismPosition>}, where
  * {@code MechanismPosition} is an enum with the various setpoints that can be
@@ -23,7 +24,7 @@ public interface BaseLinearMechanism<T extends Enum<T>> {
      * 
      * @return the position of the mechanism, in meters
      */
-    public double getPosition();
+    public Distance getPosition();
 
     /**
      * Resets the position of the mechanism to a specific value (this should be the
@@ -38,7 +39,7 @@ public interface BaseLinearMechanism<T extends Enum<T>> {
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
-    public void setVoltage(double voltage);
+    public void setVoltage(Voltage voltage);
 
     /**
      * Creates a command that continuously applies voltage to the motor controllers
@@ -67,10 +68,10 @@ public interface BaseLinearMechanism<T extends Enum<T>> {
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
      * 
-     * @param goalPositionSupplier a supplier of a position to move to, in meters
+     * @param goalPositionSupplier a supplier of a position to move to
      * @return the command
      */
-    public Command moveToArbitraryPositionCommand(Supplier<Double> goalPositionSupplier);
+    public Command moveToArbitraryPositionCommand(Supplier<Distance> goalPositionSupplier);
 
     /**
      * Creates a command that sets the current goal position to the setpoint plus
@@ -81,10 +82,10 @@ public interface BaseLinearMechanism<T extends Enum<T>> {
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
      * 
-     * @param delta a supplier of a delta to move, in meters
+     * @param delta a supplier of a delta to move
      * @return the command
      */
-    public Command movePositionDeltaCommand(Supplier<Double> delta);
+    public Command movePositionDeltaCommand(Supplier<Distance> delta);
 
     /**
      * Creates a command that sets the goal to the current position, and moves to

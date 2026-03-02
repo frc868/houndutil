@@ -17,7 +17,6 @@ import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
-import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.Pair;
 import edu.wpi.first.math.VecBuilder;
@@ -104,7 +103,7 @@ public class AprilTagPhotonCamera {
      *                      simulation. if unsure, use 0.2px.
      * @param stdDevErrorPx the standard deviation of the error of the camera
      *                      calibration, used for simulation. if unsure, use 0.1px.
-     * @param fieldLayout   the field layout to be used ({@link AprilTagFields})
+     * @param fieldLayout   the field layout to be used ({@link AprilTagFieldLayout})
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
             double avgErrorPx, double stdDevErrorPx, AprilTagFieldLayout fieldLayout) {

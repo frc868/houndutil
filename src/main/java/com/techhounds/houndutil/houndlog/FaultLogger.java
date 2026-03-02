@@ -4,23 +4,16 @@ import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkMax;
 import edu.wpi.first.hal.PowerDistributionFaults;
 import edu.wpi.first.hal.PowerDistributionStickyFaults;
-import edu.wpi.first.hal.REVPHFaults;
-import edu.wpi.first.hal.REVPHStickyFaults;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringArrayPublisher;
-import edu.wpi.first.wpilibj.PneumaticHub;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.BooleanSupplier;
@@ -202,57 +195,6 @@ public final class FaultLogger {
     }
 
     /**
-     * Registers fault suppliers for a SPARK Flex.
-     *
-     * @param spark the SPARK Flex to register
-     */
-    public static void register(SparkFlex spark) {
-        Map<String, BooleanSupplier> faults = new LinkedHashMap<>(Map.of(
-                "Motor Type Fault", () -> spark.getFaults().motorType,
-                "Sensor Fault", () -> spark.getFaults().sensor,
-                "CAN Fault", () -> spark.getFaults().can,
-                "Temperature Fault", () -> spark.getFaults().temperature,
-                "Gate Driver Fault", () -> spark.getFaults().gateDriver,
-                "ESC Fault", () -> spark.getFaults().escEeprom,
-                "Firmware Fault", () -> spark.getFaults().firmware));
-        for (String faultName : faults.keySet()) {
-            register(faults.get(faultName), "SPARK Flex [" + spark.getDeviceId() + "]", faultName,
-                    FaultType.ERROR);
-        }
-        register(
-                () -> spark.getMotorTemperature() > 80,
-                "SPARK Flex [" + spark.getDeviceId() + "]",
-                "motor above 80°C",
-                FaultType.WARNING);
-
-    }
-
-    /**
-     * Registers fault suppliers for a SPARK MAX.
-     *
-     * @param spark the SPARK MAX to register
-     */
-    public static void register(SparkMax spark) {
-        Map<String, BooleanSupplier> faults = new LinkedHashMap<>(Map.of(
-                "Motor Type Fault", () -> spark.getFaults().motorType,
-                "Sensor Fault", () -> spark.getFaults().sensor,
-                "CAN Fault", () -> spark.getFaults().can,
-                "Temperature Fault", () -> spark.getFaults().temperature,
-                "Gate Driver Fault", () -> spark.getFaults().gateDriver,
-                "ESC Fault", () -> spark.getFaults().escEeprom,
-                "Firmware Fault", () -> spark.getFaults().firmware));
-        for (String faultName : faults.keySet()) {
-            register(faults.get(faultName), "SPARK MAX [" + spark.getDeviceId() + "]", faultName,
-                    FaultType.ERROR);
-        }
-        register(
-                () -> spark.getMotorTemperature() > 80,
-                "SPARK MAX [" + spark.getDeviceId() + "]",
-                "motor above 80°C",
-                FaultType.WARNING);
-    }
-
-    /**
      * Registers fault suppliers for a Talon FX.
      *
      * @param talon the Talon FX to register
@@ -268,7 +210,7 @@ public final class FaultLogger {
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
                 talon.getFault_UnstableSupplyV());
-        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
@@ -291,7 +233,7 @@ public final class FaultLogger {
                 cancoder.getFault_Hardware(),
                 cancoder.getFault_Undervoltage());
 
-        faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "CANcoder [" + cancoder.getDeviceID() + "]", signal.getName(),
@@ -318,7 +260,7 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedMagnetometer(),
                 pigeon.getFault_Undervoltage());
 
-        faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork(), s));
+        faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork().getName(), s));
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Pigeon 2 [" + pigeon.getDeviceID() + "]", signal.getName(),
@@ -356,42 +298,6 @@ public final class FaultLogger {
                                         new Fault("PDH", field.getName(), FaultType.ERROR));
                             }
                         } catch (Exception e) {
-                        }
-                        return Optional.empty();
-                    });
-        }
-    }
-
-    /**
-     * Registers fault suppliers for a REV Pneumatic Hub.
-     * 
-     * @param ph the Pneumatic Hub to register
-     */
-    public static void register(PneumaticHub ph) {
-        for (Field field : REVPHFaults.class.getFields()) {
-            register(
-                    () -> {
-                        try {
-                            if (field.getBoolean(ph.getFaults())) {
-                                return Optional.of(
-                                        new Fault("Pneumatic Hub", field.getName(), FaultType.ERROR));
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
-                        }
-                        return Optional.empty();
-                    });
-        }
-        for (Field field : REVPHStickyFaults.class.getFields()) {
-            register(
-                    () -> {
-                        try {
-                            if (field.getBoolean(ph.getStickyFaults())) {
-                                return Optional.of(
-                                        new Fault("Pneumatic Hub", field.getName(), FaultType.ERROR));
-                            }
-                        } catch (Exception e) {
-                            e.printStackTrace();
                         }
                         return Optional.empty();
                     });

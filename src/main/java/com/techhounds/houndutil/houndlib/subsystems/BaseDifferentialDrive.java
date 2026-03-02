@@ -3,8 +3,8 @@ package com.techhounds.houndutil.houndlib.subsystems;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.path.PathPlannerPath;
-import com.techhounds.houndutil.houndlib.MotorHoldMode;
 import edu.wpi.first.math.controller.DifferentialDriveWheelVoltages;
 import edu.wpi.first.math.estimator.DifferentialDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
@@ -12,13 +12,13 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelPositions;
 import edu.wpi.first.math.kinematics.DifferentialDriveWheelSpeeds;
+import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /**
  * Base scaffolding for a differential drivetrain. Intended to support pose
  * estimation, open and closed-loop driving, trajectory following, and
- * lower-level manual control modes. Use SI units throughout (for distance, use
- * meters, for velocity, use meters/sec, for rotation, use radians).
+ * lower-level manual control modes.
  */
 public interface BaseDifferentialDrive {
     /**
@@ -105,9 +105,9 @@ public interface BaseDifferentialDrive {
     /**
      * Sets the motors into either brake or coast mode.
      * 
-     * @param motorHoldMode the MotorHoldMode to set the motors to
+     * @param neutralMode the NeutralModeValue to set the motors to
      */
-    public void setMotorHoldModes(MotorHoldMode motorHoldMode);
+    public void setMotorNeutralModes(NeutralModeValue neutralMode);
 
     /**
      * Sets the stator current limit on each motor. Useful for a temporary
@@ -179,7 +179,7 @@ public interface BaseDifferentialDrive {
      * @param currentLimit the stator current limit to set, in amps
      * @return the command
      */
-    public Command setCurrentLimitCommand(int currentLimit);
+    public Command setCurrentLimitCommand(Current currentLimit);
 
     /**
      * Creates a command stops all motors and sets them to coast mode, to allow for

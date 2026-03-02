@@ -7,7 +7,6 @@
  * <li>a library for LED control</li>
  * <li>library for common swerve module implementations</li>
  * <li>calculators for shooting on the fly</li>
- * <li>configurators for REV devices</li>
  * </ul>
  */
 package com.techhounds.houndutil.houndlib;
