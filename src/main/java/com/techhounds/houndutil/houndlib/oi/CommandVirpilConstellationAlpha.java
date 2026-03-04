@@ -1,6 +1,6 @@
 package com.techhounds.houndutil.houndlib.oi;
 
-import com.techhounds.houndutil.houndlib.oi.VirpilJoystick.HAT;
+import com.techhounds.houndutil.houndlib.oi.VirpilConstellationAlpha.HAT;
 
 import edu.wpi.first.wpilibj.event.EventLoop;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
@@ -8,7 +8,7 @@ import edu.wpi.first.wpilibj2.command.button.CommandGenericHID;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 /**
- * A version of {@link VirpilJoystick} with {@link Trigger} factories for
+ * A version of {@link VirpilConstellationAlpha} with {@link Trigger} factories for
  * command-based.
  * 
  * @apiNote When the trigger is in the neutral position, neither
@@ -16,11 +16,11 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  *          you need a {@link Trigger} for the trigger being in the neutral
  *          position, negate both Triggers and combine them.
  *
- * @see VirpilJoystick
+ * @see VirpilConstellationAlpha
  */
-public class CommandVirpilJoystick extends CommandGenericHID {
+public class CommandVirpilConstellationAlpha extends CommandGenericHID {
     /** The internal joystick object (access using {@code getHID()}) */
-    private final VirpilJoystick joystick;
+    private final VirpilConstellationAlpha joystick;
 
     /**
      * Construct an instance of a controller.
@@ -28,10 +28,10 @@ public class CommandVirpilJoystick extends CommandGenericHID {
      * @param port The port index on the Driver Station that the controller is
      *             plugged into.
      */
-    public CommandVirpilJoystick(int port) {
+    public CommandVirpilConstellationAlpha(int port) {
         super(port);
 
-        joystick = new VirpilJoystick(port);
+        joystick = new VirpilConstellationAlpha(port);
     }
 
     /**
@@ -40,7 +40,7 @@ public class CommandVirpilJoystick extends CommandGenericHID {
      * @return the wrapped VirpilJoystick object
      */
     @Override
-    public VirpilJoystick getHID() {
+    public VirpilConstellationAlpha getHID() {
         return joystick;
     }
 

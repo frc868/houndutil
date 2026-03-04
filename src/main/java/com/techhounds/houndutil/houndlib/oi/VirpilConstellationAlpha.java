@@ -10,7 +10,7 @@ import edu.wpi.first.wpilibj.event.EventLoop;
  * @apiNote When the trigger is in the neutral position, neither
  *          {@code kFlipTriggerOut} nor {@code kFlipTriggerIn} will be active.
  */
-public class VirpilJoystick extends GenericHID {
+public class VirpilConstellationAlpha extends GenericHID {
     /** Represents a digital button on a joystick. */
     public enum Button {
         /** Red button on the front face. */
@@ -97,7 +97,7 @@ public class VirpilJoystick extends GenericHID {
      * @param port The port index on the Driver Station that the joystick is plugged
      *             into.
      */
-    public VirpilJoystick(final int port) {
+    public VirpilConstellationAlpha(final int port) {
         super(port);
     }
 
