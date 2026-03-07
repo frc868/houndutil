@@ -1,5 +1,14 @@
 package com.techhounds.houndutil.houndlog;
 
+import static edu.wpi.first.units.Units.Amps;
+import static edu.wpi.first.units.Units.Meters;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Radians;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
+import static edu.wpi.first.units.Units.Volts;
+
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -11,6 +20,14 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.units.measure.ImmutableAngle;
+import edu.wpi.first.units.measure.ImmutableAngularAcceleration;
+import edu.wpi.first.units.measure.ImmutableAngularVelocity;
+import edu.wpi.first.units.measure.ImmutableCurrent;
+import edu.wpi.first.units.measure.ImmutableDistance;
+import edu.wpi.first.units.measure.ImmutableLinearAcceleration;
+import edu.wpi.first.units.measure.ImmutableLinearVelocity;
+import edu.wpi.first.units.measure.ImmutableVoltage;
 import edu.wpi.first.wpilibj.DoubleSolenoid;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.PowerDistribution;
@@ -18,6 +35,7 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+
 import com.techhounds.houndutil.houndlog.annotations.LogProfile;
 import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
@@ -82,8 +100,8 @@ public class LogProfiles {
         StatusSignal<?> outputCurrent = obj.getTorqueCurrent();
         StatusSignal<?> closedLoopReference = obj.getClosedLoopReference();
 
-        SignalManager.register(obj.getNetwork().getName(), position, velocity, acceleration, temp, outputVoltage, outputCurrent,
-                closedLoopReference);
+        SignalManager.register(obj.getNetwork().getName(), position, velocity, acceleration, temp, outputVoltage,
+                outputCurrent, closedLoopReference);
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("position", () -> position.getValueAsDouble(), LogType.NT),
@@ -389,4 +407,108 @@ public class LogProfiles {
         };
     }
 
+    /**
+     * Builds Angle log items.
+     * 
+     * @param obj the {@link ImmutableAngle} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableAngle.class)
+    public static LogItem<?>[] logAngle(ImmutableAngle obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("angleRadians", () -> obj.in(Radians), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds AngularVelocity log items.
+     * 
+     * @param obj the {@link ImmutableAngularVelocity} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableAngularVelocity.class)
+    public static LogItem<?>[] logAngularVelocity(ImmutableAngularVelocity obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("angleRadiansPerSecond", () -> obj.in(RadiansPerSecond), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds AngularAcceleration log items.
+     * 
+     * @param obj the {@link ImmutableAngularAcceleration} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableAngularAcceleration.class)
+    public static LogItem<?>[] logAngularAcceleration(ImmutableAngularAcceleration obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("angleRadiansPerSecondPerSecond", () -> obj.in(RadiansPerSecondPerSecond), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds Distance log items.
+     * 
+     * @param obj the {@link ImmutableDistance} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableDistance.class)
+    public static LogItem<?>[] logDistance(ImmutableDistance obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("distanceMeters", () -> obj.in(Meters), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds LinearVelocity log items.
+     * 
+     * @param obj the {@link ImmutableLinearVelocity} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableLinearVelocity.class)
+    public static LogItem<?>[] logLinearVelocity(ImmutableLinearVelocity obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("velocityMetersPerSecond", () -> obj.in(MetersPerSecond), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds LinearAcceleration log items.
+     * 
+     * @param obj the {@link ImmutableLinearAcceleration} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableLinearAcceleration.class)
+    public static LogItem<?>[] logLinearAcceleration(ImmutableLinearAcceleration obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("accelerationMetersPerSecondPerSecond", () -> obj.in(MetersPerSecondPerSecond),
+                        LogType.NT),
+        };
+    }
+
+    /**
+     * Builds Voltage log items.
+     * 
+     * @param obj the {@link ImmutableVoltage} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableVoltage.class)
+    public static LogItem<?>[] logVoltage(ImmutableVoltage obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("voltage", () -> obj.in(Volts), LogType.NT),
+        };
+    }
+
+    /**
+     * Builds Current log items.
+     * 
+     * @param obj the {@link ImmutableCurrent} to use
+     * @return the array of LogItems
+     */
+    @LogProfile(ImmutableCurrent.class)
+    public static LogItem<?>[] logCurrent(ImmutableCurrent obj) {
+        return new LogItem<?>[] {
+                new DoubleLogItem("currentAmps", () -> obj.in(Amps), LogType.NT),
+        };
+    }
 }
