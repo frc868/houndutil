@@ -431,7 +431,7 @@ public class LogProfiles {
     @LogProfile(ImmutableAngularVelocity.class)
     public static LogItem<?>[] logAngularVelocity(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadiansPerSecond", () -> ((ImmutableAngularVelocity) obj.get()).in(RadiansPerSecond), LogType.NT),
+                new DoubleLogItem("angularVelocityRadiansPerSecond", () -> ((ImmutableAngularVelocity) obj.get()).in(RadiansPerSecond), LogType.NT),
         };
     }
 
@@ -444,7 +444,7 @@ public class LogProfiles {
     @LogProfile(ImmutableAngularAcceleration.class)
     public static LogItem<?>[] logAngularAcceleration(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadiansPerSecondPerSecond", () -> ((ImmutableAngularAcceleration) obj.get()).in(RadiansPerSecondPerSecond), LogType.NT),
+                new DoubleLogItem("angularAccelerationRadiansPerSecondPerSecond", () -> ((ImmutableAngularAcceleration) obj.get()).in(RadiansPerSecondPerSecond), LogType.NT),
         };
     }
 
