@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.function.Supplier;
+
 import com.techhounds.houndutil.houndlib.robots.HoundRobot;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
@@ -43,7 +45,7 @@ public class LoggingManager {
     // all log groups
     private LogGroup baseLogGroup = new LogGroup("HoundLog");
     private List<Loggable> loggables = new ArrayList<Loggable>();
-    private Map<Class<?>, Function<Object, LogItem<?>[]>> profiles = new HashMap<Class<?>, Function<Object, LogItem<?>[]>>();
+    private Map<Class<?>, Function<Supplier<Object>, LogItem<?>[]>> profiles = new HashMap<Class<?>, Function<Supplier<Object>, LogItem<?>[]>>();
 
     private static double startTime = Timer.getFPGATimestamp();
     @Log
@@ -162,7 +164,7 @@ public class LoggingManager {
      * 
      * @return the registered log profiles
      */
-    protected Map<Class<?>, Function<Object, LogItem<?>[]>> getProfiles() {
+    protected Map<Class<?>, Function<Supplier<Object>, LogItem<?>[]>> getProfiles() {
         return profiles;
     }
 

@@ -9,6 +9,8 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Volts;
 
+import java.util.function.Supplier;
+
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
@@ -410,105 +412,104 @@ public class LogProfiles {
     /**
      * Builds Angle log items.
      * 
-     * @param obj the {@link ImmutableAngle} to use
+     * @param obj the supplier of {@link ImmutableAngle} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngle.class)
-    public static LogItem<?>[] logAngle(ImmutableAngle obj) {
+    public static LogItem<?>[] logAngle(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadians", () -> obj.in(Radians), LogType.NT),
+                new DoubleLogItem("angleRadians", () -> ((ImmutableAngle) obj.get()).in(Radians), LogType.NT)
         };
     }
 
     /**
      * Builds AngularVelocity log items.
      * 
-     * @param obj the {@link ImmutableAngularVelocity} to use
+     * @param obj the supplier of {@link ImmutableAngularVelocity} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngularVelocity.class)
-    public static LogItem<?>[] logAngularVelocity(ImmutableAngularVelocity obj) {
+    public static LogItem<?>[] logAngularVelocity(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadiansPerSecond", () -> obj.in(RadiansPerSecond), LogType.NT),
+                new DoubleLogItem("angleRadiansPerSecond", () -> ((ImmutableAngularVelocity) obj.get()).in(RadiansPerSecond), LogType.NT),
         };
     }
 
     /**
      * Builds AngularAcceleration log items.
      * 
-     * @param obj the {@link ImmutableAngularAcceleration} to use
+     * @param obj the supplier of {@link ImmutableAngularAcceleration} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngularAcceleration.class)
-    public static LogItem<?>[] logAngularAcceleration(ImmutableAngularAcceleration obj) {
+    public static LogItem<?>[] logAngularAcceleration(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadiansPerSecondPerSecond", () -> obj.in(RadiansPerSecondPerSecond), LogType.NT),
+                new DoubleLogItem("angleRadiansPerSecondPerSecond", () -> ((ImmutableAngularAcceleration) obj.get()).in(RadiansPerSecondPerSecond), LogType.NT),
         };
     }
 
     /**
      * Builds Distance log items.
      * 
-     * @param obj the {@link ImmutableDistance} to use
+     * @param obj the supplier of {@link ImmutableDistance} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableDistance.class)
-    public static LogItem<?>[] logDistance(ImmutableDistance obj) {
+    public static LogItem<?>[] logDistance(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("distanceMeters", () -> obj.in(Meters), LogType.NT),
+                new DoubleLogItem("distanceMeters", () -> ((ImmutableDistance) obj.get()).in(Meters), LogType.NT)
         };
     }
 
     /**
      * Builds LinearVelocity log items.
      * 
-     * @param obj the {@link ImmutableLinearVelocity} to use
+     * @param obj the supplier of {@link ImmutableLinearVelocity} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableLinearVelocity.class)
-    public static LogItem<?>[] logLinearVelocity(ImmutableLinearVelocity obj) {
+    public static LogItem<?>[] logLinearVelocity(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("velocityMetersPerSecond", () -> obj.in(MetersPerSecond), LogType.NT),
+                new DoubleLogItem("velocityMetersPerSecond", () -> ((ImmutableLinearVelocity) obj.get()).in(MetersPerSecond), LogType.NT),
         };
     }
 
     /**
      * Builds LinearAcceleration log items.
      * 
-     * @param obj the {@link ImmutableLinearAcceleration} to use
+     * @param obj the supplier of {@link ImmutableLinearAcceleration} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableLinearAcceleration.class)
-    public static LogItem<?>[] logLinearAcceleration(ImmutableLinearAcceleration obj) {
+    public static LogItem<?>[] logLinearAcceleration(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("accelerationMetersPerSecondPerSecond", () -> obj.in(MetersPerSecondPerSecond),
-                        LogType.NT),
+                new DoubleLogItem("accelerationMetersPerSecondPerSecond", () -> ((ImmutableLinearAcceleration) obj.get()).in(MetersPerSecondPerSecond), LogType.NT),
         };
     }
 
     /**
      * Builds Voltage log items.
      * 
-     * @param obj the {@link ImmutableVoltage} to use
+     * @param obj the supplier of {@link ImmutableVoltage} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableVoltage.class)
-    public static LogItem<?>[] logVoltage(ImmutableVoltage obj) {
+    public static LogItem<?>[] logVoltage(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("voltage", () -> obj.in(Volts), LogType.NT),
+                new DoubleLogItem("voltage", () -> ((ImmutableVoltage) obj.get()).in(Volts), LogType.NT),
         };
     }
 
     /**
      * Builds Current log items.
      * 
-     * @param obj the {@link ImmutableCurrent} to use
+     * @param obj the supplier of {@link ImmutableCurrent} to use
      * @return the array of LogItems
      */
     @LogProfile(ImmutableCurrent.class)
-    public static LogItem<?>[] logCurrent(ImmutableCurrent obj) {
+    public static LogItem<?>[] logCurrent(Supplier<Object> obj) {
         return new LogItem<?>[] {
-                new DoubleLogItem("currentAmps", () -> obj.in(Amps), LogType.NT),
+                new DoubleLogItem("currentAmps", () -> ((ImmutableCurrent) obj.get()).in(Amps), LogType.NT),
         };
     }
 }

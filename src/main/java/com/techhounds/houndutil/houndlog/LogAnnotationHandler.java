@@ -313,11 +313,12 @@ public class LogAnnotationHandler {
             }
 
             // if something is covered by a profile, use it
-            Map<Class<?>, Function<Object, LogItem<?>[]>> profiles = LoggingManager.getInstance().getProfiles();
-            Function<Object, LogItem<?>[]> profile = profiles.get(value.getClass());
+            Map<Class<?>, Function<Supplier<Object>, LogItem<?>[]>> profiles = LoggingManager.getInstance()
+                    .getProfiles();
+            Function<Supplier<Object>, LogItem<?>[]> profile = profiles.get(value.getClass());
+
             if (profile != null) {
-                return Optional.of(new LogGroup(name,
-                        profile.apply(checkedValueSupplier.get())));
+                return Optional.of(new LogGroup(name, profile.apply(checkedValueSupplier)));
             }
 
             // if a struct, use the struct logger
@@ -381,16 +382,17 @@ public class LogAnnotationHandler {
      * @param clazz    the class to search for {@code @LogProfile} annotations
      * @param profiles the map to add the profiles to
      */
-    protected static void handleLogProfile(Class<?> clazz, Map<Class<?>, Function<Object, LogItem<?>[]>> profiles) {
+    protected static void handleLogProfile(Class<?> clazz,
+            Map<Class<?>, Function<Supplier<Object>, LogItem<?>[]>> profiles) {
         for (Method method : clazz.getMethods()) {
             LogProfile profileAnnotation = method.getAnnotation(LogProfile.class);
             if (profileAnnotation != null) {
                 Class<?> forClass = profileAnnotation.value();
                 method.setAccessible(true);
 
-                profiles.put(forClass, (o) -> {
+                profiles.put(forClass, (supplier) -> {
                     try {
-                        return (LogItem<?>[]) method.invoke(null, o);
+                        return (LogItem<?>[]) method.invoke(null, supplier);
                     } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException e) {
                         e.printStackTrace();
                         return new LogItem[0];
