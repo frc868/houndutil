@@ -16,6 +16,15 @@ import com.ctre.phoenix6.hardware.CANcoder;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.studica.frc.AHRS;
+import com.techhounds.houndutil.houndlog.annotations.LogProfile;
+import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
+import com.techhounds.houndutil.houndlog.loggers.FloatLogItem;
+import com.techhounds.houndutil.houndlog.loggers.IntegerArrayLogItem;
+import com.techhounds.houndutil.houndlog.loggers.IntegerLogItem;
+import com.techhounds.houndutil.houndlog.loggers.LogItem;
+import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
 
 import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.controller.PIDController;
@@ -37,16 +46,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.simulation.DCMotorSim;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
-
-import com.techhounds.houndutil.houndlog.annotations.LogProfile;
-import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
-import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
-import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
-import com.techhounds.houndutil.houndlog.loggers.FloatLogItem;
-import com.techhounds.houndutil.houndlog.loggers.IntegerArrayLogItem;
-import com.techhounds.houndutil.houndlog.loggers.IntegerLogItem;
-import com.techhounds.houndutil.houndlog.loggers.LogItem;
-import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
 
 /**
  * The default set of log profiles that comes with HoundLog. Covers the devices
@@ -93,7 +92,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(TalonFX.class)
-    public static LogItem<?>[] logTalonFX(TalonFX obj) {
+    public static LogItem<?>[] logTalonFX(Supplier<Object> supplier) {
+        TalonFX obj = (TalonFX) supplier.get();
+
         StatusSignal<?> position = obj.getPosition();
         StatusSignal<?> velocity = obj.getVelocity();
         StatusSignal<?> acceleration = obj.getAcceleration();
@@ -144,7 +145,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(CANcoder.class)
-    public static LogItem<?>[] logCANcoder(CANcoder obj) {
+    public static LogItem<?>[] logCANcoder(Supplier<Object> supplier) {
+        CANcoder obj = (CANcoder) supplier.get();
+
         StatusSignal<?> absolutePosition = obj.getAbsolutePosition();
         StatusSignal<?> position = obj.getPosition();
         StatusSignal<?> velocity = obj.getVelocity();
@@ -165,7 +168,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(AHRS.class)
-    public static LogItem<?>[] logNavX(AHRS obj) {
+    public static LogItem<?>[] logNavX(Supplier<Object> supplier) {
+        AHRS obj = (AHRS) supplier.get();
+
         return new LogItem<?>[] {
                 new FloatLogItem("pitch", obj::getPitch, LogType.NT),
                 new FloatLogItem("roll", obj::getRoll, LogType.NT),
@@ -195,7 +200,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(Pigeon2.class)
-    public static LogItem<?>[] logPigeon2(Pigeon2 obj) {
+    public static LogItem<?>[] logPigeon2(Supplier<Object> supplier) {
+        Pigeon2 obj = (Pigeon2) supplier.get();
+
         StatusSignal<?> pitch = obj.getPitch();
         StatusSignal<?> roll = obj.getRoll();
         StatusSignal<?> yaw = obj.getYaw();
@@ -216,7 +223,9 @@ public class LogProfiles {
      * @param obj the {@link DoubleSolenoid} to use
      * @return the array of LogItems
      */
-    public static LogItem<?>[] logDoubleSolenoid(DoubleSolenoid obj) {
+    public static LogItem<?>[] logDoubleSolenoid(Supplier<Object> supplier) {
+        DoubleSolenoid obj = (DoubleSolenoid) supplier.get();
+
         return new LogItem<?>[] {
                 new BooleanLogItem("position", () -> obj.get() == DoubleSolenoid.Value.kForward,
                         LogType.NT),
@@ -234,7 +243,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(PowerDistribution.class)
-    public static LogItem<?>[] logPDH(PowerDistribution obj) {
+    public static LogItem<?>[] logPDH(Supplier<Object> supplier) {
+        PowerDistribution obj = (PowerDistribution) supplier.get();
+
         FaultLogger.register(obj);
         return new LogItem<?>[] {
                 new DoubleLogItem("voltage", obj::getVoltage, LogType.NT),
@@ -276,7 +287,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(PIDController.class)
-    public static LogItem<?>[] logPIDController(PIDController obj) {
+    public static LogItem<?>[] logPIDController(Supplier<Object> supplier) {
+        PIDController obj = (PIDController) supplier.get();
+
         return new LogItem<?>[] {
                 new DoubleLogItem("setpoint", () -> obj.getSetpoint(),
                         LogType.NT),
@@ -300,7 +313,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ProfiledPIDController.class)
-    public static LogItem<?>[] logProfiledPIDController(ProfiledPIDController obj) {
+    public static LogItem<?>[] logProfiledPIDController(Supplier<Object> supplier) {
+        ProfiledPIDController obj = (ProfiledPIDController) supplier.get();
+
         return new LogItem<?>[] {
                 new DoubleLogItem("setpointPosition", () -> obj.getSetpoint().position,
                         LogType.NT),
@@ -341,7 +356,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(DCMotorSim.class)
-    public static LogItem<?>[] logDCMotorSim(DCMotorSim obj) {
+    public static LogItem<?>[] logDCMotorSim(Supplier<Object> supplier) {
+        DCMotorSim obj = (DCMotorSim) supplier.get();
+
         return new LogItem<?>[] {
                 new DoubleLogItem("angularPositionRad", obj::getAngularPositionRad, LogType.NT),
                 new DoubleLogItem("angularPositionRotations", obj::getAngularPositionRotations, LogType.NT),
@@ -358,7 +375,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ElevatorSim.class)
-    public static LogItem<?>[] logElevatorSim(ElevatorSim obj) {
+    public static LogItem<?>[] logElevatorSim(Supplier<Object> supplier) {
+        ElevatorSim obj = (ElevatorSim) supplier.get();
+
         return new LogItem<?>[] {
                 new DoubleLogItem("positionMeters", () -> obj.getPositionMeters(), LogType.NT),
                 new DoubleLogItem("velocityMetersPerSecond", () -> obj.getVelocityMetersPerSecond(), LogType.NT),
@@ -373,7 +392,9 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(SingleJointedArmSim.class)
-    public static LogItem<?>[] logSingleJointedArmSim(SingleJointedArmSim obj) {
+    public static LogItem<?>[] logSingleJointedArmSim(Supplier<Object> supplier) {
+        SingleJointedArmSim obj = (SingleJointedArmSim) supplier.get();
+
         return new LogItem<?>[] {
                 new DoubleLogItem("angleRad", obj::getAngleRads, LogType.NT),
                 new DoubleLogItem("velocityRadPerSec", obj::getVelocityRadPerSec, LogType.NT),
@@ -416,9 +437,11 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngle.class)
-    public static LogItem<?>[] logAngle(Supplier<Object> obj) {
+    public static LogItem<?>[] logAngle(Supplier<Object> supplier) {
+        ImmutableAngle obj = (ImmutableAngle) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("angleRadians", () -> ((ImmutableAngle) obj.get()).in(Radians), LogType.NT)
+                new DoubleLogItem("angleRadians", () -> obj.in(Radians), LogType.NT)
         };
     }
 
@@ -429,9 +452,11 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngularVelocity.class)
-    public static LogItem<?>[] logAngularVelocity(Supplier<Object> obj) {
+    public static LogItem<?>[] logAngularVelocity(Supplier<Object> supplier) {
+        ImmutableAngularVelocity obj = (ImmutableAngularVelocity) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("angularVelocityRadiansPerSecond", () -> ((ImmutableAngularVelocity) obj.get()).in(RadiansPerSecond), LogType.NT),
+                new DoubleLogItem("angularVelocityRadiansPerSecond", () -> obj.in(RadiansPerSecond), LogType.NT),
         };
     }
 
@@ -442,9 +467,12 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableAngularAcceleration.class)
-    public static LogItem<?>[] logAngularAcceleration(Supplier<Object> obj) {
+    public static LogItem<?>[] logAngularAcceleration(Supplier<Object> supplier) {
+        ImmutableAngularAcceleration obj = (ImmutableAngularAcceleration) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("angularAccelerationRadiansPerSecondPerSecond", () -> ((ImmutableAngularAcceleration) obj.get()).in(RadiansPerSecondPerSecond), LogType.NT),
+                new DoubleLogItem("angularAccelerationRadiansPerSecondPerSecond",
+                        () -> obj.in(RadiansPerSecondPerSecond), LogType.NT),
         };
     }
 
@@ -455,9 +483,11 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableDistance.class)
-    public static LogItem<?>[] logDistance(Supplier<Object> obj) {
+    public static LogItem<?>[] logDistance(Supplier<Object> supplier) {
+        ImmutableDistance obj = (ImmutableDistance) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("distanceMeters", () -> ((ImmutableDistance) obj.get()).in(Meters), LogType.NT)
+                new DoubleLogItem("distanceMeters", () -> obj.in(Meters), LogType.NT)
         };
     }
 
@@ -468,9 +498,11 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableLinearVelocity.class)
-    public static LogItem<?>[] logLinearVelocity(Supplier<Object> obj) {
+    public static LogItem<?>[] logLinearVelocity(Supplier<Object> supplier) {
+        ImmutableLinearVelocity obj = (ImmutableLinearVelocity) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("velocityMetersPerSecond", () -> ((ImmutableLinearVelocity) obj.get()).in(MetersPerSecond), LogType.NT),
+                new DoubleLogItem("velocityMetersPerSecond", () -> obj.in(MetersPerSecond), LogType.NT),
         };
     }
 
@@ -481,9 +513,12 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableLinearAcceleration.class)
-    public static LogItem<?>[] logLinearAcceleration(Supplier<Object> obj) {
+    public static LogItem<?>[] logLinearAcceleration(Supplier<Object> supplier) {
+        ImmutableLinearAcceleration obj = (ImmutableLinearAcceleration) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("accelerationMetersPerSecondPerSecond", () -> ((ImmutableLinearAcceleration) obj.get()).in(MetersPerSecondPerSecond), LogType.NT),
+                new DoubleLogItem("accelerationMetersPerSecondPerSecond", () -> obj.in(MetersPerSecondPerSecond),
+                        LogType.NT),
         };
     }
 
@@ -494,9 +529,11 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableVoltage.class)
-    public static LogItem<?>[] logVoltage(Supplier<Object> obj) {
+    public static LogItem<?>[] logVoltage(Supplier<Object> supplier) {
+        ImmutableVoltage obj = (ImmutableVoltage) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("voltage", () -> ((ImmutableVoltage) obj.get()).in(Volts), LogType.NT),
+                new DoubleLogItem("voltage", () -> obj.in(Volts), LogType.NT),
         };
     }
 
@@ -507,9 +544,14 @@ public class LogProfiles {
      * @return the array of LogItems
      */
     @LogProfile(ImmutableCurrent.class)
-    public static LogItem<?>[] logCurrent(Supplier<Object> obj) {
+    public static LogItem<?>[] logCurrent(Supplier<Object> supplier) {
+        ImmutableCurrent obj = (ImmutableCurrent) supplier.get();
+
         return new LogItem<?>[] {
-                new DoubleLogItem("currentAmps", () -> ((ImmutableCurrent) obj.get()).in(Amps), LogType.NT),
+                new DoubleLogItem("currentAmps", () -> obj.in(Amps), LogType.NT),
         };
     }
+
+    // TODO is there a way to do a general method for any Measure?
+    // TODO add more profiles
 }
