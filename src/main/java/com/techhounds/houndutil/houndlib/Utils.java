@@ -201,6 +201,18 @@ public class Utils {
         return (int) (start + (end - start) * t);
     }
 
+    /**
+     * Computes the interpolation fraction between two values.
+     * 
+     * @param start the start value
+     * @param end   the end value
+     * @param query the value to find the interpolation fraction for
+     * @return the interpolation fraction
+     */
+    public static double inverseInterpolate(double start, double end, double query) {
+        return (query - start) / (end - start);
+    }
+
     public static double getLineDistance(Pose2d pose, Pose2d lineApexPose) {
         double cosTheta = lineApexPose.getRotation().getCos();
         double sinTheta = lineApexPose.getRotation().getSin();
