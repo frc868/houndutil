@@ -12,6 +12,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.Orchestra;
 import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.util.DriveFeedforwards;
@@ -240,11 +241,10 @@ public class KrakenSwerveDrive {
                 sysIdConfigSteer,
                 new SysIdRoutine.Mechanism(
                         (Voltage volts) -> {
-                            drive(new ChassisSpeeds(
-                                    constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond) * volts.magnitude() /
-                                            12.0,
-                                    0,
-                                    0));
+                            frontLeft.getSteerMotor().setControl(new VoltageOut(volts));
+                            frontRight.getSteerMotor().setControl(new VoltageOut(volts));
+                            backLeft.getSteerMotor().setControl(new VoltageOut(volts));
+                            backRight.getSteerMotor().setControl(new VoltageOut(volts));
                         },
                         log -> {
                             log.motor("frontLeft")
