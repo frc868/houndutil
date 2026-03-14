@@ -295,7 +295,7 @@ public class KrakenCoaxialSwerveModule {
         steerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         steerConfig.Feedback.FeedbackRemoteSensorID = steerCanCoder.getDeviceID();
         steerConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        steerConfig.Feedback.SensorToMechanismRatio = 1.0;
+        steerConfig.Feedback.SensorToMechanismRatio = 1.0; // TODO rn gear ratio has to be plugged into SysId tool bc it isn't set here
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
         if (RobotBase.isReal()) {
             steerConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT.in(Amps);
@@ -313,7 +313,7 @@ public class KrakenCoaxialSwerveModule {
         steerConfig.MotionMagic.MotionMagicAcceleration = SWERVE_CONSTANTS.MAX_STEER_ACCELERATION
                 .in(RadiansPerSecondPerSecond)
                 / (2 * Math.PI);
-        steerConfig.ClosedLoopGeneral.ContinuousWrap = true;
+        steerConfig.ClosedLoopGeneral.ContinuousWrap = true; // TODO I think this might break SysId when enabled?
         steerConfigurator.apply(steerConfig);
 
         driveMotorSim = new DCMotorSim(LinearSystemId.createDCMotorSystem(SWERVE_CONSTANTS.DRIVE_GEARBOX_REPR,
