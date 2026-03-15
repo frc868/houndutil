@@ -182,7 +182,8 @@ public class ShootOnTheFlyCalculator {
             correctedTargetPose = new Pose3d(virtualGoalX, virtualGoalY, targetPose.getZ(),
                     targetPose.getRotation());
 
-            double newShotTime = getTimeToShoot(robotPose, correctedTargetPose, xyDistanceToProjectileVelocity);
+            double newShotTime = getTimeToShoot(robotPose, correctedTargetPose,
+                    xyDistanceToProjectileVelocity);
 
             shotTime = newShotTime;
             if (Math.abs(newShotTime - shotTime) <= 0.010) {
@@ -207,13 +208,16 @@ public class ShootOnTheFlyCalculator {
             ChassisSpeeds fieldRelRobotVelocity,
             ChassisAccelerations fieldRelRobotAcceleration,
             double targetSpeedRps,
+            Function<Double, Double> xyDistanceToTime,
             int maxIterations,
             double timeTolerance) {
 
-        ShotSolution sol = BallPhysics.solveBallisticWithSpeed(
-                shooterPose,
-                targetPose,
-                targetSpeedRps);
+        // ShotSolution sol = BallPhysics.solveBallisticWithSpeed(
+        //         shooterPose,
+        //         targetPose,
+        //         targetSpeedRps); // SORRY DAVID
+        ShotSolution sol = new ShotSolution(0.0, 0.0, xyDistanceToTime.apply(Math
+                .hypot(shooterPose.minus(targetPose).getX(), shooterPose.minus(targetPose).getY())));
 
         double t = sol.flightTimeSeconds();
         Pose3d effectiveTarget = targetPose;
@@ -232,10 +236,11 @@ public class ShootOnTheFlyCalculator {
                     targetPose.getZ(),
                     targetPose.getRotation());
 
-            ShotSolution newSol = BallPhysics.solveBallisticWithSpeed(
-                    shooterPose,
-                    effectiveTarget,
-                    targetSpeedRps);
+            // ShotSolution newSol = BallPhysics.solveBallisticWithSpeed(
+            //         shooterPose,
+            //         effectiveTarget,
+            //         targetSpeedRps); // SORRY DAVID
+            ShotSolution newSol = new ShotSolution(0.0, 0.0, xyDistanceToTime.apply(Math.hypot(shooterPose.minus(effectiveTarget).getX(), shooterPose.minus(effectiveTarget).getY())));
 
             if (Math.abs(newSol.flightTimeSeconds() - t) < timeTolerance) {
                 return new InterceptSolution(
