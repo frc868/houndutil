@@ -1,7 +1,10 @@
 package com.techhounds.houndutil.houndlib.robots;
 
+import edu.wpi.first.net.WebServer;
+import edu.wpi.first.wpilibj.Filesystem;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.livewindow.LiveWindow;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 
@@ -56,6 +59,8 @@ import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
  */
 @LoggedObject
 public class HoundRobot extends TimedRobot {
+
+    public static Timer matchTimer = new Timer();
     /**
      * Default constructor. Use if not using a RobotContainer, or initializing a
      * RobotContainer elsewhere.
@@ -103,6 +108,8 @@ public class HoundRobot extends TimedRobot {
         // replacement. LiveWindow is still active during test mode by default, but it
         // consumes an inordinate amount of bandwidth, so we disable it.
         LiveWindow.disableAllTelemetry();
+
+        WebServer.start(5800, Filesystem.getDeployDirectory().getPath());
     }
 
     /**
@@ -145,6 +152,9 @@ public class HoundRobot extends TimedRobot {
     @Override
     public void autonomousInit() {
         AutoManager.getInstance().runSelectedRoutine();
+
+        matchTimer.reset();
+        matchTimer.start();
     }
 
     @Override
@@ -157,10 +167,13 @@ public class HoundRobot extends TimedRobot {
     @Override
     public void autonomousExit() {
         AutoManager.getInstance().endRoutine();
+
+        matchTimer.stop();
     }
 
     @Override
     public void teleopInit() {
+        matchTimer.start();
     }
 
     @Override
