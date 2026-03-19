@@ -12,6 +12,26 @@ import edu.wpi.first.math.geometry.Translation3d;
  * 2024).
  */
 public class Reflector {
+
+    /**
+     * Reflects a {@link Pose2d} to the opposite side of the driver station (Left to
+     * Right) Inverts heading to make it face the same way field relative
+     * 
+     * @param pose       the pose to reflect
+     * @param fieldWidth the width of the field, in meters
+     * @return the reflected pose
+     */
+    public static Pose2d reflectWidthPose2d(Pose2d pose, double fieldWidth) {
+        Translation2d transformedTranslation = new Translation2d(
+                pose.getTranslation().getY(),
+                fieldWidth - pose.getTranslation().getY());
+
+        Rotation2d transformedHeading = new Rotation2d(
+                -pose.getRotation().getRadians());
+
+        return new Pose2d(transformedTranslation, transformedHeading);
+    }
+
     /**
      * Reflects a {@link Pose2d} to the opposite side of a field given a field
      * length. Inverts the heading of the pose (e.g. facing towards one alliance
