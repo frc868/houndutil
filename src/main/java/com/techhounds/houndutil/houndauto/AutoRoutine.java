@@ -86,8 +86,8 @@ public class AutoRoutine {
     public Pose2d getInitialPose() {
         if (pathPlannerPaths.size() > 0) {
             if (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red)
-                return Reflector.rotatePoseAcrossField(initialPose, Units.inchesToMeters(690.876),
-                        Units.inchesToMeters(317));
+                return Reflector.rotatePoseAcrossField(initialPose, Units.inchesToMeters(651.22),
+                        Units.inchesToMeters(317.69));
             else
                 return initialPose;
         } else {
