@@ -212,6 +212,8 @@ public class AutoManager {
 
             baseCommand = getSelectedRoutine().getCommand();
 
+            resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose());
+
             timer.reset();
             timer.start();
             currentCommand = Commands.sequence(
