@@ -214,8 +214,9 @@ public class AutoManager {
             CommandScheduler.getInstance().removeComposedCommand(baseCommand);
 
             baseCommand = getSelectedRoutine().getCommand();
-
-            resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose());
+            if (!getSelectedRoutine().getInitialPose().equals(Pose2d.kZero)) {
+                resetOdometryConsumer.accept(getSelectedRoutine().getInitialPose());
+            }
 
             timer.reset();
             timer.start();
