@@ -108,10 +108,13 @@ public class AutoManager {
      * Add a routine to the manager.
      * 
      * @param routine the routine to add
+     * @return the instance of the AutoManager, for method chaining
      */
-    public void addRoutine(AutoRoutine routine) {
+    public AutoManager addRoutine(AutoRoutine routine) {
         routines.put(routine.getName(), routine);
         chooser.addOption(routine.getName(), routine);
+
+        return getInstance();
     }
 
     /**
