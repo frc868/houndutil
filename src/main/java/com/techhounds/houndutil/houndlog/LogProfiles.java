@@ -416,17 +416,17 @@ public class LogProfiles {
                 new IntegerLogItem("faultCount5v", RobotController::getFaultCount5V, LogType.NT),
                 new IntegerLogItem("faultCount6v", RobotController::getFaultCount6V, LogType.NT),
                 new DoubleLogItem("cpuTemp", RobotController::getCPUTemp, LogType.NT),
-                new IntegerArrayLogItem("canBus", () -> {
-                    // getCANStatus should only be called once per loop because it is expensive
-                    CANStatus status = RobotController.getCANStatus();
-                    return new int[] {
-                            (int) (status.percentBusUtilization * 100),
-                            status.busOffCount,
-                            status.txFullCount,
-                            status.receiveErrorCount,
-                            status.transmitErrorCount
-                    };
-                }, LogType.NT),
+                // new IntegerArrayLogItem("canBus", () -> {
+                //     // getCANStatus should only be called once per loop because it is expensive
+                //     CANStatus status = RobotController.getCANStatus();
+                //     return new int[] {
+                //             (int) (status.percentBusUtilization * 100),
+                //             status.busOffCount,
+                //             status.txFullCount,
+                //             status.receiveErrorCount,
+                //             status.transmitErrorCount
+                //     };
+                // }, LogType.NT),
         };
     }
 
