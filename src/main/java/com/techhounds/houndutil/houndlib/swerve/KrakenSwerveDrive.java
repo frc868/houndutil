@@ -570,6 +570,15 @@ public class KrakenSwerveDrive {
         pigeon.setYaw(0);
         initialized = true;
     }
+    
+    /**
+     * Sets the gyro angle to the provided angle
+     * @param angle angle to set gyro to
+     */
+    public void setGyroAngle(Angle angle) {
+        pigeon.setYaw(angle);
+        initialized = true;
+    }
 
     /**
      * Fetch the initialization status of the drivetrain.

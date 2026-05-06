@@ -21,12 +21,10 @@ import com.techhounds.houndutil.houndlog.loggers.BooleanLogItem;
 import com.techhounds.houndutil.houndlog.loggers.DoubleArrayLogItem;
 import com.techhounds.houndutil.houndlog.loggers.DoubleLogItem;
 import com.techhounds.houndutil.houndlog.loggers.FloatLogItem;
-import com.techhounds.houndutil.houndlog.loggers.IntegerArrayLogItem;
 import com.techhounds.houndutil.houndlog.loggers.IntegerLogItem;
 import com.techhounds.houndutil.houndlog.loggers.LogItem;
 import com.techhounds.houndutil.houndlog.loggers.TunableDouble;
 
-import edu.wpi.first.hal.can.CANStatus;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
