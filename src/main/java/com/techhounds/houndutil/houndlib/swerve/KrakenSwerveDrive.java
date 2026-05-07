@@ -36,7 +36,6 @@ import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
-import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.MutAngle;
 import edu.wpi.first.units.measure.MutAngularVelocity;
 import edu.wpi.first.units.measure.MutDistance;
@@ -85,12 +84,6 @@ public class KrakenSwerveDrive {
 
     /** The simulation odometry, for simulation only. */
     private SwerveDriveOdometry simOdometry;
-
-    /**
-     * Whether the drivetrain has been initialized. Instantly true in sim, true only
-     * after gyro reset otherwise.
-     */
-    private boolean initialized = RobotBase.isSimulation();
 
     /** The constants for the swerve drive. */
     private final SwerveConstants constants;
@@ -563,34 +556,6 @@ public class KrakenSwerveDrive {
     }
 
     /**
-     * Resets the gyro such that the chassis is facing forward with respect to the
-     * origin.
-     */
-    public void resetGyro() {
-        pigeon.setYaw(0);
-        initialized = true;
-    }
-    
-    /**
-     * Sets the gyro angle to the provided angle
-     * @param angle angle to set gyro to
-     */
-    public void setGyroAngle(Angle angle) {
-        pigeon.setYaw(angle);
-        initialized = true;
-    }
-
-    /**
-     * Fetch the initialization status of the drivetrain.
-     * 
-     * @return whether the drivetrain is initialized
-     */
-    @Log
-    public boolean getInitialized() {
-        return initialized;
-    }
-
-    /**
      * Sets the motors on the swerve modules into either brake or coast mode.
      * 
      * @param neutralMode the NeutralModeValue to set the motors in each swerve
@@ -841,15 +806,6 @@ public class KrakenSwerveDrive {
         if (RobotBase.isSimulation())
             field.getObject("simPose").setPose(simOdometry.getPoseMeters());
         field.getObject("precisePose").setPose(precisePoseEstimator.getEstimatedPosition());
-    }
-
-    /**
-     * Get the yaw of the Pigeon's gyro.
-     * 
-     * @return the yaw as an Angle
-     */
-    public Angle getRawYaw() {
-        return pigeon.getYaw().getValue();
     }
 
     /**

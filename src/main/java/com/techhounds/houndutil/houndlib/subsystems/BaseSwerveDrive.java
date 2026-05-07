@@ -68,6 +68,12 @@ public interface BaseSwerveDrive {
     }
 
     /**
+     * Resets the gyro such that the chassis is facing forward with respect to the
+     * origin.
+     */
+    public void resetGyro();
+
+    /**
      * Creates a command that moves the chassis given x, y, and theta speeds.
      * 
      * @apiNote this should handle deadbands, rate limiting, and any desired
@@ -155,8 +161,7 @@ public interface BaseSwerveDrive {
 
     /**
      * Creates an instantaneous command that resets the gyro such that the chassis
-     * is facing
-     * forward with respect to the origin.
+     * is facing forward with respect to the origin.
      * 
      * @return the command
      */
