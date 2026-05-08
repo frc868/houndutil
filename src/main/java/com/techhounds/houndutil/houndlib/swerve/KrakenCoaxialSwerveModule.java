@@ -7,6 +7,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecondPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
+import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.StatusSignal;
@@ -24,6 +25,7 @@ import com.ctre.phoenix6.signals.FeedbackSensorSourceValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
+import com.techhounds.houndutil.HoundConstants;
 import com.techhounds.houndutil.houndlog.SignalManager;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
@@ -469,7 +471,7 @@ public class KrakenCoaxialSwerveModule {
 
         if (RobotBase.isSimulation()) {
             driveMotorSim.setInputVoltage(driveMotor.getSimState().getMotorVoltage());
-            driveMotorSim.update(0.020);
+            driveMotorSim.update(HoundConstants.LOOP_TIME.in(Seconds));
 
             driveMotor.getSimState()
                     .setRotorVelocity(driveMotorSim.getAngularVelocityRPM() * SWERVE_CONSTANTS.DRIVE_GEARING / 60.0);
@@ -477,7 +479,7 @@ public class KrakenCoaxialSwerveModule {
                     .setRawRotorPosition(driveMotorSim.getAngularPositionRotations() * SWERVE_CONSTANTS.DRIVE_GEARING);
 
             steerMotorSim.setInputVoltage(steerMotor.getSimState().getMotorVoltage());
-            steerMotorSim.update(0.020);
+            steerMotorSim.update(HoundConstants.LOOP_TIME.in(Seconds));
 
             steerMotor.getSimState().setRawRotorPosition(steerMotorSim.getAngularPositionRotations());
             steerCanCoder.getSimState().setRawPosition(steerMotorSim.getAngularPositionRotations());

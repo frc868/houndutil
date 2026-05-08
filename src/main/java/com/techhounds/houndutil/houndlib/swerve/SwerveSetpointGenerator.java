@@ -10,9 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-import com.techhounds.houndutil.houndlib.EqualsUtil;
-import com.techhounds.houndutil.houndlib.Utils;
-
 /**
  * All credits to FRC team 254.
  *
@@ -32,6 +29,28 @@ public class SwerveSetpointGenerator {
     public SwerveSetpointGenerator(final SwerveDriveKinematics kinematics, final Translation2d[] moduleLocations) {
         this.kinematics = kinematics;
         this.moduleLocations = moduleLocations;
+    }
+
+    /**
+     * Returns whether two double values are equal within a small tolerance.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return true if {@code b} is within epsilon of {@code a}, otherwise false
+     */
+    private boolean epsilonEquals(double a, double b) {
+        return (a - 1e-9 <= b) && (a + 1e-9 >= b);
+    }
+
+    /**
+     * Returns whether two twist values are equal within a small tolerance.
+     *
+     * @param a the first value
+     * @param b the second value
+     * @return true if {@code b} is within epsilon of {@code a}, otherwise false
+     */
+    private boolean epsilonEquals(Twist2d twist, Twist2d other) {
+        return epsilonEquals(twist.dx, other.dx) && epsilonEquals(twist.dy, other.dy);
     }
 
     /**
@@ -97,7 +116,7 @@ public class SwerveSetpointGenerator {
             double y_1,
             double f_1,
             int iterations_left) {
-        if (iterations_left < 0 || EqualsUtil.epsilonEquals(f_0, f_1)) {
+        if (iterations_left < 0 || epsilonEquals(f_0, f_1)) {
             return 1.0;
         }
         var s_guess = Math.max(0.0, Math.min(1.0, -f_0 / (f_1 - f_0)));
@@ -193,7 +212,7 @@ public class SwerveSetpointGenerator {
         // arbitrary, so
         // just use the previous angle.
         boolean need_to_steer = true;
-        if (EqualsUtil.epsilonEquals(Utils.toTwist2d(desiredState), new Twist2d())) {
+        if (epsilonEquals(desiredState.toTwist2d(1.0), new Twist2d())) {
             need_to_steer = false;
             for (int i = 0; i < modules.length; ++i) {
                 desiredModuleState[i].angle = prevSetpoint.moduleStates()[i].angle;
@@ -233,8 +252,8 @@ public class SwerveSetpointGenerator {
             }
         }
         if (all_modules_should_flip
-                && !EqualsUtil.epsilonEquals(Utils.toTwist2d(prevSetpoint.chassisSpeeds()), new Twist2d())
-                && !EqualsUtil.epsilonEquals(Utils.toTwist2d(desiredState), new Twist2d())) {
+                && !epsilonEquals(prevSetpoint.chassisSpeeds().toTwist2d(1.0), new Twist2d())
+                && !epsilonEquals(desiredState.toTwist2d(1.0), new Twist2d())) {
             // It will (likely) be faster to stop the robot, rotate the modules in place to
             // the complement
             // of the desired
@@ -277,12 +296,12 @@ public class SwerveSetpointGenerator {
                 continue;
             }
             overrideSteering.add(Optional.empty());
-            if (EqualsUtil.epsilonEquals(prevSetpoint.moduleStates()[i].speedMetersPerSecond, 0.0)) {
+            if (epsilonEquals(prevSetpoint.moduleStates()[i].speedMetersPerSecond, 0.0)) {
                 // If module is stopped, we know that we will need to move straight to the final
                 // steering
                 // angle, so limit based
                 // purely on rotation in place.
-                if (EqualsUtil.epsilonEquals(desiredModuleState[i].speedMetersPerSecond, 0.0)) {
+                if (epsilonEquals(desiredModuleState[i].speedMetersPerSecond, 0.0)) {
                     // Goal angle doesn't matter. Just leave module at its current angle.
                     overrideSteering.set(i, Optional.of(prevSetpoint.moduleStates()[i].angle));
                     continue;

@@ -6,8 +6,6 @@ import static edu.wpi.first.units.Units.Volts;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
-import edu.wpi.first.math.geometry.Twist2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.Voltage;
@@ -19,34 +17,6 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
  * can also be used in user code.
  */
 public class Utils {
-    /**
-     * Adjusts the command voltage based on the states of the upper and lower limit
-     * switches to ensure the mechanism operates within its allowed range of motion.
-     * 
-     * If the upper limit switch is triggered and the voltage is positive
-     * (indicating upward motion), the mechanism is stopped by returning 0. If the
-     * lower limit switch is triggered and the voltage is negative
-     * (indicating downward motion), the mechanism is stopped by returning 0. If
-     * neither condition is met, the desired voltage is returned as-is.
-     * 
-     * @param isLowerTriggered true if the lower limit switch is triggered,
-     *                         false otherwise.
-     * @param isUpperTriggered true if the upper limit switch is triggered,
-     *                         false otherwise.
-     * @param voltage          the desired command voltage. Positive values
-     *                         indicate upward motion, negative values indicate
-     *                         downward motion.
-     * @return the adjusted command voltage. If the motion
-     *         is allowed, the input voltage is returned;
-     *         otherwise, 0 is returned to stop the mechanism.
-     */
-    public static double applyMechanismLimits(double voltage, boolean isLowerTriggered, boolean isUpperTriggered) {
-        if ((voltage > 0.0 && isUpperTriggered) || (voltage < 0.0 && isLowerTriggered)) {
-            return 0.0;
-        }
-        return voltage;
-    }
-
     /**
      * Enforces soft stops by suppressing commands that would drive the mechanism
      * beyond its allowed position range.
@@ -163,56 +133,6 @@ public class Utils {
         return Meters.of(applySoftStops(commandPosition.in(Meters), minPosition.in(Meters), maxPosition.in(Meters)));
     }
 
-    /**
-     * Converts a ChassisSpeeds to a Twist2d by extracting two dimensions (Y and Z).
-     * chain
-     *
-     * @param speeds The original translation
-     * @return The resulting translation
-     */
-    public static Twist2d toTwist2d(ChassisSpeeds speeds) {
-        return new Twist2d(
-                speeds.vxMetersPerSecond, speeds.vyMetersPerSecond, speeds.omegaRadiansPerSecond);
-    }
-
-    /**
-     * Interpolates between two values.
-     * 
-     * @param start the start value
-     * @param end   the end value
-     * @param t     where between the two values to interpolate to (0 is start, 1 is
-     *              end)
-     * @return the interpolated value
-     */
-    public static double interpolate(double start, double end, double t) {
-        return start + (end - start) * t;
-    }
-
-    /**
-     * Interpolates between two values.
-     * 
-     * @param start the start value
-     * @param end   the end value
-     * @param t     where between the two values to interpolate to (0 is start, 1 is
-     *              end)
-     * @return the interpolated value
-     */
-    public static int interpolate(int start, int end, double t) {
-        return (int) (start + (end - start) * t);
-    }
-
-    /**
-     * Computes the interpolation fraction between two values.
-     * 
-     * @param start the start value
-     * @param end   the end value
-     * @param query the value to find the interpolation fraction for
-     * @return the interpolation fraction
-     */
-    public static double inverseInterpolate(double start, double end, double query) {
-        return (query - start) / (end - start);
-    }
-
     public static double getLineDistance(Pose2d pose, Pose2d lineApexPose) {
         double cosTheta = lineApexPose.getRotation().getCos();
         double sinTheta = lineApexPose.getRotation().getSin();
@@ -243,7 +163,13 @@ public class Utils {
         return new Pose2d(xClosest, yClosest, lineApexPose.getRotation());
     }
 
-    public static boolean shouldFlipValueToRed() {
+    /**
+     * Gets whether the robot is set as being on the red alliance according to the
+     * {@link DriverStation}.
+     * 
+     * @return true if the robot is on the red alliance, otherwise false
+     */
+    public static boolean isRobotRedAlliance() {
         return DriverStation.getAlliance().isPresent() && DriverStation.getAlliance().get() == Alliance.Red;
     }
 }

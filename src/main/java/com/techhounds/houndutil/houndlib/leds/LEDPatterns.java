@@ -7,8 +7,8 @@ import java.util.function.DoubleSupplier;
 
 import com.techhounds.houndutil.houndlib.DoubleContainer;
 import com.techhounds.houndutil.houndlib.IntegerContainer;
-import com.techhounds.houndutil.houndlib.Utils;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.wpilibj.AddressableLEDBuffer;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.util.Color;
@@ -211,8 +211,8 @@ public class LEDPatterns {
                     double interpolationValue = (startPoint.value - i) / length;
                     int value = (int) ((255 - minBrightness) * (1 - interpolationValue)) + minBrightness;
                     buffer.setHSV(i + section.start(),
-                            Utils.interpolate(extPrimaryColor.hue(), extSecondaryColor.hue(), interpolationValue),
-                            Utils.interpolate(extPrimaryColor.saturation(), extSecondaryColor.saturation(),
+                            (int) MathUtil.interpolate(extPrimaryColor.hue(), extSecondaryColor.hue(), interpolationValue),
+                            (int) MathUtil.interpolate(extPrimaryColor.saturation(), extSecondaryColor.saturation(),
                                     interpolationValue),
                             value);
                 }
@@ -541,9 +541,9 @@ public class LEDPatterns {
         Color color1 = colors.get(index);
         Color color2 = colors.get(Math.min(index + 1, colors.size() - 1));
 
-        double red = Utils.interpolate(color1.red, color2.red, t);
-        double green = Utils.interpolate(color1.green, color2.green, t);
-        double blue = Utils.interpolate(color1.blue, color2.blue, t);
+        double red = MathUtil.interpolate(color1.red, color2.red, t);
+        double green = MathUtil.interpolate(color1.green, color2.green, t);
+        double blue = MathUtil.interpolate(color1.blue, color2.blue, t);
 
         return new Color(red, green, blue);
     }

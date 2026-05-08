@@ -95,26 +95,38 @@ public class AutoRoutine {
 
     /**
      * Reflects the starting pose and paths of an auto routine to mirror across the
-     * the x centerline
-     * <p>
-     * Adds "Mirorred" to the end of the name
-     * @param autoRoutine the autoroutine
+     * the x centerline.
+     * 
+     * Adds "Mirorred" to the end of the name.
+     * 
      * @return the autoroutine with mirrored paths and starting pose
      */
-    public static AutoRoutine reflectAutoRoutine(AutoRoutine autoRoutine) {
+    public AutoRoutine mirrorRoutine() {
+        List<PathPlannerPath> mirroredPaths = pathPlannerPaths.stream()
+                .map(PathPlannerPath::mirrorPath).toList();
 
-        List<PathPlannerPath> mirroredPaths = autoRoutine.getPathPlannerPaths().stream()
-                .map(path -> path.mirrorPath())
-                .toList();
+        Pose2d mirroredPose = Reflector.reflectWidthPose2d(initialPose);
+        String mirroredName = name + "Mirrored";
 
-        Pose2d mirroredPose = Reflector.reflectWidthPose2d(autoRoutine.getInitialPose());
-        String mirroredName = autoRoutine.getName() + "Mirrored";
-
-        return new AutoRoutine(
-                mirroredName,
-                autoRoutine.getCommand(),
-                mirroredPaths,
-                mirroredPose);
+        return new AutoRoutine(mirroredName, command, mirroredPaths, mirroredPose);
     }
 
+    /**
+     * Reflects the starting pose and paths of an auto routine to mirror across the
+     * the x centerline.
+     * 
+     * Uses the name provided.
+     * 
+     * @param newName name to use for the mirrored path
+     * @return the autoroutine with mirrored paths and starting pose
+     */
+    public AutoRoutine mirrorRoutine(String newName) {
+        List<PathPlannerPath> mirroredPaths = pathPlannerPaths.stream()
+                .map(PathPlannerPath::mirrorPath).toList();
+
+        Pose2d mirroredPose = Reflector.reflectWidthPose2d(initialPose);
+        String mirroredName = newName;
+
+        return new AutoRoutine(mirroredName, command, mirroredPaths, mirroredPose);
+    }
 }

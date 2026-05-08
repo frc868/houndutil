@@ -4,6 +4,7 @@ import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static edu.wpi.first.units.Units.Seconds;
 import static edu.wpi.first.units.Units.Volts;
 
 import java.util.concurrent.locks.ReadWriteLock;
@@ -16,6 +17,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.Pigeon2;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.pathplanner.lib.util.DriveFeedforwards;
+import com.techhounds.houndutil.HoundConstants;
 import com.techhounds.houndutil.houndauto.AutoManager;
 import com.techhounds.houndutil.houndlib.Utils;
 import com.techhounds.houndutil.houndlib.subsystems.BaseSwerveDrive.DriveMode;
@@ -635,7 +637,7 @@ public class KrakenSwerveDrive {
      * @param driveMode the DriveMode to use for the chassis' reference point
      */
     public void drive(ChassisSpeeds speeds, DriveMode driveMode) {
-        if (Utils.shouldFlipValueToRed()
+        if (Utils.isRobotRedAlliance()
                 && driveMode == DriveMode.FIELD_ORIENTED) {
             speeds.vxMetersPerSecond *= -1;
             speeds.vyMetersPerSecond *= -1;
@@ -655,7 +657,7 @@ public class KrakenSwerveDrive {
         }
 
         // compensates for swerve skew when translating and rotating simultaneously
-        adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, 0.02);
+        adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, HoundConstants.LOOP_TIME.in(Seconds));
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(adjustedChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states,
                 constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond));
@@ -682,7 +684,7 @@ public class KrakenSwerveDrive {
      * @param driveMode the DriveMode to use for the chassis' reference point
      */
     public void driveClosedLoop(ChassisSpeeds speeds, DriveMode driveMode) {
-        if (Utils.shouldFlipValueToRed()
+        if (Utils.isRobotRedAlliance()
                 && driveMode == DriveMode.FIELD_ORIENTED) {
             speeds.vxMetersPerSecond *= -1;
             speeds.vyMetersPerSecond *= -1;
@@ -701,7 +703,7 @@ public class KrakenSwerveDrive {
                 break;
         }
 
-        adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, 0.02);
+        adjustedChassisSpeeds = ChassisSpeeds.discretize(adjustedChassisSpeeds, HoundConstants.LOOP_TIME.in(Seconds));
         SwerveModuleState[] states = kinematics.toSwerveModuleStates(adjustedChassisSpeeds);
         SwerveDriveKinematics.desaturateWheelSpeeds(states,
                 constants.MAX_DRIVING_VELOCITY.in(MetersPerSecond));
