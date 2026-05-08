@@ -36,7 +36,7 @@ public class AutoRoutine {
      * 
      * @param name             the name of the routine, this will be pushed to
      *                         NetworkTables
-     * @param commandSupplier  the command to run on auto enable
+     * @param command          the command to run on auto enable
      * @param pathPlannerPaths a list of paths that the command contains
      * @param initialPose      the initial blue pose of the path, used to reset
      *                         odometry
