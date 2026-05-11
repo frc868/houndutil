@@ -230,7 +230,7 @@ public class AutoManager {
     }
 
     /**
-     * Ends the selected routine. This should be run in {@code teleopInit()}.
+     * Ends the selected routine. This should be run in {@code autonomousExit()}.
      */
     public void endRoutine() {
         timer.stop();
