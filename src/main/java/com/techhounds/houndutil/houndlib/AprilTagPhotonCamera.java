@@ -1,5 +1,7 @@
 package com.techhounds.houndutil.houndlib;
 
+import static edu.wpi.first.units.Units.Meters;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -15,6 +17,7 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
+import com.techhounds.houndutil.HoundConstants.Vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
@@ -103,7 +106,8 @@ public class AprilTagPhotonCamera {
      *                      simulation. if unsure, use 0.2px.
      * @param stdDevErrorPx the standard deviation of the error of the camera
      *                      calibration, used for simulation. if unsure, use 0.1px.
-     * @param fieldLayout   the field layout to be used ({@link AprilTagFieldLayout})
+     * @param fieldLayout   the field layout to be used
+     *                      ({@link AprilTagFieldLayout})
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
             double avgErrorPx, double stdDevErrorPx, AprilTagFieldLayout fieldLayout) {
@@ -191,9 +195,10 @@ public class AprilTagPhotonCamera {
             detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                     robotToCam);
 
-            // reject the pose if we are over 1m off the ground, or over 1m under the
+            // reject the pose if we are over x meters off the ground, or over 1m under the
             // ground.
-            if (estimatedRobotPose.getZ() > 1 || estimatedRobotPose.getZ() < -1) {
+            if (estimatedRobotPose.getZ() > Vision.MAX_POSE_REJECT_HEIGHT.in(Meters)
+                    || estimatedRobotPose.getZ() < Vision.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
                 return;
             }
@@ -235,18 +240,18 @@ public class AprilTagPhotonCamera {
             if (tagPose.isPresent()) {
                 double dist = tagPose.get().toPose2d().getTranslation()
                         .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
-                if (dist > 4.0) {
+                if (dist > Vision.TRIG_POSE_REJECT_DIST.in(Meters)) {
                     hasPose = false;
                     estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                     return;
                 }
             }
 
-            // reject the pose if we are over 1m off the ground, or over 1m under the
+            // reject the pose if we are over x meters off the ground, or over x meters under the
             // ground.
-            if (estimatedTrigPose.getZ() > 1 || estimatedTrigPose.getZ() < -1) {
+            if (estimatedRobotPose.getZ() > Vision.MAX_POSE_REJECT_HEIGHT.in(Meters)
+                    || estimatedRobotPose.getZ() < Vision.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
-                estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                 return;
             }
             estimatedTrigPoses.add(photonEstimatedRobotPose.get());
