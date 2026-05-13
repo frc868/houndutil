@@ -206,7 +206,7 @@ public class KrakenCoaxialSwerveModule {
     @Log
     private TalonFX steerMotor;
 
-    /** The CANCoder used to tell the steer angle of the wheel. */
+    /** The CANcoder used to tell the steer angle of the wheel. */
     @Log
     private CANcoder steerCanCoder;
 
@@ -240,13 +240,13 @@ public class KrakenCoaxialSwerveModule {
      *
      * @param driveMotorId          the CAN ID of the drive motor
      * @param steerMotorId          the CAN ID of the turning motor
-     * @param canCoderId            the CAN ID of the CANCoder
+     * @param canCoderId            the CAN ID of the CANcoder
      * @param canBus                the name of the CAN bus the steer motor, drive
      *                              motor, and encoder are on
      * @param driveMotorInverted    if the drive motor is inverted
      * @param steerMotorInverted    if the steer motor is inverted
      * @param steerCanCoderInverted if the steer encoder is inverted
-     * @param steerCanCoderOffset   the offset, to add to the CANCoder
+     * @param steerCanCoderOffset   the offset, to add to the CANcoder
      *                              value to make it zero when the module facing the
      *                              +x direction
      */

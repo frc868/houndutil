@@ -137,9 +137,9 @@ public class LogProfiles {
     }
 
     /**
-     * Builds CANCoder log items.
+     * Builds CANcoder log items.
      * 
-     * @param obj the CANCoder object to use
+     * @param obj the CANcoder object to use
      * @return the array of LogItems
      */
     @LogProfile(CANcoder.class)

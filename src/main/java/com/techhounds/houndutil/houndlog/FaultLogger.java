@@ -9,6 +9,7 @@ import edu.wpi.first.hal.PowerDistributionStickyFaults;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.networktables.StringArrayPublisher;
+import edu.wpi.first.units.measure.Temperature;
 import edu.wpi.first.wpilibj.PowerDistribution;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -209,29 +210,41 @@ public final class FaultLogger {
                 talon.getFault_StatorCurrLimit(),
                 talon.getFault_SupplyCurrLimit(),
                 talon.getFault_Undervoltage(),
-                talon.getFault_UnstableSupplyV());
+                talon.getFault_UnstableSupplyV(),
+                talon.getFault_UnlicensedFeatureInUse());
         faultSignals.forEach((s) -> SignalManager.register(talon.getNetwork().getName(), s));
+        StatusSignal<Temperature> deviceTemp = talon.getDeviceTemp();
+        SignalManager.register(talon.getNetwork().getName(), deviceTemp);
+        StatusSignal<Integer> version = talon.getVersion();
+        SignalManager.register(talon.getNetwork().getName(), version);
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
         }
         register(
-                () -> talon.getDeviceTemp().getValueAsDouble() > 80,
+                () -> deviceTemp.getValueAsDouble() > 80.0,
                 "Talon FX [" + talon.getDeviceID() + "]",
                 "motor above 80°C",
                 FaultType.WARNING);
+        register(
+                () -> version.getTimestamp().getLatency() > 0.5,
+                "Talon FX [" + talon.getDeviceID() + "]",
+                "disconnected",
+                FaultType.ERROR);
     }
 
     /**
      * Registers fault suppliers for a CANcoder.
      *
-     * @param talon the CANcoder to register
+     * @param cancoder the CANcoder to register
      */
     public static void register(CANcoder cancoder) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
                 cancoder.getFault_BadMagnet(),
                 cancoder.getFault_Hardware(),
                 cancoder.getFault_Undervoltage());
+        StatusSignal<Integer> version = cancoder.getVersion();
+        SignalManager.register(cancoder.getNetwork().getName(), version);
 
         faultSignals.forEach((s) -> SignalManager.register(cancoder.getNetwork().getName(), s));
 
@@ -239,12 +252,17 @@ public final class FaultLogger {
             register(signal::getValue, "CANcoder [" + cancoder.getDeviceID() + "]", signal.getName(),
                     FaultType.ERROR);
         }
+        register(
+                () -> version.getTimestamp().getLatency() > 0.5,
+                "CANcoder [" + cancoder.getDeviceID() + "]",
+                "disconnected",
+                FaultType.ERROR);
     }
 
     /**
      * Registers fault suppliers for a Pigeon 2.
      *
-     * @param talon the Pigeon 2 to register
+     * @param pigeon the Pigeon 2 to register
      */
     public static void register(Pigeon2 pigeon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
@@ -261,11 +279,18 @@ public final class FaultLogger {
                 pigeon.getFault_Undervoltage());
 
         faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork().getName(), s));
+        StatusSignal<Integer> version = pigeon.getVersion();
+        SignalManager.register(pigeon.getNetwork().getName(), version);
 
         for (StatusSignal<Boolean> signal : faultSignals) {
             register(signal::getValue, "Pigeon 2 [" + pigeon.getDeviceID() + "]", signal.getName(),
                     FaultType.ERROR);
         }
+        register(
+                () -> version.getTimestamp().getLatency() > 0.5,
+                "Pigeon 2 [" + pigeon.getDeviceID() + "]",
+                "disconnected",
+                FaultType.ERROR);
     }
 
     /**
