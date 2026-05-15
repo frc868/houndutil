@@ -219,17 +219,11 @@ public final class FaultLogger {
         SignalManager.register(talon.getNetwork().getName(), version);
 
         for (StatusSignal<Boolean> signal : faultSignals) {
-            register(signal::getValue, "Talon FX [" + talon.getDeviceID() + "]", signal.getName(), FaultType.ERROR);
+            register(signal::getValue, talon.getDescription(), signal.getName(), FaultType.ERROR);
         }
-        register(
-                () -> deviceTemp.getValueAsDouble() > 80.0,
-                "Talon FX [" + talon.getDeviceID() + "]",
-                "motor above 80°C",
+        register(() -> deviceTemp.getValueAsDouble() > 80.0, talon.getDescription(), "motor above 80°C",
                 FaultType.WARNING);
-        register(
-                () -> version.getTimestamp().getLatency() > 0.5,
-                "Talon FX [" + talon.getDeviceID() + "]",
-                "disconnected",
+        register(() -> version.getTimestamp().getLatency() > 0.5, talon.getDescription(), "disconnected",
                 FaultType.ERROR);
     }
 
@@ -242,7 +236,8 @@ public final class FaultLogger {
         List<StatusSignal<Boolean>> faultSignals = List.of(
                 cancoder.getFault_BadMagnet(),
                 cancoder.getFault_Hardware(),
-                cancoder.getFault_Undervoltage());
+                cancoder.getFault_Undervoltage(),
+                cancoder.getFault_UnlicensedFeatureInUse());
         StatusSignal<Integer> version = cancoder.getVersion();
         SignalManager.register(cancoder.getNetwork().getName(), version);
 
@@ -266,7 +261,6 @@ public final class FaultLogger {
      */
     public static void register(Pigeon2 pigeon) {
         List<StatusSignal<Boolean>> faultSignals = List.of(
-                pigeon.getFault_BootIntoMotion(),
                 pigeon.getFault_BootupAccelerometer(),
                 pigeon.getFault_BootupGyroscope(),
                 pigeon.getFault_BootupMagnetometer(),
@@ -276,7 +270,8 @@ public final class FaultLogger {
                 pigeon.getFault_SaturatedAccelerometer(),
                 pigeon.getFault_SaturatedGyroscope(),
                 pigeon.getFault_SaturatedMagnetometer(),
-                pigeon.getFault_Undervoltage());
+                pigeon.getFault_Undervoltage(),
+                pigeon.getFault_UnlicensedFeatureInUse());
 
         faultSignals.forEach((s) -> SignalManager.register(pigeon.getNetwork().getName(), s));
         StatusSignal<Integer> version = pigeon.getVersion();

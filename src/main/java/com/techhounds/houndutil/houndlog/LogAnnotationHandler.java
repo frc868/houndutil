@@ -315,10 +315,10 @@ public class LogAnnotationHandler {
             // if something is covered by a profile, use it
             Map<Class<?>, Function<Supplier<Object>, LogItem<?>[]>> profiles = LoggingManager.getInstance()
                     .getProfiles();
-            Function<Supplier<Object>, LogItem<?>[]> profile = profiles.get(value.getClass());
-
-            if (profile != null) {
-                return Optional.of(new LogGroup(name, profile.apply(checkedValueSupplier)));
+            for (var entry : profiles.entrySet()) {
+                if (entry.getKey().isAssignableFrom(value.getClass())) {
+                    return Optional.of(new LogGroup(name, entry.getValue().apply(checkedValueSupplier)));
+                }
             }
 
             // if a struct, use the struct logger
