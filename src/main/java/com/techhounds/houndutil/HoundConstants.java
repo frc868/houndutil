@@ -1,7 +1,6 @@
 package com.techhounds.houndutil;
 
 import static edu.wpi.first.units.Units.Inches;
-import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.Milliseconds;
 
 import edu.wpi.first.units.measure.Distance;
@@ -19,14 +18,4 @@ public class HoundConstants {
     public static final Distance FIELD_LENGTH = Inches.of(651.22);
     /** The width (y-axis) of the field */
     public static final Distance FIELD_WIDTH = Inches.of(317.69);
-
-    public static class Vision {
-        /** Distance to reject trig pose calculations */
-        public static Distance TRIG_POSE_REJECT_DIST = Meters.of(4);
-        /** Height from the ground to reject pose estimates below the robot*/
-        public static Distance MIN_POSE_REJECT_HEIGHT = Meters.of(-1);
-        /** Height from the ground to reject pose estimates above the robot*/
-        public static Distance MAX_POSE_REJECT_HEIGHT = Meters.of(1);
-
-    }
 }

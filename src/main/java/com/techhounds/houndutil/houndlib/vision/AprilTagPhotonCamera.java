@@ -1,10 +1,11 @@
-package com.techhounds.houndutil.houndlib;
+package com.techhounds.houndutil.houndlib.vision;
 
 import static edu.wpi.first.units.Units.Meters;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+
 import org.photonvision.EstimatedRobotPose;
 import org.photonvision.PhotonCamera;
 import org.photonvision.PhotonPoseEstimator;
@@ -17,7 +18,6 @@ import org.photonvision.targeting.PhotonTrackedTarget;
 import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
-import com.techhounds.houndutil.HoundConstants.Vision;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.math.Matrix;
@@ -30,6 +30,7 @@ import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.wpilibj.RobotBase;
 
 /**
@@ -66,6 +67,16 @@ public class AprilTagPhotonCamera {
          * for simulation. If unsure, use 15ms.
          */
         public double STDDEV_LATENCY;
+
+        /** Distance to reject trig pose calculations. */
+        public Distance TRIG_POSE_REJECT_DIST;
+        /** Height from the ground to reject pose estimates below the robot. */
+        public Distance MIN_POSE_REJECT_HEIGHT;
+        /** Height from the ground to reject pose estimates above the robot. */
+        public Distance MAX_POSE_REJECT_HEIGHT;
+
+        /** The layout of the AprilTags on the field. */
+        public AprilTagFieldLayout TAG_LAYOUT;
     }
 
     protected String name;
@@ -74,6 +85,7 @@ public class AprilTagPhotonCamera {
     protected PhotonPoseEstimator photonPoseEstimator;
     protected PhotonPoseEstimator trigSolvePoseEstimator;
     protected Transform3d robotToCam;
+    protected PhotonCameraConstants constants;
 
     // all used for logging only
     @Log
@@ -96,31 +108,32 @@ public class AprilTagPhotonCamera {
     /**
      * Initializes the PhotonVision camera.
      * 
-     * @param name          the name of the camera assigned in PhotonVision.
-     * @param robotToCam    the transform from the center of the robot (at a
-     *                      z-height of 0) to the sensor of the camera. this should
-     *                      be as accurate as possible to minimize compounding
-     *                      tolerances.
-     * @param constants     the common constants for the camera.
-     * @param avgErrorPx    the average error of the camera calibration, used for
-     *                      simulation. if unsure, use 0.2px.
-     * @param stdDevErrorPx the standard deviation of the error of the camera
-     *                      calibration, used for simulation. if unsure, use 0.1px.
-     * @param fieldLayout   the field layout to be used
-     *                      ({@link AprilTagFieldLayout})
+     * @param name               the name of the camera assigned in PhotonVision
+     * @param robotToCamSupplier the transform from the center of the robot (at a
+     *                           z-height of 0) to the sensor of the camera. this
+     *                           should be as accurate as possible to minimize
+     *                           compounding tolerances
+     * @param constants          the common constants for the camera
+     * @param avgErrorPx         the average error of the camera calibration, used
+     *                           for simulation. if unsure, use 0.2px
+     * @param stdDevErrorPx      the standard deviation of the error of the camera
+     *                           calibration, used for simulation. if unsure, use
+     *                           0.1px
+     * @param fieldLayout        the {@link AprilTagFieldLayout} to be used
      */
     public AprilTagPhotonCamera(String name, Transform3d robotToCam, PhotonCameraConstants constants,
-            double avgErrorPx, double stdDevErrorPx, AprilTagFieldLayout fieldLayout) {
+            double avgErrorPx, double stdDevErrorPx) {
         this.name = name;
         this.robotToCam = robotToCam;
+        this.constants = constants;
 
         photonCamera = new PhotonCamera(name);
 
-        photonPoseEstimator = new PhotonPoseEstimator(fieldLayout,
+        photonPoseEstimator = new PhotonPoseEstimator(constants.TAG_LAYOUT,
                 PoseStrategy.MULTI_TAG_PNP_ON_COPROCESSOR, robotToCam);
         photonPoseEstimator.setMultiTagFallbackStrategy(PoseStrategy.PNP_DISTANCE_TRIG_SOLVE);
 
-        trigSolvePoseEstimator = new PhotonPoseEstimator(fieldLayout, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
+        trigSolvePoseEstimator = new PhotonPoseEstimator(constants.TAG_LAYOUT, PoseStrategy.PNP_DISTANCE_TRIG_SOLVE,
                 robotToCam);
 
         if (RobotBase.isSimulation()) {
@@ -197,8 +210,8 @@ public class AprilTagPhotonCamera {
 
             // reject the pose if we are over x meters off the ground, or over 1m under the
             // ground.
-            if (estimatedRobotPose.getZ() > Vision.MAX_POSE_REJECT_HEIGHT.in(Meters)
-                    || estimatedRobotPose.getZ() < Vision.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
+            if (estimatedRobotPose.getZ() > constants.MAX_POSE_REJECT_HEIGHT.in(Meters)
+                    || estimatedRobotPose.getZ() < constants.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
                 return;
             }
@@ -240,17 +253,18 @@ public class AprilTagPhotonCamera {
             if (tagPose.isPresent()) {
                 double dist = tagPose.get().toPose2d().getTranslation()
                         .getDistance(estimatedTrigPose.getTranslation().toTranslation2d());
-                if (dist > Vision.TRIG_POSE_REJECT_DIST.in(Meters)) {
+                if (dist > constants.TRIG_POSE_REJECT_DIST.in(Meters)) {
                     hasPose = false;
                     estimatedTrigPose = new Pose3d(-100, -100, -100, new Rotation3d());
                     return;
                 }
             }
 
-            // reject the pose if we are over x meters off the ground, or over x meters under the
+            // reject the pose if we are over x meters off the ground, or over x meters
+            // under the
             // ground.
-            if (estimatedRobotPose.getZ() > Vision.MAX_POSE_REJECT_HEIGHT.in(Meters)
-                    || estimatedRobotPose.getZ() < Vision.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
+            if (estimatedTrigPose.getZ() > constants.MAX_POSE_REJECT_HEIGHT.in(Meters)
+                    || estimatedRobotPose.getZ() < constants.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
                 return;
             }
