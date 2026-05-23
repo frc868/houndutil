@@ -51,6 +51,12 @@ In `settings.gradle`, add these lines at the end of the file:
 include ':houndutil'
 rootProject.children[0].buildFileName = "submodule.gradle"
 ```
+On the left tab, install the following dependencies - 
+ - CTRE-Phoenix (v6)
+ - PathplannerLib
+ - photonlib
+ - Studica
+ - URCL
 
 In `Main.java`, change your robot to a HoundRobot:
 
