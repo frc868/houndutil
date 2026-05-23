@@ -56,7 +56,6 @@ On the left tab, install the following dependencies -
  - PathplannerLib
  - photonlib
  - Studica
- - URCL
 
 In `Main.java`, change your robot to a HoundRobot:
 
