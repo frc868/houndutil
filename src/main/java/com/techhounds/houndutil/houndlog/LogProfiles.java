@@ -449,7 +449,7 @@ public class LogProfiles {
     /**
      * Builds Measure log items.
      * 
-     * @param supplier the supplier of {@link ImmutableAngle} to use
+     * @param supplier the supplier of extends {@link Measure} to use
      * @return the array of LogItems
      */
     @LogProfile(Measure.class)
@@ -466,7 +466,4 @@ public class LogProfiles {
                         () -> supplier.get().baseUnitMagnitude(), LogType.NT)
         };
     }
-
-    // TODO is there a way to do a general method for any Measure?
-    // TODO log canivore?
 }
