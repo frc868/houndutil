@@ -1,10 +1,12 @@
 package com.techhounds.houndutil.houndlib.subsystems;
 
+import static edu.wpi.first.units.Units.*;
+
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
-import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.Voltage;
+import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
@@ -15,8 +17,10 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public class FinishedIntake extends SubsystemBase{
 
     public final FinishedTalonSystem[] TALON_INFO;
+    public final boolean FOLLOWERS;
 
-    public final TalonFX[] MOTORS;
+    public final TalonFXConfiguration config = new TalonFXConfiguration();
+    public final TalonFX[] motors;
 
     /**
      * Creates a command that runs the rollers of the intake in the direction that
@@ -25,7 +29,7 @@ public class FinishedIntake extends SubsystemBase{
      * @return the command
      */
     public Command runRollersCommand(){
-        return run
+        return null;
     }
 
     /**
@@ -35,7 +39,7 @@ public class FinishedIntake extends SubsystemBase{
      * @return the command
      */
     public Command reverseRollersCommand(){
-
+        return null;
     }
 
     /**
@@ -44,14 +48,28 @@ public class FinishedIntake extends SubsystemBase{
      * @return the command
      */
     public Command stopRollersCommand(){
-
+        return null;
     }
 
-    public FinishedIntake(FinishedTalonSystem[] talonSystems){
+    public FinishedIntake(FinishedTalonSystem[] talonSystems, boolean followers){
         TALON_INFO = talonSystems;
-        MOTORS = new TalonFX[TALON_INFO.length];
-        for(int i = 0; i < MOTORS.length; i++){
-            MOTORS[i] = new TalonFX(TALON_INFO[i].CAN_ID, TALON_INFO[i].CANBUS);
+        FOLLOWERS = followers;
+
+        motors = new TalonFX[TALON_INFO.length];
+
+        configureMotors();
+    }
+
+    private void configureMotors(){
+
+        config.CurrentLimits.StatorCurrentLimitEnable = RobotBase.isReal();
+        for(int i = 0; i < motors.length; i++){
+            motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, TALON_INFO[i].CANBUS);
+            config.Feedback.SensorToMechanismRatio = TALON_INFO[i].GEAR_RATIO;
+            config.CurrentLimits.StatorCurrentLimit = TALON_INFO[i].CURRENT_LIMIT.in(Amps);
+            config.MotorOutput.NeutralMode = TALON_INFO[i].NEUTRAL;
+            config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
+            motors[i].getConfigurator().apply(config);
         }
     }
 }
