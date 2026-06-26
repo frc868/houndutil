@@ -181,5 +181,4 @@ public class FinishedIntake extends SubsystemBase{
             motors[i].stopMotor();
         }
     }
-
 }
