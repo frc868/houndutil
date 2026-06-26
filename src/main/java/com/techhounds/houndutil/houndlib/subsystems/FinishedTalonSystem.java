@@ -10,7 +10,7 @@ public class FinishedTalonSystem {
     public final InvertedValue INVERT;
     public final CANBus CANBUS;
 
-    public FinishedTalonSystem(int canID, InvertedValue invert, Current currentLimit, double gearRatio, String canBus, boolean Brake){
+    public FinishedTalonSystem(int canID, InvertedValue invert, String canBus, boolean Brake){
         CAN_ID = canID;
         INVERT = invert;
         CANBUS = new CANBus(canBus);
