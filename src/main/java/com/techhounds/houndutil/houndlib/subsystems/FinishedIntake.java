@@ -2,6 +2,12 @@ package com.techhounds.houndutil.houndlib.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
+import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.StrictFollower;
@@ -9,6 +15,8 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.techhounds.houndutil.houndlog.SignalManager;
+import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -38,12 +46,14 @@ public class FinishedIntake extends SubsystemBase{
     public final NeutralModeValue NEUTRAL;
     public final DCMotor MOTOR_GEARBOX_REPR;
     public final MomentOfInertia MOMENT_OF_INERTIA;
+    public final CANBus CANBUS;
 
     public final TalonFXConfiguration config = new TalonFXConfiguration();
-    public final TalonFX[] motors;
-    public final FlywheelSim[] sim;
-    public final StrictFollower followerRequest;
-    public final VoltageOut voltageRequest = new VoltageOut(0.0);
+    @Log public final TalonFX[] motors;
+    @Log public final FlywheelSim[] sim;
+    @Log public final StrictFollower followerRequest;
+    @Log public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    @Log public final BaseStatusSignal[] voltageSignal;
 
     /**
      * Creates a command that runs the rollers of the intake in the direction that
@@ -94,11 +104,10 @@ public class FinishedIntake extends SubsystemBase{
             motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
             motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
         }
-    
     }
     
 
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, boolean isOneSim, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, boolean isOneSim, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -110,13 +119,16 @@ public class FinishedIntake extends SubsystemBase{
         NEUTRAL = neutral;
         MOTOR_GEARBOX_REPR = motorGearboxRepr;
         MOMENT_OF_INERTIA = momentOfInertia;
+        CANBUS = bus;
 
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];
         sim = new FlywheelSim[ARE_FOLLOWERS || IS_ONE_SIM ? 1 : TALON_INFO.length];
+        voltageSignal = new BaseStatusSignal[TALON_INFO.length];
 
         createSims();
         configureMotors();
+        handleSignals();
     }
 
     private void createSims(){
@@ -138,7 +150,7 @@ public class FinishedIntake extends SubsystemBase{
         config.MotorOutput.NeutralMode = NEUTRAL;
 
         for(int i = 0; i < motors.length; i++){
-            motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, TALON_INFO[i].CANBUS);
+            motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
             motors[i].getConfigurator().apply(config);
 
@@ -155,6 +167,13 @@ public class FinishedIntake extends SubsystemBase{
                 motors[i].setControl(control);
             }
         }
+    }
+
+    private void handleSignals(){
+        for(int i = 0; i < voltageSignal.length; i++){
+            voltageSignal[i] = motors[i].getMotorVoltage();
+        }
+        SignalManager.register(CANBUS.getName(), voltageSignal);
     }
 
     private void stop(){
