@@ -35,7 +35,6 @@ public class FinishedIntake extends SubsystemBase{
     public final String NAME;
     public final Voltage INTAKE_VOLTAGE;
     public final Voltage REVERSE_VOLTAGE;
-    public final boolean IS_ONE_SIM;
     public final Current CURRENT_LIMIT;
     public final double GEAR_RATIO;
     public final NeutralModeValue NEUTRAL;
@@ -88,26 +87,38 @@ public class FinishedIntake extends SubsystemBase{
 
     @Override
     public void simulationPeriodic() {
-        for(int i = 0; i < sim.length; i++){
-            int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
+        if(ARE_FOLLOWERS){
+            int a = TALON_INFO[0].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
 
-            sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
-            sim[i].update(0.020);
+            sim[0].setInputVoltage(motors[0].getMotorVoltage().getValueAsDouble());
+            sim[0].update(0.020);
+
+            for(TalonFX motor: motors){
+                motor.getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
+                motor.getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
+            }
+        }
+        else{
+            for(int i = 0; i < sim.length; i++){
+                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
+
+                sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
+                sim[i].update(0.020);
 
 
-            motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
-            motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
+            }
         }
     }
     
 
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, boolean isOneSim, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
         INTAKE_VOLTAGE = intakeVoltage;
         REVERSE_VOLTAGE = reverseVoltage;
-        IS_ONE_SIM = isOneSim;
         CURRENT_LIMIT = currentLimit;
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
@@ -117,7 +128,7 @@ public class FinishedIntake extends SubsystemBase{
 
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];
-        sim = new FlywheelSim[ARE_FOLLOWERS || IS_ONE_SIM ? 1 : TALON_INFO.length];
+        sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_INFO.length];
 
         createSims();
         configureMotors();
