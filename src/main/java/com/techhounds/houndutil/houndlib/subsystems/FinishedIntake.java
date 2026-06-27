@@ -123,7 +123,7 @@ public class FinishedIntake extends SubsystemBase{
         configureMotors();
         logMotors();
     }
-
+    //TODO make sure sim is doing what it is supposed to do
     private void createSims(){
         for(int i = 0; i < sim.length; i++){
             sim[i] = new FlywheelSim(
