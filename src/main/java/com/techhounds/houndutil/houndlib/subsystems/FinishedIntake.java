@@ -88,14 +88,14 @@ public class FinishedIntake extends SubsystemBase{
     @Override
     public void simulationPeriodic() {
         if(ARE_FOLLOWERS){
-            int a = TALON_INFO[0].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
-
             sim[0].setInputVoltage(motors[0].getMotorVoltage().getValueAsDouble());
             sim[0].update(0.020);
 
-            for(TalonFX motor: motors){
-                motor.getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
-                motor.getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
+            for(int i = 0; i < motors.length; i++){
+                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
+
+                motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
             }
         }
         else{
