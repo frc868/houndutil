@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.subsystems;
+package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -22,13 +22,12 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 //NOT a logged object (kinda)
 /**
  * Finished intake mechanism.
  */
-public class FinishedIntake extends SubsystemBase{
+public class FinishedIntake extends FinishedSubsystemBase{
 
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;

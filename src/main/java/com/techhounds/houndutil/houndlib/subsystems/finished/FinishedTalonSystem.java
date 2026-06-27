@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.subsystems;
+package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
