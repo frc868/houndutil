@@ -2,9 +2,6 @@ package com.techhounds.houndutil.houndlib.subsystems;
 
 import static edu.wpi.first.units.Units.*;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
@@ -15,8 +12,6 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
-import com.techhounds.houndutil.houndlog.annotations.Log;
-import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.system.plant.DCMotor;
@@ -29,7 +24,7 @@ import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-@LoggedObject
+//NOT a logged object (kinda)
 /**
  * Finished intake mechanism.
  */
@@ -50,9 +45,9 @@ public class FinishedIntake extends SubsystemBase{
 
     public final TalonFXConfiguration config = new TalonFXConfiguration();
     public final TalonFX[] motors;
-    @Log public final FlywheelSim[] sim;
-    @Log public final StrictFollower followerRequest;
-    @Log public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    public final FlywheelSim[] sim;
+    public final StrictFollower followerRequest;
+    public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
     /**
      * Creates a command that runs the rollers of the intake in the direction that
@@ -159,9 +154,9 @@ public class FinishedIntake extends SubsystemBase{
     }
 
     private void logMotors(){
-        int index = 1;
+        int index = 0;
         for(TalonFX motor: motors){
-            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subystems",NAME, TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
+            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subsystems" , TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
             index ++;
         }
     }
