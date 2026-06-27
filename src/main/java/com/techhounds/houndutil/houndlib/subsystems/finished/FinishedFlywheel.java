@@ -9,6 +9,7 @@ import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.MotionMagicVelocityVoltage;
 import com.ctre.phoenix6.controls.StrictFollower;
+import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
@@ -31,15 +32,13 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 
 //NOT a logged object (kinda)
 /**
- * Finished intake mechanism.
+ * Finished flywheel mechanism.
  */
 public class FinishedFlywheel extends FinishedSubsystemBase{
 
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;
     public final String NAME;
-    public final Voltage INTAKE_VOLTAGE;
-    public final Voltage REVERSE_VOLTAGE;
     public final Current CURRENT_LIMIT;
     public final double GEAR_RATIO;
     public final NeutralModeValue NEUTRAL;
@@ -48,14 +47,14 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
     public final CANBus CANBUS;
     public final double[] K;
 
+    public AngularVelocity goalVelocity = RotationsPerSecond.zero();
     public final TalonFXConfiguration config = new TalonFXConfiguration();
     public final TalonFX[] motors;
     public final FlywheelSim[] sim;
     public final StrictFollower followerRequest;
     public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    private final MotionMagicVelocityVoltage velocityRequest = new MotionMagicVelocityVoltage(RotationsPerSecond.zero()).withEnableFOC(true).withUseTimesync(true);
-    public AngularVelocity goalVelocity = RotationsPerSecond.zero();
-
+    public final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0);
+    
     /**
      * Gets the velocity of the flywheel. 0 should indicate it being stopped, and
      * the velocity should increase in the forward direction (i.e. the velocity
@@ -96,9 +95,8 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
     public Command spinAtVelocityCommand(Supplier<AngularVelocity> goalVelocitySupplier){
         return runEnd(() -> {
             goalVelocity = goalVelocitySupplier.get();
-            setMotorsControl(velocityRequest.withVelocity(goalVelocity));
+            setMotorsControl(velocityRequest.withVelocity(goalVelocity.in(RotationsPerSecond)));
         }, () -> stop()).withName(NAME + ".spinAtVelocity");
-
     }
 
     /**
@@ -161,12 +159,10 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
     }
     
 
-    public FinishedFlywheel(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus, double[] tuningConstants){
+    public FinishedFlywheel(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus, double[] tuningConstants){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
-        INTAKE_VOLTAGE = intakeVoltage;
-        REVERSE_VOLTAGE = reverseVoltage;
         CURRENT_LIMIT = currentLimit;
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
@@ -201,11 +197,11 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
+        config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
 
         for(int i = 0; i < motors.length; i++){
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
-            config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
             motors[i].getConfigurator().apply(config);
 
             if(i != 0 && ARE_FOLLOWERS){
