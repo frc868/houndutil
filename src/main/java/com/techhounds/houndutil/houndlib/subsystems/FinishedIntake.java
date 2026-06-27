@@ -5,9 +5,7 @@ import static edu.wpi.first.units.Units.*;
 import java.util.ArrayList;
 import java.util.List;
 
-import com.ctre.phoenix6.BaseStatusSignal;
 import com.ctre.phoenix6.CANBus;
-import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
 import com.ctre.phoenix6.controls.StrictFollower;
@@ -15,9 +13,11 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.techhounds.houndutil.houndlog.SignalManager;
+import com.techhounds.houndutil.houndlog.LogProfiles;
+import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
+import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
@@ -49,11 +49,10 @@ public class FinishedIntake extends SubsystemBase{
     public final CANBus CANBUS;
 
     public final TalonFXConfiguration config = new TalonFXConfiguration();
-    @Log public final TalonFX[] motors;
+    public final TalonFX[] motors;
     @Log public final FlywheelSim[] sim;
     @Log public final StrictFollower followerRequest;
     @Log public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    @Log public final BaseStatusSignal[] voltageSignal;
 
     /**
      * Creates a command that runs the rollers of the intake in the direction that
@@ -124,11 +123,10 @@ public class FinishedIntake extends SubsystemBase{
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];
         sim = new FlywheelSim[ARE_FOLLOWERS || IS_ONE_SIM ? 1 : TALON_INFO.length];
-        voltageSignal = new BaseStatusSignal[TALON_INFO.length];
 
         createSims();
         configureMotors();
-        handleSignals();
+        logMotors();
     }
 
     private void createSims(){
@@ -160,6 +158,14 @@ public class FinishedIntake extends SubsystemBase{
         }
     }
 
+    private void logMotors(){
+        int index = 1;
+        for(TalonFX motor: motors){
+            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subystems",NAME, TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
+            index ++;
+        }
+    }
+
     private void setMotorsControl(ControlRequest control){
         motors[0].setControl(control);
         if(!ARE_FOLLOWERS){
@@ -167,13 +173,6 @@ public class FinishedIntake extends SubsystemBase{
                 motors[i].setControl(control);
             }
         }
-    }
-
-    private void handleSignals(){
-        for(int i = 0; i < voltageSignal.length; i++){
-            voltageSignal[i] = motors[i].getMotorVoltage();
-        }
-        SignalManager.register(CANBUS.getName(), voltageSignal);
     }
 
     private void stop(){
