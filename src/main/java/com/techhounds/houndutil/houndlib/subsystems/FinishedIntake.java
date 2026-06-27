@@ -156,7 +156,7 @@ public class FinishedIntake extends SubsystemBase{
     private void logMotors(){
         int index = 0;
         for(TalonFX motor: motors){
-            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subsystems" , TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
+            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subsystems" ,NAME ,TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
             index ++;
         }
     }
