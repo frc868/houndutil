@@ -63,15 +63,15 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
      * @return the velocity of the flywheel
      */
     public AngularVelocity getVelocity(){
-        AngularVelocity total = RotationsPerSecond.zero();
+        double total = 0.0;
         int i = 0;
         for(TalonFX motor: motors){
-            total = total.plus(motor.getVelocity().getValue().times(TALON_INFO[i].INVERT == InvertedValue.Clockwise_Positive ? 1 : -1));
+            total = total + motor.getVelocity().getValue().abs(RotationsPerSecond);
             i ++;
         }
-        total = total.div(i);
+        total /= i;
 
-        return total;
+        return RotationsPerSecond.of(total);
     }
 
     /**
@@ -197,6 +197,9 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
+        config.MotionMagic // for some reason it won't work without this TODO
+                .withMotionMagicAcceleration(9999)
+                .withMotionMagicJerk(9999);
         config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
 
         for(int i = 0; i < motors.length; i++){
