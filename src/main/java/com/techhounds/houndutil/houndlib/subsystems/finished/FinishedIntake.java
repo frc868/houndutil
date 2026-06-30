@@ -112,7 +112,7 @@ public class FinishedIntake extends FinishedSubsystemBase{
     }
     
 
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrackenType krackenType, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -121,9 +121,17 @@ public class FinishedIntake extends FinishedSubsystemBase{
         CURRENT_LIMIT = currentLimit;
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
-        MOTOR_GEARBOX_REPR = motorGearboxRepr;
         MOMENT_OF_INERTIA = momentOfInertia;
         CANBUS = bus;
+
+        if(krackenType.getInt() == 60){
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
+        }else if(krackenType.getInt() == 44){
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
+        }else{
+            System.out.println("Needs to be 60 or 44");
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(0);
+        }
 
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];

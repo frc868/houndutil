@@ -159,17 +159,26 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
     }
     
 
-    public FinishedFlywheel(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, DCMotor motorGearboxRepr, MomentOfInertia momentOfInertia, CANBus bus, double[] tuningConstants){
+    public FinishedFlywheel(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrackenType krackenType, MomentOfInertia momentOfInertia, CANBus bus, double[] tuningConstants){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
         CURRENT_LIMIT = currentLimit;
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
-        MOTOR_GEARBOX_REPR = motorGearboxRepr;
         MOMENT_OF_INERTIA = momentOfInertia;
         CANBUS = bus;
         K = tuningConstants;
+
+        if(krackenType.getInt() == 60){
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
+        }else if(krackenType.getInt() == 44){
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
+        }else{
+            System.out.println("Needs to be 60 or 44");
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(0);
+        }
+
     
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];
@@ -197,9 +206,6 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-         //config.MotionMagic // for some reason it won't work without this TODO
-                 //.withMotionMagicAcceleration(9999)
-                 //.withMotionMagicJerk(9999);
         config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
         
         for(int i = 0; i < motors.length; i++){
