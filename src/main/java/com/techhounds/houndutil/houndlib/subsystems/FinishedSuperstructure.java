@@ -5,36 +5,35 @@ import edu.wpi.first.wpilibj2.command.Commands;
 
 public abstract class FinishedSuperstructure extends FinishedSubsystemBase {
     private final String NAME = "Superstructure";
-    //private final FinishedSwerveDrive drivetrain;
-    private final FinishedIntake feeder;
-    private final FinishedIntake hopper;
-    private final FinishedIntake intake;
-    private final FinishedFlywheel shooter;
-    //private final FinishedVision vision;
-
-    /**Constructor for finished superstructure. 
-     * *NOTE!* if certain subsystem(s) is not present, mark value as 'null' 
-    */
-    public FinishedSuperstructure(FinishedSubsystemBase[] subsystems) {
-        //drivetrain = (FinishedSwerveDrive) subsystems[0];
-        feeder = (FinishedIntake) subsystems[1];
-        hopper = (FinishedIntake) subsystems[2];
-        intake = (FinishedIntake) subsystems[3];
-        shooter = (FinishedFlywheel) subsystems[4];
-        //vision = (FinishedVision) subsystems[5];
-    }
+    //private final FinishedSwerveDrive[] drivetrain;
+    private FinishedIntake[] feeders;
+    private FinishedIntake[] hoppers;
+    private FinishedIntake[] intakes;
+    private FinishedFlywheel[] shooters;
+    //private final FinishedVision[] vision;
 
     /**
-     * Creates a command that waits to run the hopper until the feeder has spun
-     * up.
-     * 
-     * @return the command
-     */
+     * Constructor for finished superstructure. 
+     * <b>NOTE!</b> if certain subsystem(s) is not present, mark value as <i>'null'</i>. 
+     * If marked as null, <b>DO NOT</b> call any methods on that subsystem, as it will throw a <i>null pointer exception</i> and your sim will break :(
+    */
+    public FinishedSuperstructure(FinishedIntake[] feeders, FinishedIntake[] hoppers, FinishedIntake[] intakes, FinishedFlywheel[] shooters) {
+        this.feeders = feeders;
+        this.hoppers = hoppers;
+        this.intakes = intakes;
+        this.shooters = shooters;
+    }
+        
     public Command feedCommand() {
-        return Commands.parallel(
-            feeder.runRollersCommand(),
-            Commands.waitSeconds(0.1).andThen(hopper.runRollersCommand())
-        ).withName(NAME + ".feedCommand");
+        if (feeders != null && hoppers != null) {
+            return Commands.parallel(
+                feeders[0].runRollersCommand(),
+                Commands.waitSeconds(0.1).andThen(hoppers[0].runRollersCommand())
+            ).withName(NAME + ".feedCommand");
+        } else {
+            return Commands.none()
+            .withName(NAME + ".rejectedFeedCommand");
+        }
     }
 
     /**
@@ -52,10 +51,14 @@ public abstract class FinishedSuperstructure extends FinishedSubsystemBase {
      * @return the command
      */
     public Command feedReverseCommand() {
-        return Commands.parallel(
-            intake.reverseRollersCommand().asProxy(),
-            hopper.reverseRollersCommand().asProxy()
-        ).withName(NAME + ".feedReverseCommand");
+        if (intakes != null && hoppers != null) {
+            return Commands.parallel(
+                intakes[0].reverseRollersCommand().asProxy(),
+                hoppers[0].reverseRollersCommand().asProxy()
+            ).withName(NAME + ".feedReverseCommand");
+        } else {
+            return Commands.none().withName(NAME + ".rejectedFeedReverseCommand");
+        }
     }
 
     /**
