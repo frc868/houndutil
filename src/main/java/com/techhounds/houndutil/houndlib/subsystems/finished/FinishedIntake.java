@@ -120,11 +120,11 @@ public class FinishedIntake extends FinishedSubsystemBase{
      * @param currentLimit The limit of the amount of electrical current allowed in the motors
      * @param gearRatio The gear ratio between motor and the mechanism (>1 is a reduction).
      * @param neutral The behavior of the mechanism when no output is applied (brake or coast).
-     * @param krackenType The type of the kracken.
+     * @param krakenType The type of the kraken.
      * @param momentOfInertia The MIO of the mechanism.
      * @param bus The canbus that the system is connected to.
      */
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrackenType krackenType, MomentOfInertia momentOfInertia, CANBus bus){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -136,9 +136,9 @@ public class FinishedIntake extends FinishedSubsystemBase{
         MOMENT_OF_INERTIA = momentOfInertia;
         CANBUS = bus;
 
-        if(krackenType.getInt() == 60){
+        if(krakenType.getInt() == 60){
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
-        }else if(krackenType.getInt() == 44){
+        }else if(krakenType.getInt() == 44){
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
         }else{
             System.out.println("Needs to be 60 or 44");
