@@ -96,7 +96,7 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         return runEnd(() -> {
             goalVelocity = goalVelocitySupplier.get();
             setMotorsControl(velocityRequest.withVelocity(goalVelocity.in(RotationsPerSecond)));
-        }, () -> stop()).withName(NAME + ".spinAtVelocity");
+        }, () -> {stop(); System.out.println("quit");}).withName(NAME + ".spinAtVelocity");
     }
 
     /**
@@ -156,6 +156,7 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
                 motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
             }
         }
+        System.out.println("kA:" + config.Slot0.kA + "kD:" + config.Slot0.kD + "kG:" + config.Slot0.kG + "kI:" + config.Slot0.kI + "kP:" + config.Slot0.kP + "kS:" + config.Slot0.kS + "kV:" + config.Slot0.kV);
     }
     
 
@@ -197,11 +198,11 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.MotionMagic // for some reason it won't work without this TODO
-                .withMotionMagicAcceleration(9999)
-                .withMotionMagicJerk(9999);
+         config.MotionMagic // for some reason it won't work without this TODO
+                 .withMotionMagicAcceleration(9999)
+                 .withMotionMagicJerk(9999);
         config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
-
+        
         for(int i = 0; i < motors.length; i++){
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
