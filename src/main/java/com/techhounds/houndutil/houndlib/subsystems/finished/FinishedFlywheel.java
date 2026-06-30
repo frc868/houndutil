@@ -1,4 +1,4 @@
-package com.techhounds.houndutil.houndlib.subsystems;
+package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import static edu.wpi.first.units.Units.*;
 
@@ -13,6 +13,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.techhounds.houndutil.houndlib.subsystems.FinishedTalonSystem;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
