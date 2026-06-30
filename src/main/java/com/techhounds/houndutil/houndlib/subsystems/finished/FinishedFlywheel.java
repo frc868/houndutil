@@ -32,7 +32,7 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 
 //NOT a logged object (kinda)
 /**
- * Finished flywheel mechanism.
+ * A flywheel mechanism.
  */
 public class FinishedFlywheel extends FinishedSubsystemBase{
 
@@ -158,7 +158,18 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         }
     }
     
-
+    /**
+     * @param talonInfo A list of the FinishedTalonSystems inside the robot, each representing a motor.
+     * @param areFollowers A boolean stating if the motors are followers, primarily used when mechanically connected.
+     * @param name The name of the subsystem.
+     * @param currentLimit The limit of the amount of electrical current allowed in the motors
+     * @param gearRatio The gear ratio between motor and the mechanism (>1 is a reduction).
+     * @param neutral The behavior of the mechanism when no output is applied (brake or coast).
+     * @param krackenType The type of the kracken.
+     * @param momentOfInertia The MIO of the mechanism.
+     * @param bus The canbus that the system is connected to.
+     * @param tuningConstants A list of the {kP, kI, kD, kG, kA, kS, kV} as doubles in that order.
+     */
     public FinishedFlywheel(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrackenType krackenType, MomentOfInertia momentOfInertia, CANBus bus, double[] tuningConstants){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
@@ -206,7 +217,7 @@ public class FinishedFlywheel extends FinishedSubsystemBase{
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKA(K[0]).withKD(K[1]).withKG(K[2]).withKI(K[3]).withKP(K[4]).withKS(K[5]).withKV(K[6]);
+        config.Slot0.withKP(K[0]).withKI(K[1]).withKD(K[2]).withKG(K[3]).withKA(K[4]).withKS(K[5]).withKV(K[6]);
         
         for(int i = 0; i < motors.length; i++){
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);

@@ -25,7 +25,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 
 //NOT a logged object (kinda)
 /**
- * Finished intake mechanism.
+ * An intake mechanism.
  */
 public class FinishedIntake extends FinishedSubsystemBase{
 
@@ -111,7 +111,19 @@ public class FinishedIntake extends FinishedSubsystemBase{
         }
     }
     
-
+    /**
+     * @param talonInfo A list of the FinishedTalonSystems inside the robot, each representing a motor.
+     * @param areFollowers A boolean stating if the motors are followers, primarily used when mechanically connected.
+     * @param name The name of the subsystem.
+     * @param intakeVoltage The voltage applied to the intake when moving the normal direction.
+     * @param reverseVoltage The voltage applied to the intake when moving the opposite direction.
+     * @param currentLimit The limit of the amount of electrical current allowed in the motors
+     * @param gearRatio The gear ratio between motor and the mechanism (>1 is a reduction).
+     * @param neutral The behavior of the mechanism when no output is applied (brake or coast).
+     * @param krackenType The type of the kracken.
+     * @param momentOfInertia The MIO of the mechanism.
+     * @param bus The canbus that the system is connected to.
+     */
     public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrackenType krackenType, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
