@@ -2,17 +2,26 @@ package com.techhounds.houndutil.houndlib.subsystems;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class FinishedSuperstructure extends SubsystemBase {
-    private final String name = "Superstructure";
+public abstract class FinishedSuperstructure extends FinishedSubsystemBase {
+    private final String NAME = "Superstructure";
+    //private final FinishedSwerveDrive drivetrain;
+    private final FinishedIntake feeder;
+    private final FinishedIntake hopper;
     private final FinishedIntake intake;
+    private final FinishedFlywheel shooter;
+    //private final FinishedVision vision;
 
     /**Constructor for finished superstructure. 
      * *NOTE!* if certain subsystem(s) is not present, mark value as 'null' 
     */
-    public FinishedSuperstructure(FinishedIntake intake) {
-        this.intake = intake;
+    public FinishedSuperstructure(FinishedSubsystemBase[] subsystems) {
+        //drivetrain = (FinishedSwerveDrive) subsystems[0];
+        feeder = (FinishedIntake) subsystems[1];
+        hopper = (FinishedIntake) subsystems[2];
+        intake = (FinishedIntake) subsystems[3];
+        shooter = (FinishedFlywheel) subsystems[4];
+        //vision = (FinishedVision) subsystems[5];
     }
 
     /**
@@ -21,7 +30,12 @@ public abstract class FinishedSuperstructure extends SubsystemBase {
      * 
      * @return the command
      */
-    public abstract Command feedCommand();
+    public Command feedCommand() {
+        return Commands.parallel(
+            feeder.runRollersCommand(),
+            Commands.waitSeconds(0.1).andThen(hopper.runRollersCommand())
+        ).withName(NAME + ".feedCommand");
+    }
 
     /**
      * Creates a command that feeds into the shooter only while the robot is ready
@@ -39,9 +53,9 @@ public abstract class FinishedSuperstructure extends SubsystemBase {
      */
     public Command feedReverseCommand() {
         return Commands.parallel(
-            intake.reverseRollersCommand().asProxy()
-            //hopper.reverseRollersCommand.asProxy()
-        ).withName(name + ".feedReverseCommand");
+            intake.reverseRollersCommand().asProxy(),
+            hopper.reverseRollersCommand().asProxy()
+        ).withName(NAME + ".feedReverseCommand");
     }
 
     /**
