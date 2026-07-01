@@ -10,7 +10,7 @@ public class FinishedSuperstructure extends FinishedSubsystemBase {
     private FinishedIntake[] hoppers;
     private FinishedIntake[] intakes;
     private FinishedFlywheel[] shooters;
-    //private final FinishedVision[] vision;p
+    //private final FinishedVision[] vision;
 
     /**
      * Constructor for finished superstructure. 
@@ -27,8 +27,8 @@ public class FinishedSuperstructure extends FinishedSubsystemBase {
     public Command feedCommand() {
         if (feeders != null && hoppers != null) {
             return Commands.parallel(
-                feeders[0].runRollersCommand(),
-                Commands.waitSeconds(0.1).andThen(hoppers[0].runRollersCommand())
+                allFeedersRunRollers(),
+                Commands.waitSeconds(0.1).andThen(allHoppersRunRollers())
             ).withName(NAME + ".feedCommand");
         } else {
             return Commands.none()
@@ -45,11 +45,89 @@ public class FinishedSuperstructure extends FinishedSubsystemBase {
     public Command feedReverseCommand() {
         if (intakes != null && hoppers != null) {
             return Commands.parallel(
-                intakes[0].reverseRollersCommand().asProxy(),
-                hoppers[0].reverseRollersCommand().asProxy()
+                allIntakesReverseRollers(),
+                allHoppersReverseRollers()
             ).withName(NAME + ".feedReverseCommand");
         } else {
             return Commands.none().withName(NAME + ".rejectedFeedReverseCommand");
         }
+    }
+
+    public Command allFeedersRunRollers() {
+        if (feeders == null || feeders.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllFeedersRunRollers");
+        }
+
+        Command[] feederCommands = new Command[feeders.length];
+        for (int i = 0; i < feeders.length; i++) {
+            feederCommands[i] = feeders[i].runRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(feederCommands).withName(NAME + ".allFeedersRunRollers");
+    }
+
+    public Command allFeedersReverseRollers() {
+        if (feeders == null || feeders.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllFeedersReverseRollers");
+        }
+
+        Command[] feederCommands = new Command[feeders.length];
+        for (int i = 0; i < feeders.length; i++) {
+            feederCommands[i] = feeders[i].reverseRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(feederCommands).withName(NAME + ".allFeedersReverseRollers");
+    }
+
+    public Command allHoppersRunRollers() {
+        if (hoppers == null || hoppers.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllHoppersRunRollers");
+        }
+
+        Command[] hopperCommands = new Command[hoppers.length];
+        for (int i = 0; i < hoppers.length; i++) {
+            hopperCommands[i] = hoppers[i].runRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(hopperCommands).withName(NAME + ".allHoppersRunRollers");
+    }
+
+    public Command allHoppersReverseRollers() {
+        if (hoppers == null || hoppers.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllHoppersReverseRollers");
+        }
+
+        Command[] hopperCommands = new Command[hoppers.length];
+        for (int i = 0; i < hoppers.length; i++) {
+            hopperCommands[i] = hoppers[i].reverseRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(hopperCommands).withName(NAME + ".allHoppersRunRollers");
+    }
+
+    public Command allIntakesRunRollers() {
+        if (intakes == null || intakes.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllIntakesRunRollers");
+        }
+
+        Command[] intakeCommands = new Command[intakes.length];
+        for (int i = 0; i < hoppers.length; i++) {
+            intakeCommands[i] = intakes[i].runRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(intakeCommands).withName(NAME + ".allIntakesRunRollers");
+    }
+
+    public Command allIntakesReverseRollers() {
+        if (intakes == null || intakes.length == 0) {
+            return Commands.none().withName(NAME + ".rejectedAllIntakesReverseRollers");
+        }
+
+        Command[] intakeCommands = new Command[intakes.length];
+        for (int i = 0; i < intakes.length; i++) {
+            intakeCommands[i] = intakes[i].runRollersCommand().asProxy();
+        }
+
+        return Commands.parallel(intakeCommands).withName(NAME + ".allIntakesReverseRollers");
     }
 }
