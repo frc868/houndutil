@@ -5,7 +5,6 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
 public class FinishedSuperstructure {
-    private final String NAME = "Superstructure";
     //private final FinishedSwerveDrive[] drivetrain;
     private FinishedIntake[] feeders;
     private FinishedIntake[] hoppers;
@@ -30,10 +29,10 @@ public class FinishedSuperstructure {
             return Commands.parallel(
                 allFeedersRunRollers(feederVoltage),
                 Commands.waitSeconds(0.1).andThen(allHoppersRunRollers(hopperVoltage))
-            ).withName(NAME + ".feedCommand");
+            ).withName("Superstructure.feedCommand");
         } else {
             return Commands.none()
-            .withName(NAME + ".rejectedFeedCommand");
+            .withName("Superstructure.rejectedFeedCommand");
         }
     }
 
@@ -48,15 +47,15 @@ public class FinishedSuperstructure {
             return Commands.parallel(
                 allIntakesReverseRollers(feederVoltage),
                 allHoppersReverseRollers(hopperVoltage)
-            ).withName(NAME + ".feedReverseCommand");
+            ).withName("Superstructure.feedReverseCommand");
         } else {
-            return Commands.none().withName(NAME + ".rejectedFeedReverseCommand");
+            return Commands.none().withName("Superstructure.rejectedFeedReverseCommand");
         }
     }
 
     public Command allFeedersRunRollers(Voltage voltage) {
         if (feeders == null || feeders.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllFeedersRunRollers");
+            return Commands.none().withName("Superstructure.rejectedAllFeedersRunRollers");
         }
 
         Command[] feederCommands = new Command[feeders.length];
@@ -64,12 +63,12 @@ public class FinishedSuperstructure {
             feederCommands[i] = feeders[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(feederCommands).withName(NAME + ".allFeedersRunRollers");
+        return Commands.parallel(feederCommands).withName("Superstructure.allFeedersRunRollers");
     }
 
     public Command allFeedersReverseRollers(Voltage voltage) {
         if (feeders == null || feeders.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllFeedersReverseRollers");
+            return Commands.none().withName("Superstructure.rejectedAllFeedersReverseRollers");
         }
 
         Command[] feederCommands = new Command[feeders.length];
@@ -77,12 +76,12 @@ public class FinishedSuperstructure {
             feederCommands[i] = feeders[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(feederCommands).withName(NAME + ".allFeedersReverseRollers");
+        return Commands.parallel(feederCommands).withName("Superstructure.allFeedersReverseRollers");
     }
 
     public Command allHoppersRunRollers(Voltage voltage) {
         if (hoppers == null || hoppers.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllHoppersRunRollers");
+            return Commands.none().withName("Superstructure.rejectedAllHoppersRunRollers");
         }
 
         Command[] hopperCommands = new Command[hoppers.length];
@@ -90,12 +89,12 @@ public class FinishedSuperstructure {
             hopperCommands[i] = hoppers[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(hopperCommands).withName(NAME + ".allHoppersRunRollers");
+        return Commands.parallel(hopperCommands).withName("Superstructure.allHoppersRunRollers");
     }
 
     public Command allHoppersReverseRollers(Voltage voltage) {
         if (hoppers == null || hoppers.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllHoppersReverseRollers");
+            return Commands.none().withName("Superstructure.rejectedAllHoppersReverseRollers");
         }
 
         Command[] hopperCommands = new Command[hoppers.length];
@@ -103,12 +102,12 @@ public class FinishedSuperstructure {
             hopperCommands[i] = hoppers[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(hopperCommands).withName(NAME + ".allHoppersRunRollers");
+        return Commands.parallel(hopperCommands).withName("Superstructure.allHoppersRunRollers");
     }
 
     public Command allIntakesRunRollers(Voltage voltage) {
         if (intakes == null || intakes.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllIntakesRunRollers");
+            return Commands.none().withName("Superstructure.rejectedAllIntakesRunRollers");
         }
 
         Command[] intakeCommands = new Command[intakes.length];
@@ -116,12 +115,12 @@ public class FinishedSuperstructure {
             intakeCommands[i] = intakes[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(intakeCommands).withName(NAME + ".allIntakesRunRollers");
+        return Commands.parallel(intakeCommands).withName("Superstructure.allIntakesRunRollers");
     }
 
     public Command allIntakesReverseRollers(Voltage voltage) {
         if (intakes == null || intakes.length == 0) {
-            return Commands.none().withName(NAME + ".rejectedAllIntakesReverseRollers");
+            return Commands.none().withName("Superstructure.rejectedAllIntakesReverseRollers");
         }
 
         Command[] intakeCommands = new Command[intakes.length];
@@ -129,6 +128,6 @@ public class FinishedSuperstructure {
             intakeCommands[i] = intakes[i].runRollersCommand(voltage).asProxy();
         }
 
-        return Commands.parallel(intakeCommands).withName(NAME + ".allIntakesReverseRollers");
+        return Commands.parallel(intakeCommands).withName("Superstructure.allIntakesReverseRollers");
     }
 }
