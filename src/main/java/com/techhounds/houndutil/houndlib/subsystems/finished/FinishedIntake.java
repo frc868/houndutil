@@ -14,10 +14,7 @@ import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
-import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
@@ -35,21 +32,19 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         throw new UnsupportedOperationException("getTuningConstants() is not used in an intake.");
     }
 
-    public final FinishedTalonSystem[] TALON_INFO;
-    public final boolean ARE_FOLLOWERS;
-    public final String NAME;
-    public final Current CURRENT_LIMIT;
-    public final double GEAR_RATIO;
-    public final NeutralModeValue NEUTRAL;
-    public final DCMotor MOTOR_GEARBOX_REPR;
-    public final MomentOfInertia MOMENT_OF_INERTIA;
-    public final CANBus CANBUS;
+    private final FinishedTalonSystem[] TALON_INFO;
+    private final boolean ARE_FOLLOWERS;
+    private final String NAME;
+    private final Current CURRENT_LIMIT;
+    private final double GEAR_RATIO;
+    private final NeutralModeValue NEUTRAL;
+    private final CANBus CANBUS;
 
-    public final TalonFXConfiguration config = new TalonFXConfiguration();
-    public final TalonFX[] motors;
-    public final FlywheelSim[] sim;
-    public final StrictFollower followerRequest;
-    public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    private final TalonFXConfiguration config = new TalonFXConfiguration();
+    private final TalonFX[] motors;
+    private final FlywheelSim[] sim;
+    private final StrictFollower followerRequest;
+    private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
     /**
      * Creates a command that runs the rollers of the intake at a specific voltage.
@@ -105,17 +100,7 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         CURRENT_LIMIT = getCurrentLimit();
         GEAR_RATIO = getGearRatio();
         NEUTRAL = getNeutral();
-        MOMENT_OF_INERTIA = getMomentOfInertia();
         CANBUS = getCanBus();
-
-        if (getKrakenType().getInt() == 60) {
-            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? getTalonInfo().length : 1);
-        } else if (getKrakenType().getInt() == 44) {
-            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? getTalonInfo().length : 1);
-        } else {
-            System.out.println("Needs to be 60 or 44");
-            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(0);
-        }
 
         followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
         motors = new TalonFX[TALON_INFO.length];
@@ -129,12 +114,7 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
     // TODO make sure sim is doing what it is supposed to do
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
-            sim[i] = new FlywheelSim(
-                    LinearSystemId.createFlywheelSystem(
-                            MOTOR_GEARBOX_REPR,
-                            MOMENT_OF_INERTIA.in(KilogramSquareMeters),
-                            GEAR_RATIO),
-                    MOTOR_GEARBOX_REPR);
+            sim[i] = getFlywheelSim();
         }
     }
 
