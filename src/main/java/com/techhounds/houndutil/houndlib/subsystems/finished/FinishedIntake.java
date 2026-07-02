@@ -22,12 +22,13 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 //NOT a logged object (kinda)
 /**
  * An intake mechanism.
  */
-public abstract class FinishedIntake extends FinishedSubsystemBase {
+public abstract class FinishedIntake extends SubsystemBase implements FinishedSubsystemBase {
 
     @Override
     public double[] getTuningConstants(){

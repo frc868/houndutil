@@ -27,13 +27,14 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 
 //NOT a logged object (kinda)
 /**
  * A flywheel mechanism.
  */
-public abstract class FinishedFlywheel extends FinishedSubsystemBase {
+public abstract class FinishedFlywheel extends SubsystemBase implements FinishedSubsystemBase {
 
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;

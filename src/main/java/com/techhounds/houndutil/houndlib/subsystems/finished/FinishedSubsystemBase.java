@@ -5,17 +5,16 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MomentOfInertia;
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class FinishedSubsystemBase extends SubsystemBase {
-    public abstract FinishedTalonSystem[] getTalonInfo();
-    public abstract boolean getAreFollowers();
-    public abstract String getName();
-    public abstract Current getCurrentLimit();
-    public abstract double getGearRatio();
-    public abstract NeutralModeValue getNeutral();
-    public abstract KrakenType getKrakenType();
-    public abstract MomentOfInertia getMomentOfInertia();
-    public abstract CANBus getCanBus();
-    public abstract double[] getTuningConstants();
+public interface FinishedSubsystemBase{
+    public FinishedTalonSystem[] getTalonInfo();
+    public boolean getAreFollowers();
+    public String getName();
+    public Current getCurrentLimit();
+    public double getGearRatio();
+    public NeutralModeValue getNeutral();
+    public KrakenType getKrakenType();
+    public MomentOfInertia getMomentOfInertia();
+    public CANBus getCanBus();
+    public double[] getTuningConstants();
 }
