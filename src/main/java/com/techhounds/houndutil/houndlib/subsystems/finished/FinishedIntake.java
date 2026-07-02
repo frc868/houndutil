@@ -27,7 +27,12 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * An intake mechanism.
  */
-public class FinishedIntake extends FinishedSubsystemBase {
+public abstract class FinishedIntake extends FinishedSubsystemBase {
+
+    @Override
+    public double[] getTuningConstants(){
+        throw new UnsupportedOperationException("getTuningConstants() is not used in an intake.");
+    }
 
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;
@@ -92,42 +97,20 @@ public class FinishedIntake extends FinishedSubsystemBase {
         }
     }
 
-    /**
-     * @param talonInfo       A list of the FinishedTalonSystems inside the robot,
-     *                        each representing a motor.
-     * @param areFollowers    A boolean stating if the motors are followers,
-     *                        primarily used when mechanically connected.
-     * @param name            The name of the subsystem.
-     * @param intakeVoltage   The voltage applied to the intake when moving the
-     *                        normal direction.
-     * @param reverseVoltage  The voltage applied to the intake when moving the
-     *                        opposite direction.
-     * @param currentLimit    The limit of the amount of electrical current allowed
-     *                        in the motors
-     * @param gearRatio       The gear ratio between motor and the mechanism (>1 is
-     *                        a reduction).
-     * @param neutral         The behavior of the mechanism when no output is
-     *                        applied (brake or coast).
-     * @param krakenType      The type of the kraken.
-     * @param momentOfInertia The MIO of the mechanism.
-     * @param bus             The canbus that the system is connected to.
-     */
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit,
-            double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia,
-            CANBus bus) {
-        TALON_INFO = talonInfo;
-        ARE_FOLLOWERS = areFollowers;
-        NAME = name;
-        CURRENT_LIMIT = currentLimit;
-        GEAR_RATIO = gearRatio;
-        NEUTRAL = neutral;
-        MOMENT_OF_INERTIA = momentOfInertia;
-        CANBUS = bus;
+    public FinishedIntake() {
+        TALON_INFO = getTalonInfo();
+        ARE_FOLLOWERS = getAreFollowers();
+        NAME = getName();
+        CURRENT_LIMIT = getCurrentLimit();
+        GEAR_RATIO = getGearRatio();
+        NEUTRAL = getNeutral();
+        MOMENT_OF_INERTIA = getMomentOfInertia();
+        CANBUS = getCanBus();
 
-        if (krakenType.getInt() == 60) {
-            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
-        } else if (krakenType.getInt() == 44) {
-            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
+        if (getKrakenType().getInt() == 60) {
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? getTalonInfo().length : 1);
+        } else if (getKrakenType().getInt() == 44) {
+            MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? getTalonInfo().length : 1);
         } else {
             System.out.println("Needs to be 60 or 44");
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(0);
