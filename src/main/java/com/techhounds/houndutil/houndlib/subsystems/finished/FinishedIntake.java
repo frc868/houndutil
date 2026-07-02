@@ -27,7 +27,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 /**
  * An intake mechanism.
  */
-public class FinishedIntake extends FinishedSubsystemBase{
+public class FinishedIntake extends FinishedSubsystemBase {
 
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;
@@ -46,15 +46,15 @@ public class FinishedIntake extends FinishedSubsystemBase{
     public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
     /**
-     * Creates a command that runs the rollers of the intake at a specific voltage. A negative voltage moves it in the opposite direction.
+     * Creates a command that runs the rollers of the intake at a specific voltage.
+     * A negative voltage moves it in the opposite direction.
      * 
      * @return the command
      */
-    public Command runRollersCommand(Voltage voltage){
+    public Command runRollersCommand(Voltage voltage) {
         return runEnd(
-            () -> setMotorsControl(voltageRequest.withOutput(voltage)),
-            () -> stop()
-        ).withName(NAME + ".runRollers");
+                () -> setMotorsControl(voltageRequest.withOutput(voltage)),
+                () -> stop()).withName(NAME + ".runRollers");
     }
 
     /**
@@ -62,53 +62,59 @@ public class FinishedIntake extends FinishedSubsystemBase{
      * 
      * @return the command
      */
-    public Command stopRollersCommand(){
+    public Command stopRollersCommand() {
         return runOnce(
-            () -> stop()
-        ).withName(NAME + ".stopRollers");
+                () -> stop()).withName(NAME + ".stopRollers");
     }
 
     @Override
     public void simulationPeriodic() {
-        if(ARE_FOLLOWERS){
+        if (ARE_FOLLOWERS) {
             sim[0].setInputVoltage(motors[0].getMotorVoltage().getValueAsDouble());
             sim[0].update(0.020);
 
-            for(int i = 0; i < motors.length; i++){
-                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
+            for (int i = 0; i < motors.length; i++) {
+                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
             }
-        }
-        else{
-            for(int i = 0; i < sim.length; i++){
-                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1 ;
+        } else {
+            for (int i = 0; i < sim.length; i++) {
+                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
                 sim[i].update(0.020);
-
 
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
             }
         }
     }
-    
+
     /**
-     * @param talonInfo A list of the FinishedTalonSystems inside the robot, each representing a motor.
-     * @param areFollowers A boolean stating if the motors are followers, primarily used when mechanically connected.
-     * @param name The name of the subsystem.
-     * @param intakeVoltage The voltage applied to the intake when moving the normal direction.
-     * @param reverseVoltage The voltage applied to the intake when moving the opposite direction.
-     * @param currentLimit The limit of the amount of electrical current allowed in the motors
-     * @param gearRatio The gear ratio between motor and the mechanism (>1 is a reduction).
-     * @param neutral The behavior of the mechanism when no output is applied (brake or coast).
-     * @param krakenType The type of the kraken.
+     * @param talonInfo       A list of the FinishedTalonSystems inside the robot,
+     *                        each representing a motor.
+     * @param areFollowers    A boolean stating if the motors are followers,
+     *                        primarily used when mechanically connected.
+     * @param name            The name of the subsystem.
+     * @param intakeVoltage   The voltage applied to the intake when moving the
+     *                        normal direction.
+     * @param reverseVoltage  The voltage applied to the intake when moving the
+     *                        opposite direction.
+     * @param currentLimit    The limit of the amount of electrical current allowed
+     *                        in the motors
+     * @param gearRatio       The gear ratio between motor and the mechanism (>1 is
+     *                        a reduction).
+     * @param neutral         The behavior of the mechanism when no output is
+     *                        applied (brake or coast).
+     * @param krakenType      The type of the kraken.
      * @param momentOfInertia The MIO of the mechanism.
-     * @param bus The canbus that the system is connected to.
+     * @param bus             The canbus that the system is connected to.
      */
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia, CANBus bus){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit,
+            double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia,
+            CANBus bus) {
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -118,11 +124,11 @@ public class FinishedIntake extends FinishedSubsystemBase{
         MOMENT_OF_INERTIA = momentOfInertia;
         CANBUS = bus;
 
-        if(krakenType.getInt() == 60){
+        if (krakenType.getInt() == 60) {
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX60Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
-        }else if(krakenType.getInt() == 44){
+        } else if (krakenType.getInt() == 44) {
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(ARE_FOLLOWERS ? talonInfo.length : 1);
-        }else{
+        } else {
             System.out.println("Needs to be 60 or 44");
             MOTOR_GEARBOX_REPR = DCMotor.getKrakenX44Foc(0);
         }
@@ -135,55 +141,58 @@ public class FinishedIntake extends FinishedSubsystemBase{
         configureMotors();
         logMotors();
     }
-    //TODO make sure sim is doing what it is supposed to do
-    private void createSims(){
-        for(int i = 0; i < sim.length; i++){
+
+    // TODO make sure sim is doing what it is supposed to do
+    private void createSims() {
+        for (int i = 0; i < sim.length; i++) {
             sim[i] = new FlywheelSim(
-            LinearSystemId.createFlywheelSystem(
-                    MOTOR_GEARBOX_REPR,
-                    MOMENT_OF_INERTIA.in(KilogramSquareMeters),
-                    GEAR_RATIO),
-            MOTOR_GEARBOX_REPR);
+                    LinearSystemId.createFlywheelSystem(
+                            MOTOR_GEARBOX_REPR,
+                            MOMENT_OF_INERTIA.in(KilogramSquareMeters),
+                            GEAR_RATIO),
+                    MOTOR_GEARBOX_REPR);
         }
     }
 
-    private void configureMotors(){
+    private void configureMotors() {
 
         config.CurrentLimits.StatorCurrentLimitEnable = RobotBase.isReal();
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
 
-        for(int i = 0; i < motors.length; i++){
+        for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
             motors[i].getConfigurator().apply(config);
 
-            if(i != 0 && ARE_FOLLOWERS){
+            if (i != 0 && ARE_FOLLOWERS) {
                 motors[i].setControl(followerRequest);
             }
         }
     }
 
-    private void logMotors(){
+    private void logMotors() {
         int index = 0;
-        for(TalonFX motor: motors){
-            LoggingManager.getInstance().addGroup(new LogGroup(String.join("/","subsystems" ,NAME ,TALON_INFO[index].SYSTEM_NAME), LogProfiles.logTalonFX(() -> motor)));
-            index ++;
+        for (TalonFX motor : motors) {
+            LoggingManager.getInstance()
+                    .addGroup(new LogGroup(String.join("/", "subsystems", NAME, TALON_INFO[index].SYSTEM_NAME),
+                            LogProfiles.logTalonFX(() -> motor)));
+            index++;
         }
     }
 
-    private void setMotorsControl(ControlRequest control){
+    private void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
-        if(!ARE_FOLLOWERS){
-            for(int i = 1; i < motors.length; i++){
+        if (!ARE_FOLLOWERS) {
+            for (int i = 1; i < motors.length; i++) {
                 motors[i].setControl(control);
             }
         }
     }
 
-    private void stop(){
-        for(int i = 0; i < motors.length; i++){
+    private void stop() {
+        for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
