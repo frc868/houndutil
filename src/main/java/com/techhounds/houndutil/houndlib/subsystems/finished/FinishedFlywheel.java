@@ -153,7 +153,7 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
 
                 double x = motors[i].getMotorVoltage().getValueAsDouble();
 
-                if(x == 0.0){
+                if (x == 0.0) {
                     x = -1;
                 }
 
@@ -181,8 +181,8 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_INFO.length];
 
         LoggingManager.getInstance()
-                    .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
-                            LogProfiles.logMeasure(() -> goalVelocity)));
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
+                        LogProfiles.logMeasure(() -> goalVelocity)));
 
         createSims();
         configureMotors();
