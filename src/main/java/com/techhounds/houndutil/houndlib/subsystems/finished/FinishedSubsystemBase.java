@@ -4,7 +4,6 @@ import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 
 public interface FinishedSubsystemBase{
@@ -14,7 +13,6 @@ public interface FinishedSubsystemBase{
     public Current getCurrentLimit();
     public double getGearRatio();
     public NeutralModeValue getNeutral();
-    public MomentOfInertia getMomentOfInertia();
     public CANBus getCanBus();
     public double[] getTuningConstants();
 
