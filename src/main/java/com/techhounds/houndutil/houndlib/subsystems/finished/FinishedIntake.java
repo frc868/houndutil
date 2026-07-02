@@ -28,7 +28,7 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 public abstract class FinishedIntake extends SubsystemBase implements FinishedSubsystemBase {
 
     @Override
-    public final double[] getTuningConstants(){
+    public final double[] getTuningConstants() {
         throw new UnsupportedOperationException("getTuningConstants() is not used in an intake.");
     }
 

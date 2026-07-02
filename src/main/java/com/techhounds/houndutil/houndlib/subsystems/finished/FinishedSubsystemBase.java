@@ -6,14 +6,21 @@ import com.ctre.phoenix6.signals.NeutralModeValue;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
 
-public interface FinishedSubsystemBase{
+public interface FinishedSubsystemBase {
     public FinishedTalonSystem[] getTalonInfo();
+
     public boolean getAreFollowers();
+
     public String getName();
+
     public Current getCurrentLimit();
+
     public double getGearRatio();
+
     public NeutralModeValue getNeutral();
+
     public CANBus getCanBus();
+
     public double[] getTuningConstants();
 
     public FlywheelSim getFlywheelSim();
