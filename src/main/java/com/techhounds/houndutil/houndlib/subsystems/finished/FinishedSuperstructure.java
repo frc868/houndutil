@@ -111,7 +111,7 @@ public class FinishedSuperstructure<Intake extends FinishedIntake, Shooter exten
         }
 
         Command[] intakeCommands = new Command[intakes.length];
-        for (int i = 0; i < hoppers.length; i++) {
+        for (int i = 0; i < intakes.length; i++) {
             intakeCommands[i] = intakes[i].runRollersCommand(voltage).asProxy();
         }
 
