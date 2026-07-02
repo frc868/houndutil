@@ -4,12 +4,12 @@ import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 
-public class FinishedSuperstructure {
+public class FinishedSuperstructure<Intake extends FinishedIntake, Shooter extends FinishedFlywheel> {
     //private final FinishedSwerveDrive[] drivetrain;
-    private FinishedIntake[] feeders;
-    private FinishedIntake[] hoppers;
-    private FinishedIntake[] intakes;
-    private FinishedFlywheel[] shooters;
+    private Intake[] feeders;
+    private Intake[] hoppers;
+    private Intake[] intakes;
+    private Shooter[] shooters;
     //private final FinishedVision[] vision;
 
     /**
@@ -17,11 +17,11 @@ public class FinishedSuperstructure {
      * <b>NOTE!</b> if certain subsystem(s) is not present, mark value as <i>'null'</i>. 
      * If marked as null, <b>DO NOT</b> call any methods on that subsystem, as it will throw a <i>null pointer exception</i> and your sim will break :(
     */
-    public FinishedSuperstructure(FinishedIntake[] feeders, FinishedIntake[] hoppers, FinishedIntake[] intakes, FinishedFlywheel[] shooters) {
+    public FinishedSuperstructure(Intake[] feeders, Intake[] hoppers, Intake[] intake, Shooter[] shooter) {
         this.feeders = feeders;
         this.hoppers = hoppers;
-        this.intakes = intakes;
-        this.shooters = shooters;
+        this.intakes = intake;
+        this.shooters = shooter;
     }
         
     public Command feedCommand(Voltage feederVoltage, Voltage hopperVoltage) {
