@@ -32,8 +32,6 @@ public class FinishedIntake extends FinishedSubsystemBase{
     public final FinishedTalonSystem[] TALON_INFO;
     public final boolean ARE_FOLLOWERS;
     public final String NAME;
-    public final Voltage INTAKE_VOLTAGE;
-    public final Voltage REVERSE_VOLTAGE;
     public final Current CURRENT_LIMIT;
     public final double GEAR_RATIO;
     public final NeutralModeValue NEUTRAL;
@@ -48,29 +46,15 @@ public class FinishedIntake extends FinishedSubsystemBase{
     public final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
     /**
-     * Creates a command that runs the rollers of the intake in the direction that
-     * will index the object (likely a game piece) into the robot.
+     * Creates a command that runs the rollers of the intake at a specific voltage. A negative voltage moves it in the opposite direction.
      * 
      * @return the command
      */
-    public Command runRollersCommand(){
+    public Command runRollersCommand(Voltage voltage){
         return runEnd(
-            () -> setMotorsControl(voltageRequest.withOutput(INTAKE_VOLTAGE)),
+            () -> setMotorsControl(voltageRequest.withOutput(voltage)),
             () -> stop()
         ).withName(NAME + ".runRollers");
-    }
-
-    /**
-     * Creates a command that runs the rollers of the intake in the direction that
-     * will eject the object (likely a game piece) out of the robot.
-     * 
-     * @return the command
-     */
-    public Command reverseRollersCommand(){
-        return runEnd(
-            () -> setMotorsControl(voltageRequest.withOutput(REVERSE_VOLTAGE)),
-            () -> stop()
-        ).withName(NAME + ".reverseRollers");
     }
 
     /**
@@ -124,12 +108,10 @@ public class FinishedIntake extends FinishedSubsystemBase{
      * @param momentOfInertia The MIO of the mechanism.
      * @param bus The canbus that the system is connected to.
      */
-    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Voltage intakeVoltage, Voltage reverseVoltage, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia, CANBus bus){
+    public FinishedIntake(FinishedTalonSystem[] talonInfo, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, KrakenType krakenType, MomentOfInertia momentOfInertia, CANBus bus){
         TALON_INFO = talonInfo;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
-        INTAKE_VOLTAGE = intakeVoltage;
-        REVERSE_VOLTAGE = reverseVoltage;
         CURRENT_LIMIT = currentLimit;
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
