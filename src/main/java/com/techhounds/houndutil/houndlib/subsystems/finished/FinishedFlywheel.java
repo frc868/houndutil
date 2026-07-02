@@ -33,9 +33,6 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  */
 public abstract class FinishedFlywheel extends SubsystemBase implements FinishedSubsystemBase {
 
-    int test = 0;
-    double string = 0.0;
-
     private final FinishedTalonSystem[] TALON_INFO;
     private final boolean ARE_FOLLOWERS;
     private final String NAME;
@@ -163,20 +160,8 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
                 sim[i].setInputVoltage(x);
                 sim[i].update(0.020);
 
-                if(sim[i].getAngularAcceleration().abs(RotationsPerSecondPerSecond) > 100.0 && test == 0){
-                    test = 1;
-                    string = motors[i].getMotorVoltage().getValueAsDouble();
-                }
-
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
-
-                if(motors[i].getAcceleration().getValue().abs(RotationsPerSecondPerSecond) > 100.0 && test == 0){
-                    test = 2;
-                }
-
-                System.out.println(test);
-                System.out.println(string);
             }
         }
     }
@@ -217,7 +202,7 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(1.0);
+        config.Slot0.withKP(9.0);
 
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
