@@ -174,6 +174,10 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         motors = new TalonFX[TALON_INFO.length];
         sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_INFO.length];
 
+        LoggingManager.getInstance()
+                    .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
+                            LogProfiles.logMeasure(() -> goalVelocity)));
+
         createSims();
         configureMotors();
         logMotors();
