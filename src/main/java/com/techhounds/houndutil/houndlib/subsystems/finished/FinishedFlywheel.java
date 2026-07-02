@@ -154,7 +154,13 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
             for (int i = 0; i < sim.length; i++) {
                 int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
-                sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
+                double x = motors[i].getMotorVoltage().getValueAsDouble();
+
+                if(x == 0.0){
+                    x = -1;
+                }
+
+                sim[i].setInputVoltage(x);
                 sim[i].update(0.020);
 
                 if(sim[i].getAngularAcceleration().abs(RotationsPerSecondPerSecond) > 100.0 && test == 0){
