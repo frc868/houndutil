@@ -192,7 +192,7 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K[0]).withKI(K[1]).withKD(K[2]).withKG(K[3]).withKA(K[4]).withKS(K[5]).withKV(K[6]);
+        config.Slot0.withKP(1.0);
 
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
