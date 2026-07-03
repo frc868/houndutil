@@ -234,10 +234,13 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         }
     }
 
-    private void stop() {
+    public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
 
+    public Command stopCommand() {
+        return runOnce(() -> stop());
+    }
 }

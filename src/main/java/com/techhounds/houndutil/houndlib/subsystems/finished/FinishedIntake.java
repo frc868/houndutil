@@ -146,7 +146,7 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         }
     }
 
-    private void setMotorsControl(ControlRequest control) {
+    public void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
         if (!ARE_FOLLOWERS) {
             for (int i = 1; i < motors.length; i++) {
@@ -155,9 +155,13 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         }
     }
 
-    private void stop() {
+    public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
+    }
+
+    public Command stopCommand() {
+        return runOnce(() -> stop());
     }
 }
