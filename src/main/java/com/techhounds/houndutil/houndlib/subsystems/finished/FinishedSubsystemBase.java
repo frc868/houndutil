@@ -59,7 +59,7 @@ public interface FinishedSubsystemBase {
      * 
      * @return A {@code String} object containing the name of the subsystem. This will mainly be used for the purpose of logging.
      */
-    public String getName();
+    public String getSubsystemName();
 
     /**
      * <p>
