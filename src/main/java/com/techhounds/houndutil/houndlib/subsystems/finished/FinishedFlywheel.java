@@ -169,7 +169,7 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
     public FinishedFlywheel() {
         TALON_INFO = getTalonInfo();
         ARE_FOLLOWERS = getAreFollowers();
-        NAME = getName();
+        NAME = getSubsystemName();
         CURRENT_LIMIT = getCurrentLimit();
         GEAR_RATIO = getGearRatio();
         NEUTRAL = getNeutral();
@@ -189,7 +189,6 @@ public abstract class FinishedFlywheel extends SubsystemBase implements Finished
         logMotors();
     }
 
-    // TODO make sure sim is doing what it is supposed to do
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
             sim[i] = getFlywheelSim();

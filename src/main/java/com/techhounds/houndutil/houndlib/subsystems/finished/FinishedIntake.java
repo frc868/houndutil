@@ -96,7 +96,7 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
     public FinishedIntake() {
         TALON_INFO = getTalonInfo();
         ARE_FOLLOWERS = getAreFollowers();
-        NAME = getName();
+        NAME = getSubsystemName();
         CURRENT_LIMIT = getCurrentLimit();
         GEAR_RATIO = getGearRatio();
         NEUTRAL = getNeutral();
