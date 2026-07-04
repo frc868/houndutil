@@ -27,9 +27,17 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 
-//NOT a logged object (kinda)
 /**
- * A flywheel mechanism.
+ * A flywheel mechanism. To use, after creating your subsystem file and class,
+ * type
+ * {@code extends FinishedFlywheel} after your class name (and before the
+ * bracket).
+ * <p>
+ * Once you do that, your class name should show an error. Either use the <b>
+ * quick fix </b> tool (recommended) or manually create the methods.
+ * <p>
+ * Finally, hover over the methods for instructions on how to implement them.
+ * 
  */
 public abstract class FinishedFlywheel extends SubsystemBase implements FinishedSubsystemBase {
 
