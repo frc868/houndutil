@@ -27,7 +27,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return An array containing a FinishedTalonSystem for each motor in the subsystem. If {@code getAreFollowers()} is true, the first motor in the array will be the master.
+     * @return An array containing a {@code FinishedTalonSystem} for each motor in the subsystem. If {@code getAreFollowers()} is set to return {@code true}, the first motor in the array will be the master controller.
      */
     public FinishedTalonSystem[] getTalonInfo();
 
@@ -42,7 +42,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return A boolean that describes whether the motors are in a follower configuration or are controlled independently. If they are mechanically linked, they should be followers (denoted by returning true).
+     * @return A {@code boolean} that describes whether the motors are in a follower configuration or are controlled independently. If they are mechanically linked, they should be followers (denoted by returning {@code true}).
      */
     public boolean getAreFollowers();
 
@@ -57,7 +57,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return A String containing the name of the subsystem. This will mainly be used for the purpose of logging.
+     * @return A {@code String} object containing the name of the subsystem. This will mainly be used for the purpose of logging.
      */
     public String getName();
 
@@ -87,7 +87,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return
+     * @return A {@code double} object that holds the gear ratio, where greater than 1 is a reduction. 
      */
     public double getGearRatio();
 
@@ -102,7 +102,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return
+     * @return A {@code NeutralModeValue} object that describes the system's behavior when no control is being applied. Being set to {@code Coast} means it will keep moving, and {@code Brake} will attempt to stop the system in a no-control state.
      */
     public NeutralModeValue getNeutral();
 
@@ -117,7 +117,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return
+     * @return A {@code CANBus} object that holds the CanBus the subsystem is connected to.
      */
     public CANBus getCanBus();
 
@@ -132,7 +132,7 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return
+     * @return An array of <b>exactly seven</b> {@code double} objects representing the PID and feedforward constants in the following order: {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
      */
     public double[] getTuningConstants();
 
@@ -152,7 +152,8 @@ public interface FinishedSubsystemBase {
      *}
      * </pre></blockquote><p>
      * 
-     * @return
+     * @return A FlywheelSim using {@code LinearSystemId.createFlywheelSystem()}. It is recommended to use {@code this.getGearRatio()} to reduce "magic numbers" and possible contradictions.
+     * @see {@link edu.wpi.first.math.system.plant.LinearSystemId}
      */
     public FlywheelSim getFlywheelSim();
 }
