@@ -33,10 +33,19 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * {@code extends FinishedFlywheel} after your class name (and before the
  * bracket).
  * <p>
- * Once you do that, your class name should show an error. Either use the <b>
+ * Once you do that, your class name should show an error in red. Either use the <b>
  * quick fix </b> tool (recommended) or manually create the methods.
  * <p>
- * Finally, hover over the methods for instructions on how to implement them.
+ * Finally, hover over the methods for instructions on how to implement them. These are sent back to the logic base and create the subsystem.
+ * <p>
+ * If you want to add custom commands, just add them under the default methods. Make sure to utilize the commands built into the intake.
+ * <p> 
+ * <p> <h3> Built in commands: </h3>
+ * <p> {@code stopCommand()} stops the system
+ * <p> {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} runs the flywheel at a given angular velocity 
+ * <p> {@code setOverridenSpeedCommand(Supplier<Double>)} runs the flywheel at a given speed [-1,1]
+ * <p> {@code coastMotorsCommand()} sets the motors to Coast until interrupted
+ * 
  * 
  */
 public abstract class FinishedFlywheel extends SubsystemBase implements FinishedSubsystemBase {
