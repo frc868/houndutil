@@ -16,9 +16,9 @@ public class TalonConstants {
         this.CAN_ID = canID;
         this.INVERT = invert;
 
-        //TODO check if there are instances where multiple can be on a can ID (maybe different busses)
-        if(allCanIds.contains(this.CAN_ID)){
-            //TODO check how this can be printed to driverstation or something
+        // TODO check if there are instances where multiple can be on a can ID
+        if (allCanIds.contains(this.CAN_ID)) {
+            // TODO check how this can be printed to driverstation or something
             System.out.println("WARNING: Can ID " + this.CAN_ID + " repeated. (Issued from TalonConstants.java)");
         }
 

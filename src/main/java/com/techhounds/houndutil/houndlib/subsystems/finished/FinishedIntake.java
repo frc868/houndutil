@@ -27,16 +27,22 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * {@code extends FinishedIntake} after your class name (and before the
  * bracket).
  * <p>
- * Once you do that, your class name should show an error in red. Either use the <b>
+ * Once you do that, your class name should show an error in red. Either use the
+ * <b>
  * quick fix </b> tool (recommended) or manually create the methods.
  * <p>
- * Finally, hover over the methods for instructions on how to implement them. These are sent back to the logic base and create the subsystem.
+ * Finally, hover over the methods for instructions on how to implement them.
+ * These are sent back to the logic base and create the subsystem.
  * <p>
- * If you want to add custom commands, just add them under the default methods. Make sure to utilize the commands built into the intake.
- * <p> 
- * <p> <h3> Built in commands: </h3>
- * <p> {@code stopCommand()} stops the system
- * <p> {@code runRollersCommand(Voltage)} runs the motors at a voltage 
+ * If you want to add custom commands, just add them under the default methods.
+ * Make sure to utilize the commands built into the intake.
+ * <p>
+ * <p>
+ * <h3>Built in commands:</h3>
+ * <p>
+ * {@code stopCommand()} stops the system
+ * <p>
+ * {@code runRollersCommand(Voltage)} runs the motors at a voltage
  * 
  * 
  */
@@ -94,7 +100,8 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
-    public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim) {
+    public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;

@@ -33,18 +33,28 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * {@code extends FinishedFlywheel} after your class name (and before the
  * bracket).
  * <p>
- * Once you do that, your class name should show an error in red. Either use the <b>
+ * Once you do that, your class name should show an error in red. Either use the
+ * <b>
  * quick fix </b> tool (recommended) or manually create the methods.
  * <p>
- * Finally, hover over the methods for instructions on how to implement them. These are sent back to the logic base and create the subsystem.
+ * Finally, hover over the methods for instructions on how to implement them.
+ * These are sent back to the logic base and create the subsystem.
  * <p>
- * If you want to add custom commands, just add them under the default methods. Make sure to utilize the commands built into the intake.
- * <p> 
- * <p> <h3> Built in commands: </h3>
- * <p> {@code stopCommand()} stops the system
- * <p> {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} runs the flywheel at a given angular velocity 
- * <p> {@code setOverridenSpeedCommand(Supplier<Double>)} runs the flywheel at a given speed [-1,1]
- * <p> {@code coastMotorsCommand()} sets the motors to Coast until interrupted
+ * If you want to add custom commands, just add them under the default methods.
+ * Make sure to utilize the commands built into the intake.
+ * <p>
+ * <p>
+ * <h3>Built in commands:</h3>
+ * <p>
+ * {@code stopCommand()} stops the system
+ * <p>
+ * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} runs the flywheel at
+ * a given angular velocity
+ * <p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)} runs the flywheel at a
+ * given speed [-1,1]
+ * <p>
+ * {@code coastMotorsCommand()} sets the motors to Coast until interrupted
  * 
  * 
  */
@@ -153,7 +163,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                 }).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName(NAME + ".coastMotors");
     }
 
-    //TODO ask if the weird voltage in disabled is fine
+    // TODO ask if the weird voltage in disabled is fine
     @Override
     public void simulationPeriodic() {
         if (ARE_FOLLOWERS) {
@@ -185,7 +195,9 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         }
     }
 
-    public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim, double[] tuningConstants) {
+    public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim,
+            double[] tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
