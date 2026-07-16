@@ -27,16 +27,11 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * {@code extends FinishedIntake} after your class name (and before the
  * bracket).
  * <p>
- * Once you do that, your class name should show an error in red. Either use the
- * <b>
- * quick fix </b> tool (recommended) or manually create the methods.
+ * All you need to do in order to make a Flywheel is call super() in the
+ * flywheel's constructor, and the FinishedFlywheel will handle the logic.
  * <p>
- * Finally, hover over the methods for instructions on how to implement them.
- * These are sent back to the logic base and create the subsystem.
- * <p>
- * If you want to add custom commands, just add them under the default methods.
- * Make sure to utilize the commands built into the intake.
- * <p>
+ * If you want to add custom commands, make sure to utilize the commands built
+ * into the intake.
  * <p>
  * <h3>Built in commands:</h3>
  * <p>
