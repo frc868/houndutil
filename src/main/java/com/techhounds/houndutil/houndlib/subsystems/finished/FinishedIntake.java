@@ -95,6 +95,16 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
+    /**
+     * talonConstants An array containing a {@code TalonConstants} for each motor in the subsystem. If {@code areFollowers} is set to {@code true}, the first motor in the array will be the master controller.
+     * @param areFollowers A {@code boolean} that describes whether the motors are in a follower configuration or are controlled independently. If they are mechanically linked, they should be followers (denoted by returning {@code true}).
+     * @param name A {@code String} object containing the name of the subsystem. This will mainly be used for the purpose of logging.
+     * @param currentLimit A {@code Current} object that represents the limit of electrical current allowed per motor.
+     * @param gearRatio A {@code double} object that holds the gear ratio, where greater than 1 is a reduction. 
+     * @param neutral A {@code NeutralModeValue} object that describes the system's behavior when no control is being applied. Being set to {@code Coast} means it will keep moving, and {@code Brake} will attempt to stop the system in a no-control state.
+     * @param canBus A {@code CANBus} object that holds the CanBus the subsystem is connected to.
+     * @param flywheelSim A FlywheelSim using {@code LinearSystemId.createFlywheelSystem()}. Note that if {@code areFollowers} is set to {@code false}, this should have 1 motor because each motor will get a sim.
+     */
     public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
             double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim) {
         TALON_CONSTANTS = talonConstants;
