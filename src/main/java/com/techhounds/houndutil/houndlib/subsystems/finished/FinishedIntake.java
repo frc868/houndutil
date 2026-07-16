@@ -40,20 +40,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * 
  * 
  */
-public abstract class FinishedIntake extends SubsystemBase implements FinishedSubsystemBase {
+public abstract class FinishedIntake extends SubsystemBase {
 
-    @Override
-    public final double[] getTuningConstants() {
-        throw new UnsupportedOperationException("getTuningConstants() is not used in an intake.");
-    }
-
-    private final FinishedTalonSystem[] TALON_INFO;
+    private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
     private final String NAME;
     private final Current CURRENT_LIMIT;
     private final double GEAR_RATIO;
     private final NeutralModeValue NEUTRAL;
     private final CANBus CANBUS;
+    private final FlywheelSim FLYWHEEL_SIM;
 
     private final TalonFXConfiguration config = new TalonFXConfiguration();
     private final TalonFX[] motors;
@@ -80,14 +76,14 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
             sim[0].update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
-                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
             }
         } else {
             for (int i = 0; i < sim.length; i++) {
-                int a = TALON_INFO[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
                 sim[i].update(0.020);
@@ -98,28 +94,28 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         }
     }
 
-    public FinishedIntake() {
-        TALON_INFO = getTalonInfo();
-        ARE_FOLLOWERS = getAreFollowers();
-        NAME = getSubsystemName();
-        CURRENT_LIMIT = getCurrentLimit();
-        GEAR_RATIO = getGearRatio();
-        NEUTRAL = getNeutral();
-        CANBUS = getCanBus();
+    public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit, double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim) {
+        TALON_CONSTANTS = talonConstants;
+        ARE_FOLLOWERS = areFollowers;
+        NAME = name;
+        CURRENT_LIMIT = currentLimit;
+        GEAR_RATIO = gearRatio;
+        NEUTRAL = neutral;
+        CANBUS = canBus;
+        FLYWHEEL_SIM = flywheelSim;
 
-        followerRequest = new StrictFollower(TALON_INFO[0].CAN_ID);
-        motors = new TalonFX[TALON_INFO.length];
-        sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_INFO.length];
+        followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
+        motors = new TalonFX[TALON_CONSTANTS.length];
+        sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_CONSTANTS.length];
 
         createSims();
         configureMotors();
         logMotors();
     }
 
-    // TODO make sure sim is doing what it is supposed to do
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
-            sim[i] = getFlywheelSim();
+            sim[i] = FLYWHEEL_SIM;
         }
     }
 
@@ -131,8 +127,8 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         config.MotorOutput.NeutralMode = NEUTRAL;
 
         for (int i = 0; i < motors.length; i++) {
-            motors[i] = new TalonFX(TALON_INFO[i].CAN_ID, CANBUS);
-            config.MotorOutput.Inverted = TALON_INFO[i].INVERT;
+            motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
+            config.MotorOutput.Inverted = TALON_CONSTANTS[i].INVERT;
             motors[i].getConfigurator().apply(config);
 
             if (i != 0 && ARE_FOLLOWERS) {
@@ -145,7 +141,7 @@ public abstract class FinishedIntake extends SubsystemBase implements FinishedSu
         int index = 0;
         for (TalonFX motor : motors) {
             LoggingManager.getInstance()
-                    .addGroup(new LogGroup(String.join("/", "subsystems", NAME, TALON_INFO[index].SYSTEM_NAME),
+                    .addGroup(new LogGroup(String.join("/", "subsystems", NAME, TALON_CONSTANTS[index].SYSTEM_NAME),
                             LogProfiles.logTalonFX(() -> motor)));
             index++;
         }
