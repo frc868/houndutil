@@ -5,7 +5,7 @@ import java.util.ArrayList;
 import com.ctre.phoenix6.signals.InvertedValue;
 
 public class TalonConstants {
-    public static final ArrayList<Integer> allCanIds = new ArrayList<Integer>();
+    private static final ArrayList<Integer> allCanIds = new ArrayList<Integer>();
 
     public final String SYSTEM_NAME;
     public final int CAN_ID;
