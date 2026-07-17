@@ -12,6 +12,7 @@ import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.techhounds.houndutil.houndlib.Utils;
 import com.techhounds.houndutil.houndlog.LogProfiles;
@@ -107,11 +108,14 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            total = total + motor.getPosition().getValue().in(Rotations)
-                    * WHEEL_CIRCUMFERENCE.in(Meters);
-            i++;
-            ;
+            if(motor != null){
+                total = total + motor.getPosition().getValue().in(Rotations)
+                        * WHEEL_CIRCUMFERENCE.in(Meters);
+                i++;
+            }
         }
+        if(i == 0){return Meters.zero();}
+
         total /= i;
 
         return Meters.of(total);
@@ -222,28 +226,28 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         if (ARE_FOLLOWERS) {
+            int a = TALON_CONSTANTS[0].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+
             sim.get(0).setInput(motors[0].getSimState().getMotorVoltage());
             sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
             }
         } else {
             for (int i = 0; i < sim.size(); i++) {
-                // TODO check if this is neccesarry
-                // int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive
-                // ? 1 : -1;
+                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 sim.get(i).setInput(motors[i].getSimState().getMotorVoltage());
                 sim.get(i).update(0.020);
                 // TODO check if its divided by or times gear ratio
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
+                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
+                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
             }
         }
     }
@@ -334,14 +338,17 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         LoggingManager.getInstance()
                 .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalPosition"),
                         LogProfiles.logMeasure(() -> goalPosition)));
-
+        LoggingManager.getInstance()
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "currentPosition"),
+                        LogProfiles.logMeasure(() -> getPosition())));
+                             
         createSims();
         configureMotors();
         logMotors();
     }
 
     private void createSims() {
-        for (int i = 0; i < sim.size(); i++) {
+        for (int i = 0; i < motors.length; i++) {
             sim.add(new LinearSystemSim<>(
                     LinearSystemId.createElevatorSystem(
                             SIM_MOTOR_PLANT,
