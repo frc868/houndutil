@@ -226,11 +226,6 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
             sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
-                // TODO check if this is neccesarry
-                // int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive
-                // ? 1 : -1;
-
-                // TODO check if its divided by or times gear ratio
                 motors[i].getSimState().setRawRotorPosition(
                         sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
                 motors[i].getSimState()
@@ -246,9 +241,9 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                 sim.get(i).update(0.020);
                 // TODO check if its divided by or times gear ratio
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
             }
         }
     }

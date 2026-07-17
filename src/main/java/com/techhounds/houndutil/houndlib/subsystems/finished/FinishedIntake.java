@@ -83,9 +83,9 @@ public abstract class FinishedIntake extends SubsystemBase {
 
             for (int i = 0; i < motors.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
-                motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
+                //TODO should this be times or div
+                motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().times(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         } else {
             for (int i = 0; i < sim.length; i++) {
@@ -94,8 +94,8 @@ public abstract class FinishedIntake extends SubsystemBase {
                 sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
                 sim[i].update(0.020);
 
-                motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().times(GEAR_RATIO).times(a));
+                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         }
     }
