@@ -84,7 +84,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            total = total + motor.getVelocity().getValue().abs(RotationsPerSecond);
+            total = total + motor.getVelocity().getValue().in(RotationsPerSecond);
             i++;
         }
         total /= i;
@@ -174,15 +174,6 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         } else {
             for (int i = 0; i < sim.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
-                double x = motors[i].getMotorVoltage().getValueAsDouble();
-
-                if (x == 0.0) {
-                    x = -1;
-                }
-
-                sim[i].setInputVoltage(x);
-                sim[i].update(0.020);
 
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
