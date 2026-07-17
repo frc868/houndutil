@@ -2,45 +2,53 @@ package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import static edu.wpi.first.units.Units.*;
 
+import java.util.ArrayList;
 import java.util.function.Supplier;
 
 import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.ControlRequest;
+import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.StrictFollower;
-import com.ctre.phoenix6.controls.VelocityTorqueCurrentFOC;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.techhounds.houndutil.houndlib.Utils;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.numbers.N1;
+import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
-import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
-import edu.wpi.first.units.measure.MomentOfInertia;
+import edu.wpi.first.units.measure.Distance;
+import edu.wpi.first.units.measure.LinearAcceleration;
+import edu.wpi.first.units.measure.LinearVelocity;
+import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.simulation.FlywheelSim;
+import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
+import edu.wpi.first.wpilibj2.command.Commands;
 
+//TODO fix this when done
 /**
- * A flywheel mechanism. To use, after creating your subsystem file and class,
+ * A linear mechanism. To use, after creating your subsystem file and class,
  * type
- * {@code extends FinishedFlywheel} after your class name (and before the
+ * {@code extends FinishedLinearMechanism} after your class name (and before the
  * bracket).
  * <p>
- * All you need to do in order to make a Flywheel is call super() in the
- * flywheel's constructor, and the FinishedFlywheel will handle the logic.
+ * All you need to do in order to make a linear mechanism is call super() in the
+ * linear mechanism's constructor, and the FinishedLinearMechanism will handle
+ * the logic.
  * <p>
  * If you want to add custom commands, make sure to utilize the commands built
- * into the intake.
+ * into the mechanism.
  * <p>
  * <h3>Built in commands:</h3>
  * <p>
@@ -56,7 +64,7 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * 
  * 
  */
-public abstract class FinishedFlywheel extends SubsystemBase {
+public abstract class FinishedLinearMechanism extends SubsystemBase {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
@@ -67,35 +75,94 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     private final CANBus CANBUS;
 
     private final DCMotor SIM_MOTOR_PLANT;
-    private final MomentOfInertia MOI;
-    
+    private final Mass MASS;
+    private final Distance WHEEL_RADIUS;
+    private final LinearVelocity MAX_VELOCITY;
+    private final LinearAcceleration MAX_ACCELERATION;
+    private final Distance MIN_POSITION;
+    private final Distance MAX_POSITION;
+    private final Distance TOLERANCE;
+
     private final double[] K;
 
-    private AngularVelocity goalVelocity = RotationsPerSecond.zero();
+    private final Distance WHEEL_CIRCUMFERENCE;
+
+    private Distance goalPosition;
     private final TalonFXConfiguration config = new TalonFXConfiguration();
     private final TalonFX[] motors;
-    private final FlywheelSim[] sim;
+    private final ArrayList<LinearSystemSim<N2, N1, N2>> sim;
     private final StrictFollower followerRequest;
     private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    private final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0);
+    private final DynamicMotionMagicVoltage positionRequest;
+
+    // TODO add "resetPosition()" allegedly
 
     /**
-     * Gets the velocity of the flywheel. 0 should indicate it being stopped, and
-     * the velocity should increase in the forward direction (i.e. the velocity
-     * should be positive in the "correct" direction).
+     * Gets the position of the mechanism. 0 should be at the lowest movement point,
+     * and the position should increase as the mechanism moves up.
      * 
-     * @return the velocity of the flywheel
+     * @return the position of the mechanism, in meters
      */
-    public AngularVelocity getVelocity() {
+    public Distance getPosition() {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            total = total + motor.getVelocity().getValue().in(RotationsPerSecond);
+            total = total + motor.getPosition().getValue().in(Rotations)
+                    * WHEEL_CIRCUMFERENCE.in(Meters);
             i++;
+            ;
         }
         total /= i;
 
-        return RotationsPerSecond.of(total);
+        return Meters.of(total);
+    }
+
+    /**
+     * Creates a command that continuously applies voltage to the motor controllers
+     * to move them to the currently set goal.
+     * 
+     * @return the command
+     */
+    public Command moveToCurrentGoalCommand() {
+        return run(() -> {
+            setMotorsControl(positionRequest.withPosition(
+                    Utils.applySoftStops(goalPosition, MIN_POSITION, MAX_POSITION).in(Meters)
+                            / WHEEL_CIRCUMFERENCE.in(Meters)));
+        }).withName(NAME + ".moveToCurrentGoal");
+    }
+
+    /**
+     * Creates a command that sets the current goal position to the setpoint, and
+     * cancels once the mechanism has reached that goal.
+     * 
+     * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
+     *          duplication
+     * 
+     * @param goalPositionSupplier a supplier of a position to move to
+     * @return the command
+     */
+    public Command moveToArbitraryPositionCommand(Supplier<Distance> goalPositionSupplier) {
+        return Commands.runOnce(() -> {
+            goalPosition = goalPositionSupplier.get();
+        }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
+                .withName(NAME + ".moveToPosition");
+    }
+
+    /**
+     * Creates a command that sets the current goal position to the setpoint plus
+     * the delta (if a delta of 0.1 is set, the linear mechanism should move up
+     * 10cm), and
+     * cancels once the mechanism has reached that goal.
+     * 
+     * 
+     * @param delta a supplier of a delta to move
+     * @return the command
+     */
+    public Command movePositionDeltaCommand(Supplier<Distance> delta){
+        return Commands.runOnce(() -> {
+            goalPosition = getPosition().plus(delta.get());
+        }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
+                .withName(NAME + ".moveToPosition");
     }
 
     /**
@@ -105,22 +172,10 @@ public abstract class FinishedFlywheel extends SubsystemBase {
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
     public void setVoltage(Voltage voltage) {
-        setMotorsControl(voltageRequest.withOutput(MathUtil.clamp(voltage.in(Volts), -12, 12)));
-    }
+        setMotorsControl(voltageRequest
+                .withOutput(Utils.applySoftStops(Volts.of(MathUtil.clamp(voltage.in(Volts), -12, 12)), getPosition(),
+                        MIN_POSITION, MAX_POSITION)));
 
-    /**
-     * Creates a command that continuously spins the flywheel at a specific velocity
-     * until cancelled. Note that this is *not* intended to self-cancel after
-     * reaching its setpoint and defer to a default command.
-     * 
-     * @param goalVelocitySupplier a supplier of a velocity to spin at
-     * @return the command
-     */
-    public Command spinAtVelocityCommand(Supplier<AngularVelocity> goalVelocitySupplier) {
-        return runEnd(() -> {
-            goalVelocity = goalVelocitySupplier.get();
-            setMotorsControl(velocityRequest.withVelocity(goalVelocity.in(RotationsPerSecond)));
-        }, () -> stop()).withName(NAME + ".spinAtVelocity");
     }
 
     /**
@@ -160,31 +215,40 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                     for (TalonFX motor : motors) {
                         motor.setNeutralMode(NEUTRAL);
                     }
-                    goalVelocity = getVelocity();
+                    goalPosition = getPosition();
                 }).withInterruptBehavior(InterruptionBehavior.kCancelIncoming).withName(NAME + ".coastMotors");
     }
 
     @Override
     public void simulationPeriodic() {
         if (ARE_FOLLOWERS) {
-            sim[0].setInputVoltage(motors[0].getMotorVoltage().getValueAsDouble());
-            sim[0].update(0.020);
+            sim.get(0).setInput(motors[0].getSimState().getMotorVoltage());
+            sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+                // TODO check if this is neccesarry
+                // int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive
+                // ? 1 : -1;
 
-                motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().div(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().div(GEAR_RATIO).times(a));
+                // TODO check if its divided by or times gear ratio
+                motors[i].getSimState().setRawRotorPosition(
+                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                motors[i].getSimState()
+                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
             }
         } else {
-            for (int i = 0; i < sim.length; i++) {
-                sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
-                sim[i].update(0.020);
+            for (int i = 0; i < sim.size(); i++) {
+                // TODO check if this is neccesarry
+                // int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive
+                // ? 1 : -1;
 
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
-                motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().div(GEAR_RATIO).times(a));
+                sim.get(i).setInput(motors[i].getSimState().getMotorVoltage());
+                sim.get(i).update(0.020);
+                // TODO check if its divided by or times gear ratio
+                motors[i].getSimState().setRawRotorPosition(
+                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
+                motors[i].getSimState()
+                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) / GEAR_RATIO);
             }
         }
     }
@@ -226,8 +290,12 @@ public abstract class FinishedFlywheel extends SubsystemBase {
      *                        in the following order:
      *                        {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
      */
-    public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
-            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
+    public FinishedLinearMechanism(TalonConstants[] talonConstants, boolean areFollowers, String name,
+            Current currentLimit,
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, Mass mass,
+            Distance wheelRadius,
+            LinearVelocity maxVelocity, LinearAcceleration maxAcceleration, Distance minPosition, Distance maxPosition,
+            Distance tolerance,
             double[] tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -237,21 +305,40 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         NEUTRAL = neutral;
         CANBUS = canBus;
         SIM_MOTOR_PLANT = simMotorPlant;
-        MOI = moi;
+        MASS = mass;
+        WHEEL_RADIUS = wheelRadius;
+        MAX_VELOCITY = maxVelocity;
+        MAX_ACCELERATION = maxAcceleration;
+        MIN_POSITION = minPosition;
+        MAX_POSITION = maxPosition;
+        TOLERANCE = tolerance;
         K = tuningConstants;
+
+        WHEEL_CIRCUMFERENCE = WHEEL_RADIUS.times(2 * Math.PI);
+
+        goalPosition = MIN_POSITION;
+
+        positionRequest = new DynamicMotionMagicVoltage(
+                Rotations.of(goalPosition.in(Meters) / WHEEL_CIRCUMFERENCE.in(Meters)),
+                RotationsPerSecond.of(MAX_VELOCITY.in(MetersPerSecond) / WHEEL_CIRCUMFERENCE.in(Meters)),
+                RotationsPerSecondPerSecond
+                        .of(MAX_ACCELERATION.in(MetersPerSecondPerSecond) / WHEEL_CIRCUMFERENCE.in(Meters)))
+                .withEnableFOC(true).withUseTimesync(true);
 
         if (tuningConstants.length != 7) {
             // TODO check how this can be printed to driverstation or something
-            System.out.println("\033[1m" + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedFlywheel.java for subsystem: " + NAME + ")" + "\033[0m");
+            System.out.println("\033[1m"
+                    + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedLinearMechanism.java for subsystem: "
+                    + NAME + ")" + "\033[0m");
         }
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
-        sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_CONSTANTS.length];
+        sim = new ArrayList<LinearSystemSim<N2, N1, N2>>();
 
         LoggingManager.getInstance()
-                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
-                        LogProfiles.logMeasure(() -> goalVelocity)));
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalPosition"),
+                        LogProfiles.logMeasure(() -> goalPosition)));
 
         createSims();
         configureMotors();
@@ -259,13 +346,13 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     }
 
     private void createSims() {
-        for (int i = 0; i < sim.length; i++) {
-            sim[i] = new FlywheelSim(
-                    LinearSystemId.createFlywheelSystem(
+        for (int i = 0; i < sim.size(); i++) {
+            sim.add(new LinearSystemSim<>(
+                    LinearSystemId.createElevatorSystem(
                             SIM_MOTOR_PLANT,
-                            MOI.in(KilogramSquareMeters),
-                            GEAR_RATIO),
-                    SIM_MOTOR_PLANT);
+                            MASS.in(Kilograms),
+                            WHEEL_RADIUS.in(Meters),
+                            GEAR_RATIO)));
         }
     }
 

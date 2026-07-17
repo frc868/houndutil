@@ -53,6 +53,7 @@ public abstract class FinishedIntake extends SubsystemBase {
     private final double GEAR_RATIO;
     private final NeutralModeValue NEUTRAL;
     private final CANBus CANBUS;
+    
     private final DCMotor SIM_MOTOR_PLANT;
     private final MomentOfInertia MOI;
 
