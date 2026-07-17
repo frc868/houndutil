@@ -14,7 +14,10 @@ import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
@@ -50,7 +53,8 @@ public abstract class FinishedIntake extends SubsystemBase {
     private final double GEAR_RATIO;
     private final NeutralModeValue NEUTRAL;
     private final CANBus CANBUS;
-    private final FlywheelSim FLYWHEEL_SIM;
+    private final DCMotor SIM_MOTOR_PLANT;
+    private final MomentOfInertia MOI;
 
     private final TalonFXConfiguration config = new TalonFXConfiguration();
     private final TalonFX[] motors;
@@ -118,13 +122,17 @@ public abstract class FinishedIntake extends SubsystemBase {
      *                     no-control state.
      * @param canBus       A {@code CANBus} object that holds the CanBus the
      *                     subsystem is connected to.
-     * @param flywheelSim  A FlywheelSim using
-     *                     {@code LinearSystemId.createFlywheelSystem()}. Note that
-     *                     if {@code areFollowers} is set to {@code false}, this
-     *                     should have 1 motor because each motor will get a sim.
+     * @param simMotorPlant   A DCMotor plant using
+     *                        {@code DCMotor.getKrakenX60Foc(x)} or
+     *                        {@code DCMotor.getKrakenX40Foc(x)}. Note
+     *                        that if {@code areFollowers} is set to {@code false},
+     *                        x should be 1 motor because each motor will get a
+     *                        sim, otherwise x should be equal to the amount of
+     *                        motors.
+     * @param moi             The moment of inertia of the flywheel.
      */
     public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
-            double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim) {
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -132,7 +140,8 @@ public abstract class FinishedIntake extends SubsystemBase {
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
         CANBUS = canBus;
-        FLYWHEEL_SIM = flywheelSim;
+        SIM_MOTOR_PLANT = simMotorPlant;
+        MOI = moi;
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
@@ -145,7 +154,12 @@ public abstract class FinishedIntake extends SubsystemBase {
 
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
-            sim[i] = FLYWHEEL_SIM;
+            sim[i] = sim[i] = new FlywheelSim(
+                LinearSystemId.createFlywheelSystem(
+                        SIM_MOTOR_PLANT,
+                        MOI.in(KilogramSquareMeters),
+                        GEAR_RATIO),
+                SIM_MOTOR_PLANT);;
         }
     }
 

@@ -18,8 +18,11 @@ import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.FlywheelSim;
@@ -62,7 +65,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     private final double GEAR_RATIO;
     private final NeutralModeValue NEUTRAL;
     private final CANBus CANBUS;
-    private final FlywheelSim FLYWHEEL_SIM;
+    private final DCMotor SIM_MOTOR_PLANT;
+    private final MomentOfInertia MOI;
     private final double[] K;
 
     private AngularVelocity goalVelocity = RotationsPerSecond.zero();
@@ -205,18 +209,21 @@ public abstract class FinishedFlywheel extends SubsystemBase {
      *                        no-control state.
      * @param canBus          A {@code CANBus} object that holds the CanBus the
      *                        subsystem is connected to.
-     * @param flywheelSim     A FlywheelSim using
-     *                        {@code LinearSystemId.createFlywheelSystem()}. Note
+     * @param simMotorPlant   A DCMotor plant using
+     *                        {@code DCMotor.getKrakenX60Foc(x)} or
+     *                        {@code DCMotor.getKrakenX40Foc(x)}. Note
      *                        that if {@code areFollowers} is set to {@code false},
-     *                        this should have 1 motor because each motor will get a
-     *                        sim.
+     *                        x should be 1 motor because each motor will get a
+     *                        sim, otherwise x should be equal to the amount of
+     *                        motors.
+     * @param moi             The moment of inertia of the flywheel.
      * @param tuningConstants An array of <b>exactly seven</b> {@code double}
      *                        objects representing the PID and feedforward constants
      *                        in the following order:
      *                        {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
      */
     public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
-            double gearRatio, NeutralModeValue neutral, CANBus canBus, FlywheelSim flywheelSim,
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
             double[] tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -225,7 +232,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         GEAR_RATIO = gearRatio;
         NEUTRAL = neutral;
         CANBUS = canBus;
-        FLYWHEEL_SIM = flywheelSim;
+        SIM_MOTOR_PLANT = simMotorPlant;
+        MOI = moi;
         K = tuningConstants;
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
@@ -243,7 +251,12 @@ public abstract class FinishedFlywheel extends SubsystemBase {
 
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
-            sim[i] = FLYWHEEL_SIM;
+            sim[i] = new FlywheelSim(
+                    LinearSystemId.createFlywheelSystem(
+                            SIM_MOTOR_PLANT,
+                            MOI.in(KilogramSquareMeters),
+                            GEAR_RATIO),
+                    SIM_MOTOR_PLANT);
         }
     }
 
