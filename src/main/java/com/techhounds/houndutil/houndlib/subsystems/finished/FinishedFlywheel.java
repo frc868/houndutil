@@ -177,6 +177,9 @@ public abstract class FinishedFlywheel extends SubsystemBase {
             }
         } else {
             for (int i = 0; i < sim.length; i++) {
+                sim[i].setInputVoltage(motors[i].getMotorVoltage().getValueAsDouble());
+                sim[i].update(0.020);
+
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().div(GEAR_RATIO).times(a));
