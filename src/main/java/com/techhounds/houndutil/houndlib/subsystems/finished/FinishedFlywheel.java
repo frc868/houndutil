@@ -239,6 +239,11 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         MOI = moi;
         K = tuningConstants;
 
+        if (tuningConstants.length != 7) {
+            // TODO check how this can be printed to driverstation or something
+            System.out.println("\033[1m" + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedFlywheel.java for subsystem: " + NAME + ")" + "\033[0m");
+        }
+
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
         sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_CONSTANTS.length];

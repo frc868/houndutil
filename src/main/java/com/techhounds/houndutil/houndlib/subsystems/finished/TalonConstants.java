@@ -1,6 +1,7 @@
 package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import java.util.ArrayList;
+import java.util.Collections;
 
 import com.ctre.phoenix6.signals.InvertedValue;
 
@@ -16,12 +17,13 @@ public class TalonConstants {
         this.CAN_ID = canID;
         this.INVERT = invert;
 
+        allCanIds.add(this.CAN_ID);
+
         // TODO check if there are instances where multiple can be on a can ID
-        if (allCanIds.contains(this.CAN_ID)) {
+        if (Collections.frequency(allCanIds, this.CAN_ID) > 1) {
             // TODO check how this can be printed to driverstation or something
-            System.out.println("WARNING: Can ID " + this.CAN_ID + " repeated. (Issued from TalonConstants.java)");
+            System.out.println("\033[1m" + "WARNING: Can ID " + this.CAN_ID + " repeated. (Issued from TalonConstants.java)" + "\033[0m");
         }
 
-        allCanIds.add(this.CAN_ID);
     }
 }
