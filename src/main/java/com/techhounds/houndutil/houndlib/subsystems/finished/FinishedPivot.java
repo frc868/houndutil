@@ -12,6 +12,7 @@ import com.ctre.phoenix6.controls.DynamicMotionMagicVoltage;
 import com.ctre.phoenix6.controls.StrictFollower;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.GravityTypeValue;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.techhounds.houndutil.houndlib.Utils;
@@ -24,14 +25,19 @@ import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.Angle;
+import edu.wpi.first.units.measure.AngularAcceleration;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
 import edu.wpi.first.units.measure.LinearAcceleration;
 import edu.wpi.first.units.measure.LinearVelocity;
 import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
@@ -41,11 +47,11 @@ import edu.wpi.first.wpilibj2.command.Commands;
 /**
  * A linear mechanism. To use, after creating your subsystem file and class,
  * type
- * {@code extends FinishedLinearMechanism} after your class name (and before the
+ * {@code extends FinishedPivot} after your class name (and before the
  * bracket).
  * <p>
  * All you need to do in order to make a linear mechanism is call super() in the
- * linear mechanism's constructor, and the FinishedLinearMechanism will handle
+ * linear mechanism's constructor, and the FinishedPivot will handle
  * the logic.
  * <p>
  * If you want to add custom commands, make sure to utilize the commands built
@@ -65,7 +71,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * 
  * 
  */
-public abstract class FinishedLinearMechanism extends SubsystemBase {
+public abstract class FinishedPivot extends SubsystemBase {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
@@ -76,22 +82,20 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     private final CANBus CANBUS;
 
     private final DCMotor SIM_MOTOR_PLANT;
-    private final Mass MASS;
-    private final Distance WHEEL_RADIUS;
-    private final LinearVelocity MAX_VELOCITY;
-    private final LinearAcceleration MAX_ACCELERATION;
-    private final Distance MIN_POSITION;
-    private final Distance MAX_POSITION;
-    private final Distance TOLERANCE;
+    private final MomentOfInertia MOI;
+    private final Distance ARM_LENGTH;
+    private final AngularVelocity MAX_VELOCITY;
+    private final AngularAcceleration MAX_ACCELERATION;
+    private final Angle MIN_POSITION;
+    private final Angle MAX_POSITION;
+    private final Angle TOLERANCE;
 
     private final double[] K;
 
-    private final Distance WHEEL_CIRCUMFERENCE;
-
-    private Distance goalPosition;
+    private Angle goalPosition;
     private final TalonFXConfiguration config = new TalonFXConfiguration();
     private final TalonFX[] motors;
-    private final ArrayList<LinearSystemSim<N2, N1, N2>> sim;
+    private final ArrayList<SingleJointedArmSim> sim;
     private final StrictFollower followerRequest;
     private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
     private final DynamicMotionMagicVoltage positionRequest;
@@ -104,21 +108,22 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
      * 
      * @return the position of the mechanism, in meters
      */
-    public Distance getPosition() {
+    public Angle getPosition() {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            if(motor != null){
-                total = total + motor.getPosition().getValue().in(Rotations)
-                        * WHEEL_CIRCUMFERENCE.in(Meters);
+            if (motor != null) {
+                total = total + motor.getPosition().getValue().in(Degrees);
                 i++;
             }
         }
-        if(i == 0){return Meters.zero();}
+        if (i == 0) {
+            return Degrees.zero();
+        }
 
         total /= i;
 
-        return Meters.of(total);
+        return Degrees.of(total);
     }
 
     /**
@@ -130,8 +135,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     public Command moveToCurrentGoalCommand() {
         return run(() -> {
             setMotorsControl(positionRequest.withPosition(
-                    Utils.applySoftStops(goalPosition, MIN_POSITION, MAX_POSITION).in(Meters)
-                            / WHEEL_CIRCUMFERENCE.in(Meters)));
+                    Utils.applySoftStops(goalPosition, MIN_POSITION, MAX_POSITION)));
         }).withName(NAME + ".moveToCurrentGoal");
     }
 
@@ -145,7 +149,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
      * @param goalPositionSupplier a supplier of a position to move to
      * @return the command
      */
-    public Command moveToArbitraryPositionCommand(Supplier<Distance> goalPositionSupplier) {
+    public Command moveToArbitraryPositionCommand(Supplier<Angle> goalPositionSupplier) {
         return Commands.runOnce(() -> {
             goalPosition = goalPositionSupplier.get();
         }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
@@ -162,7 +166,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
      * @param delta a supplier of a delta to move
      * @return the command
      */
-    public Command movePositionDeltaCommand(Supplier<Distance> delta){
+    public Command movePositionDeltaCommand(Supplier<Angle> delta) {
         return Commands.runOnce(() -> {
             goalPosition = getPosition().plus(delta.get());
         }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
@@ -233,9 +237,9 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(0).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        sim.get(0).getAngleRads() / (2 * Math.PI) * GEAR_RATIO * a);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(0).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(0).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO * a);
             }
         } else {
             for (int i = 0; i < sim.size(); i++) {
@@ -245,9 +249,9 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                 sim.get(i).update(0.020);
 
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        sim.get(i).getAngleRads() / (2 * Math.PI) * GEAR_RATIO * a);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(i).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO * a);
             }
         }
     }
@@ -289,12 +293,12 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
      *                        in the following order:
      *                        {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
      */
-    public FinishedLinearMechanism(TalonConstants[] talonConstants, boolean areFollowers, String name,
+    public FinishedPivot(TalonConstants[] talonConstants, boolean areFollowers, String name,
             Current currentLimit,
-            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, Mass mass,
-            Distance wheelRadius,
-            LinearVelocity maxVelocity, LinearAcceleration maxAcceleration, Distance minPosition, Distance maxPosition,
-            Distance tolerance,
+            double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
+            Distance armLength,
+            AngularVelocity maxVelocity, AngularAcceleration maxAcceleration, Angle minPosition, Angle maxPosition,
+            Angle tolerance,
             double[] tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -304,8 +308,8 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         NEUTRAL = neutral;
         CANBUS = canBus;
         SIM_MOTOR_PLANT = simMotorPlant;
-        MASS = mass;
-        WHEEL_RADIUS = wheelRadius;
+        MOI = moi;
+        ARM_LENGTH = armLength;
         MAX_VELOCITY = maxVelocity;
         MAX_ACCELERATION = maxAcceleration;
         MIN_POSITION = minPosition;
@@ -313,28 +317,22 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         TOLERANCE = tolerance;
         K = tuningConstants;
 
-        WHEEL_CIRCUMFERENCE = WHEEL_RADIUS.times(2 * Math.PI);
-
         goalPosition = MIN_POSITION;
 
-        positionRequest = new DynamicMotionMagicVoltage(
-                Rotations.of(goalPosition.in(Meters) / WHEEL_CIRCUMFERENCE.in(Meters)),
-                RotationsPerSecond.of(MAX_VELOCITY.in(MetersPerSecond) / WHEEL_CIRCUMFERENCE.in(Meters)),
-                RotationsPerSecondPerSecond
-                        .of(MAX_ACCELERATION.in(MetersPerSecondPerSecond) / WHEEL_CIRCUMFERENCE.in(Meters)))
-                .withEnableFOC(true).withUseTimesync(true);
+        positionRequest = new DynamicMotionMagicVoltage(goalPosition, MAX_VELOCITY,
+            MAX_ACCELERATION).withEnableFOC(true).withUseTimesync(true);
 
         if (tuningConstants.length != 7) {
             // TODO check how this can be printed to driverstation or something
             System.out.println("\033[1m"
-                    + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedLinearMechanism.java for subsystem: "
+                    + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedPivot.java for subsystem: "
                     + NAME + ")" + "\033[0m");
         }
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
-        sim = new ArrayList<LinearSystemSim<N2, N1, N2>>();
-                             
+        sim = new ArrayList<SingleJointedArmSim>();
+
         createSims();
         configureMotors();
         logMotors();
@@ -342,12 +340,10 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
 
     private void createSims() {
         for (int i = 0; i < motors.length; i++) {
-            sim.add(new LinearSystemSim<>(
-                    LinearSystemId.createElevatorSystem(
-                            SIM_MOTOR_PLANT,
-                            MASS.in(Kilograms),
-                            WHEEL_RADIUS.in(Meters),
-                            GEAR_RATIO)));
+            // check what starting angle sohuld be
+            sim.add(new SingleJointedArmSim(SIM_MOTOR_PLANT, GEAR_RATIO, MOI.in(KilogramSquareMeters),
+                    ARM_LENGTH.in(Meters), MIN_POSITION.in(Radians), MAX_POSITION.in(Radians), K[3] != 0.0,
+                    Degrees.of(0.0).in(Radians)));
         }
     }
 
@@ -357,7 +353,8 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K[0]).withKI(K[1]).withKD(K[2]).withKG(K[3]).withKA(K[4]).withKS(K[5]).withKV(K[6]);
+        config.Slot0.withKP(K[0]).withKI(K[1]).withKD(K[2]).withKG(K[3]).withKA(K[4]).withKS(K[5]).withKV(K[6])
+                .withGravityType(GravityTypeValue.Arm_Cosine);
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_CONSTANTS[i].INVERT;
