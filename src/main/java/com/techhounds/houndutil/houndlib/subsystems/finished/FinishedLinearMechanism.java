@@ -226,16 +226,16 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     @Override
     public void simulationPeriodic() {
         if (ARE_FOLLOWERS) {
-            int a = TALON_CONSTANTS[0].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
             sim.get(0).setInput(motors[0].getSimState().getMotorVoltage());
             sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
+                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        sim.get(0).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(0).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
             }
         } else {
             for (int i = 0; i < sim.size(); i++) {
@@ -243,7 +243,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
 
                 sim.get(i).setInput(motors[i].getSimState().getMotorVoltage());
                 sim.get(i).update(0.020);
-                // TODO check if its divided by or times gear ratio
+
                 motors[i].getSimState().setRawRotorPosition(
                         sim.get(i).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
                 motors[i].getSimState()
@@ -334,13 +334,6 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
         sim = new ArrayList<LinearSystemSim<N2, N1, N2>>();
-
-        LoggingManager.getInstance()
-                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalPosition"),
-                        LogProfiles.logMeasure(() -> goalPosition)));
-        LoggingManager.getInstance()
-                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "currentPosition"),
-                        LogProfiles.logMeasure(() -> getPosition())));
                              
         createSims();
         configureMotors();
@@ -384,14 +377,20 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                             LogProfiles.logTalonFX(() -> motor)));
             index++;
         }
+
+        LoggingManager.getInstance()
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalPosition"),
+                        LogProfiles.logMeasure(() -> goalPosition)));
+        LoggingManager.getInstance()
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "currentPosition"),
+                        LogProfiles.logMeasure(() -> getPosition())));
     }
 
     private void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
-        if (!ARE_FOLLOWERS) {
-            for (int i = 1; i < motors.length; i++) {
-                motors[i].setControl(control);
-            }
+
+        for (int i = 1; i < motors.length; i++) {
+            motors[i].setControl(ARE_FOLLOWERS ? followerRequest : control);
         }
     }
 

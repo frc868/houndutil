@@ -90,9 +90,13 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            total = total + motor.getVelocity().getValue().in(RotationsPerSecond);
-            i++;
+            if(motor != null){
+                total = total + motor.getVelocity().getValue().in(RotationsPerSecond);
+                i++;
+            }
         }
+        if(i == 0){return RotationsPerSecond.zero();}
+
         total /= i;
 
         return RotationsPerSecond.of(total);
@@ -172,7 +176,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
 
             for (int i = 0; i < motors.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-                //TODO should this be times or div
+                
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().times(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
@@ -249,10 +253,6 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         motors = new TalonFX[TALON_CONSTANTS.length];
         sim = new FlywheelSim[ARE_FOLLOWERS ? 1 : TALON_CONSTANTS.length];
 
-        LoggingManager.getInstance()
-                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
-                        LogProfiles.logMeasure(() -> goalVelocity)));
-
         createSims();
         configureMotors();
         logMotors();
@@ -295,14 +295,20 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                             LogProfiles.logTalonFX(() -> motor)));
             index++;
         }
+
+        LoggingManager.getInstance()
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "goalVelocity"),
+                        LogProfiles.logMeasure(() -> goalVelocity)));
+        LoggingManager.getInstance()
+                .addGroup(new LogGroup(String.join("/", "subsystems", NAME, "currentVelocity"),
+                        LogProfiles.logMeasure(() -> getVelocity())));
     }
 
     private void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
-        if (!ARE_FOLLOWERS) {
-            for (int i = 1; i < motors.length; i++) {
-                motors[i].setControl(control);
-            }
+
+        for (int i = 1; i < motors.length; i++) {
+            motors[i].setControl(ARE_FOLLOWERS ? followerRequest : control);
         }
     }
 

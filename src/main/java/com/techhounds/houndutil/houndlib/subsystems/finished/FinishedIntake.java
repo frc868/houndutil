@@ -30,8 +30,8 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * {@code extends FinishedIntake} after your class name (and before the
  * bracket).
  * <p>
- * All you need to do in order to make a Flywheel is call super() in the
- * flywheel's constructor, and the FinishedFlywheel will handle the logic.
+ * All you need to do in order to make an Intake is call super() in the
+ * intakes's constructor, and the FinishedIntake will handle the logic.
  * <p>
  * If you want to add custom commands, make sure to utilize the commands built
  * into the intake.
@@ -83,7 +83,7 @@ public abstract class FinishedIntake extends SubsystemBase {
 
             for (int i = 0; i < motors.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-                //TODO should this be times or div
+                
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().times(GEAR_RATIO).times(a));
                 motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
@@ -160,7 +160,7 @@ public abstract class FinishedIntake extends SubsystemBase {
                         SIM_MOTOR_PLANT,
                         MOI.in(KilogramSquareMeters),
                         GEAR_RATIO),
-                SIM_MOTOR_PLANT);;
+                SIM_MOTOR_PLANT);
         }
     }
 
@@ -192,12 +192,11 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
-    public void setMotorsControl(ControlRequest control) {
+    private void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
-        if (!ARE_FOLLOWERS) {
-            for (int i = 1; i < motors.length; i++) {
-                motors[i].setControl(control);
-            }
+
+        for (int i = 1; i < motors.length; i++) {
+            motors[i].setControl(ARE_FOLLOWERS ? followerRequest : control);
         }
     }
 
