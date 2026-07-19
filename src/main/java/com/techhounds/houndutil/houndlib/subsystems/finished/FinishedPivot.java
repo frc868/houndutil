@@ -21,22 +21,15 @@ import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.math.numbers.N1;
-import edu.wpi.first.math.numbers.N2;
 import edu.wpi.first.math.system.plant.DCMotor;
-import edu.wpi.first.math.system.plant.LinearSystemId;
 import edu.wpi.first.units.measure.Angle;
 import edu.wpi.first.units.measure.AngularAcceleration;
 import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.Distance;
-import edu.wpi.first.units.measure.LinearAcceleration;
-import edu.wpi.first.units.measure.LinearVelocity;
-import edu.wpi.first.units.measure.Mass;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj.RobotBase;
-import edu.wpi.first.wpilibj.simulation.LinearSystemSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -342,7 +335,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         for (int i = 0; i < motors.length; i++) {
             // check what starting angle sohuld be
             sim.add(new SingleJointedArmSim(SIM_MOTOR_PLANT, GEAR_RATIO, MOI.in(KilogramSquareMeters),
-                    ARM_LENGTH.in(Meters), MIN_POSITION.in(Radians), MAX_POSITION.in(Radians), K[3] != 0.0,
+                    ARM_LENGTH.in(Meters), MIN_POSITION.in(Radians), MAX_POSITION.in(Radians), false,
                     Degrees.of(0.0).in(Radians)));
         }
     }
