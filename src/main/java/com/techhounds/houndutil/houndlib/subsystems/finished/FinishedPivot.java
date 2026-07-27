@@ -133,8 +133,7 @@ public abstract class FinishedPivot extends SubsystemBase {
     }
 
     /**
-     * Creates a command that sets the current goal position to the setpoint, and
-     * cancels once the mechanism has reached that goal.
+     * Creates a command that sets the current goal position to the setpoint.
      * 
      * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
      *          duplication
@@ -145,7 +144,7 @@ public abstract class FinishedPivot extends SubsystemBase {
     public Command moveToArbitraryPositionCommand(Supplier<Angle> goalPositionSupplier) {
         return Commands.runOnce(() -> {
             goalPosition = goalPositionSupplier.get();
-        }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
+        }).andThen(moveToCurrentGoalCommand())
                 .withName(NAME + ".moveToPosition");
     }
 
@@ -162,7 +161,7 @@ public abstract class FinishedPivot extends SubsystemBase {
     public Command movePositionDeltaCommand(Supplier<Angle> delta) {
         return Commands.runOnce(() -> {
             goalPosition = getPosition().plus(delta.get());
-        }).andThen(moveToCurrentGoalCommand()).until(() -> getPosition().isNear(goalPosition, TOLERANCE))
+        }).andThen(moveToCurrentGoalCommand())
                 .withName(NAME + ".moveToPositionDelta");
     }
 
