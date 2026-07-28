@@ -26,6 +26,7 @@ import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.signals.SensorDirectionValue;
 import com.techhounds.houndutil.HoundConstants;
+import com.techhounds.houndutil.houndlib.subsystems.finished.FinishedDrivetrain;
 import com.techhounds.houndutil.houndlog.SignalManager;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
@@ -297,7 +298,8 @@ public class KrakenCoaxialSwerveModule {
         steerConfig.MotorOutput.NeutralMode = NeutralModeValue.Brake;
         steerConfig.Feedback.FeedbackRemoteSensorID = steerCanCoder.getDeviceID();
         steerConfig.Feedback.FeedbackSensorSource = FeedbackSensorSourceValue.FusedCANcoder;
-        steerConfig.Feedback.SensorToMechanismRatio = 1.0; // TODO rn gear ratio has to be plugged into SysId tool bc it isn't set here
+        steerConfig.Feedback.SensorToMechanismRatio = 1.0; // TODO rn gear ratio has to be plugged into SysId tool bc it
+                                                           // isn't set here
         steerConfig.Feedback.RotorToSensorRatio = SWERVE_CONSTANTS.STEER_GEARING;
         if (RobotBase.isReal()) {
             steerConfig.CurrentLimits.StatorCurrentLimit = SWERVE_CONSTANTS.STEER_CURRENT_LIMIT.in(Amps);
@@ -492,5 +494,30 @@ public class KrakenCoaxialSwerveModule {
 
     public void setStateClosedLoop(SwerveModuleState state) {
         setStateInternal(state, false);
+    }
+
+    public static KrakenCoaxialSwerveModule[] ofFinishedDrivetrain(FinishedDrivetrain d) {
+        return new KrakenCoaxialSwerveModule[] {
+                new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[0].DRIVE_MOTOR_ID,
+                        d.MODULE_CONSTANTS[0].STEER_MOTOR_ID, d.MODULE_CONSTANTS[0].STEER_ENCODER_ID,
+                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[0].ENCODER_OFFSET,
+                        d.SWERVE_CONSTANTS),
+                new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[1].DRIVE_MOTOR_ID,
+                        d.MODULE_CONSTANTS[1].STEER_MOTOR_ID, d.MODULE_CONSTANTS[1].STEER_ENCODER_ID,
+                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[1].ENCODER_OFFSET,
+                        d.SWERVE_CONSTANTS),
+                new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[2].DRIVE_MOTOR_ID,
+                        d.MODULE_CONSTANTS[2].STEER_MOTOR_ID, d.MODULE_CONSTANTS[2].STEER_ENCODER_ID,
+                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[2].ENCODER_OFFSET,
+                        d.SWERVE_CONSTANTS),
+                new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[3].DRIVE_MOTOR_ID,
+                        d.MODULE_CONSTANTS[3].STEER_MOTOR_ID, d.MODULE_CONSTANTS[3].STEER_ENCODER_ID,
+                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[3].ENCODER_OFFSET,
+                        d.SWERVE_CONSTANTS)
+        };
     }
 }

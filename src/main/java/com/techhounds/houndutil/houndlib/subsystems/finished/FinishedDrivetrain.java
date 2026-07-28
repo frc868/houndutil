@@ -40,10 +40,12 @@ import com.techhounds.houndutil.houndlib.swerve.KrakenSwerveDrive;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform2d;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.geometry.Twist2d;
@@ -51,6 +53,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.units.measure.Angle;
@@ -177,7 +180,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     private final ProfiledPIDController rotationController;
     private final ProfiledPIDController driveController;
 
-    private final KrakenCoaxialSwerveModule modules[] = new KrakenCoaxialSwerveModule[4];
+    private final KrakenCoaxialSwerveModule modules[];
     public final KrakenSwerveDrive swerve;
 
     private final Pigeon2 pigeon;
@@ -192,7 +195,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
             int odometryThreadPriority, Time phaseDelay, Mass mass, MomentOfInertia moi, boolean driveInvert,
             boolean steerInvert, boolean encoderInvert, Pair<Distance, Distance> dimensions,
             Pair<AngularVelocity, AngularAcceleration> thetaLimits, TuningConstants thetaPid, double wheelCof,
-            Distance wheelRadius, Pair<Double, Double> feedforwardRange, TuningConstants robotPID) {
+            Distance wheelRadius, Pair<Double, Double> feedforwardRange, TuningConstants robotPID, Vector<N3> pigeonPitchYawRoll) {
         this.CAN_BUS = bus;
         this.DRIVE_MOTORS_INVERTED = driveInvert;
         this.STEER_MOTORS_INVERTED = steerInvert;
@@ -218,12 +221,8 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         this.XY_FF_MIN_RANGE = feedforwardRange.getFirst();
         this.XY_FF_MAX_RANGE = feedforwardRange.getSecond();
         this.XY_PID = robotPID;
-
-        for(var i = 0; i < 4; i++ ){
-            modules[i] = new KrakenCoaxialSwerveModule(MODULE_CONSTANTS[i].DRIVE_MOTOR_ID,
-                MODULE_CONSTANTS[i].STEER_MOTOR_ID, MODULE_CONSTANTS[i].STEER_ENCODER_ID, CAN_BUS.getName(), DRIVE_MOTORS_INVERTED,
-                STEER_MOTORS_INVERTED, STEER_ENCODERS_INVERTED, MODULE_CONSTANTS[i].ENCODER_OFFSET, SWERVE_CONSTANTS);
-        }
+            
+        this.modules = KrakenCoaxialSwerveModule.ofFinishedDrivetrain(this);
         this.SWERVE_MODULE_LOCATIONS = new Translation2d[] {
                 new Translation2d(WHEEL_BASE.div(2.0), TRACK_WIDTH.div(2.0)),
                 new Translation2d(WHEEL_BASE.div(2.0), TRACK_WIDTH.div(2.0).unaryMinus()),
@@ -255,9 +254,9 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
 
         driveController.setTolerance(DRIVE_POSITION_TOLERANCE.in(Meters), DRIVE_VELOCITY_TOLERANCE.in(MetersPerSecond));
         Pigeon2Configuration pigeonConfig = new Pigeon2Configuration();
-        pigeonConfig.MountPose.withMountPoseRoll(10);
-        pigeonConfig.MountPose.withMountPoseYaw(10);
-        pigeonConfig.MountPose.withMountPosePitch(10);
+        pigeonConfig.MountPose.withMountPosePitch(pigeonPitchYawRoll.get(0));
+        pigeonConfig.MountPose.withMountPoseYaw(pigeonPitchYawRoll.get(1));
+        pigeonConfig.MountPose.withMountPoseRoll(pigeonPitchYawRoll.get(2));
         pigeon.getConfigurator().apply(pigeonConfig);
     }
 
