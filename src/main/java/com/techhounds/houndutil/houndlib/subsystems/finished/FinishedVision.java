@@ -28,15 +28,16 @@ import edu.wpi.first.wpilibj.RobotBase;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public abstract class FinishedVision extends SubsystemBase{
-    //Before reading this note that SD means standard deviation
+public abstract class FinishedVision extends SubsystemBase {
+    // Before reading this note that SD means standard deviation
 
-    public class StdDevs{
+    public class StdDevs {
         public final Matrix<N3, N1> SINGLE;
         public final Matrix<N3, N1> MULTI;
         public final Matrix<N3, N1> TELEOP_MULTI;
         public final Matrix<N3, N1> SINGLE_PRECISE;
-        public StdDevs(double single, double multi, double teleop, double precise){
+
+        public StdDevs(double single, double multi, double teleop, double precise) {
             this.SINGLE = VecBuilder.fill(single, single, Double.MAX_VALUE);
             this.MULTI = VecBuilder.fill(multi, multi, Double.MAX_VALUE);
             this.TELEOP_MULTI = VecBuilder.fill(teleop, teleop, Double.MAX_VALUE);
@@ -60,13 +61,12 @@ public abstract class FinishedVision extends SubsystemBase{
     private final Supplier<Rotation2d> headingSupplier;
     private final Supplier<ChassisSpeeds> chassisSpeedsSupplier;
 
-
-    public FinishedVision(PhotonCameraConstants cameraConstants, StdDevs stdDevs, AprilTagFieldLayout field, Transform3d[] robotToCams, FinishedDrivetrain drivetrain, double avgError, double stdDevError) {
+    public FinishedVision(PhotonCameraConstants cameraConstants, StdDevs stdDevs, AprilTagFieldLayout field,
+            Transform3d[] robotToCams, FinishedDrivetrain drivetrain, double avgError, double stdDevError) {
         this.ROBOT_TO_CAMS = robotToCams;
         this.CAMERA_CONSTANTS = cameraConstants;
         this.STD_DEVS = stdDevs;
         this.field = field;
-
 
         this.cameras = new AprilTagPhotonCamera[ROBOT_TO_CAMS.length];
         this.latestUsedPoses = new Pose3d[cameras.length];
@@ -78,12 +78,11 @@ public abstract class FinishedVision extends SubsystemBase{
         this.simPoseSupplier = drivetrain.swerve::getSimPose;
         this.headingSupplier = drivetrain.swerve::getRotation;
         this.chassisSpeedsSupplier = drivetrain.swerve::getChassisSpeeds;
-        
-
 
         for (int i = 0; i < cameras.length; i++) {
-            //TODO probably put avgError and stdDev into constants
-            cameras[i] = new AprilTagPhotonCamera(String.valueOf(i), robotToCams[i], cameraConstants, avgError, stdDevError); 
+            // TODO probably put avgError and stdDev into constants
+            cameras[i] = new AprilTagPhotonCamera(String.valueOf(i), ROBOT_TO_CAMS[i], CAMERA_CONSTANTS, avgError,
+                    stdDevError);
             latestUsedPoses[i] = Pose3d.kZero;
             latestUsedTrigPoses[i] = Pose3d.kZero;
         }
@@ -93,7 +92,7 @@ public abstract class FinishedVision extends SubsystemBase{
                 sim.addCamera(camera.getSim(), camera.getRobotToCam());
             }
         }
-        
+
     }
 
     /** Periodically update vision estimates */
@@ -159,40 +158,40 @@ public abstract class FinishedVision extends SubsystemBase{
     public Pose3d[] getCameraPoses() {
         Pose3d[] x = new Pose3d[ROBOT_TO_CAMS.length];
 
-        for (int i = 0; i < x.length; i++){
+        for (int i = 0; i < x.length; i++) {
             x[i] = new Pose3d(poseEstimator.getEstimatedPosition()).plus(ROBOT_TO_CAMS[i]);
         }
-        
+
         return x;
     }
 
     public Pose3d[] getAprilTagPoses() {
         Pose3d[] x = new Pose3d[field.getTags().size()];
 
-        for (int i = 0; i < x.length; i++){
+        for (int i = 0; i < x.length; i++) {
             x[i] = field.getTags().get(i).pose;
         }
-        
+
         return x;
     }
-    
+
     public Pose3d[] getEstimatedRobotPoses() {
         Pose3d[] x = new Pose3d[cameras.length];
 
-        for (int i = 0; i < x.length; i++){
+        for (int i = 0; i < x.length; i++) {
             x[i] = cameras[i].getLoggedEstimatedRobotPose();
         }
-        
+
         return x;
     }
-    
+
     public Pose3d[] getEstimatedPreciseRobotPoses() {
         Pose3d[] x = new Pose3d[cameras.length];
 
-        for (int i = 0; i < x.length; i++){
+        for (int i = 0; i < x.length; i++) {
             x[i] = cameras[i].getLoggedEstimatedTrigRobotPose();
         }
-        
+
         return x;
     }
 
@@ -208,7 +207,7 @@ public abstract class FinishedVision extends SubsystemBase{
 
         int totalSize = 0;
 
-        for (AprilTagPhotonCamera cam : cameras){
+        for (AprilTagPhotonCamera cam : cameras) {
             totalSize += cam.getLoggedDetectedAprilTags().length;
         }
 
