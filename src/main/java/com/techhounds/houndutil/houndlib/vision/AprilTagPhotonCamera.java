@@ -15,6 +15,7 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
+import com.techhounds.houndutil.houndlib.subsystems.finished.FinishedVision;
 import com.techhounds.houndutil.houndlog.FaultLogger;
 import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlog.annotations.LoggedObject;
@@ -77,6 +78,16 @@ public class AprilTagPhotonCamera {
 
         /** The layout of the AprilTags on the field. */
         public AprilTagFieldLayout TAG_LAYOUT;
+
+        public PhotonCameraConstants(int width, int height, double fov, double fps, double avgLatency, double stdDevLatency){
+            this.WIDTH = width;
+            this.HEIGHT = height;
+            this.FOV = fov;
+            this.FPS = fps;
+            this.AVG_LATENCY = avgLatency;
+            this.STDDEV_LATENCY = stdDevLatency;
+        }
+        public PhotonCameraConstants(){}
     }
 
     protected String name;
@@ -209,7 +220,7 @@ public class AprilTagPhotonCamera {
                     robotToCam);
 
             // reject the pose if we are over x meters off the ground, or over 1m under the
-            // ground.
+            // ground. //TODO change comment, not one meter under
             if (estimatedRobotPose.getZ() > constants.MAX_POSE_REJECT_HEIGHT.in(Meters)
                     || estimatedRobotPose.getZ() < constants.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
