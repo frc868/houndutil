@@ -82,6 +82,7 @@ public abstract class FinishedPivot extends SubsystemBase {
     private final Angle MIN_POSITION;
     private final Angle MAX_POSITION;
     private final Angle TOLERANCE;
+    private final boolean SIMULATE_GRAVITY;
 
     private final double[] K;
 
@@ -290,7 +291,7 @@ public abstract class FinishedPivot extends SubsystemBase {
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
             Distance armLength,
             AngularVelocity maxVelocity, AngularAcceleration maxAcceleration, Angle minPosition, Angle maxPosition,
-            Angle tolerance,
+            Angle tolerance, boolean simulateGravity,
             double[] tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -307,6 +308,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         MIN_POSITION = minPosition;
         MAX_POSITION = maxPosition;
         TOLERANCE = tolerance;
+        SIMULATE_GRAVITY = simulateGravity;
         K = tuningConstants;
 
         goalPosition = MIN_POSITION;
@@ -334,7 +336,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         for (int i = 0; i < motors.length; i++) {
             // check what starting angle sohuld be
             sim.add(new SingleJointedArmSim(SIM_MOTOR_PLANT, GEAR_RATIO, MOI.in(KilogramSquareMeters),
-                    ARM_LENGTH.in(Meters), MIN_POSITION.in(Radians), MAX_POSITION.in(Radians), false,
+                    ARM_LENGTH.in(Meters), MIN_POSITION.in(Radians), MAX_POSITION.in(Radians), SIMULATE_GRAVITY,
                     Degrees.of(0.0).in(Radians)));
         }
     }
@@ -391,5 +393,9 @@ public abstract class FinishedPivot extends SubsystemBase {
 
     public Command stopCommand() {
         return runOnce(() -> stop());
+    }
+
+    public boolean atGoal(){
+        return getPosition().isNear(goalPosition, TOLERANCE);
     }
 }

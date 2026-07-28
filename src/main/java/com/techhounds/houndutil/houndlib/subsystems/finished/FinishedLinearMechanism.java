@@ -402,4 +402,8 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     public Command stopCommand() {
         return runOnce(() -> stop());
     }
+
+    public boolean atGoal(){
+        return getPosition().isNear(goalPosition, TOLERANCE);
+    }
 }
