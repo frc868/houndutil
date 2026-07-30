@@ -78,13 +78,14 @@ public class AprilTagPhotonCamera {
         /** The layout of the AprilTags on the field. */
         public AprilTagFieldLayout TAG_LAYOUT;
 
-        public PhotonCameraConstants(int width, int height, double fov, double fps, double avgLatency, double stdDevLatency){
+        public PhotonCameraConstants(int width, int height, double fov, double fps, double avgLatency, double stdDevLatency, AprilTagFieldLayout tagLayout){
             this.WIDTH = width;
             this.HEIGHT = height;
             this.FOV = fov;
             this.FPS = fps;
             this.AVG_LATENCY = avgLatency;
             this.STDDEV_LATENCY = stdDevLatency;
+            this.TAG_LAYOUT = tagLayout;
         }
         public PhotonCameraConstants(){}
     }
