@@ -263,9 +263,9 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         pigeon.getConfigurator().apply(pigeonConfig);
     }
 
-    public FinishedDrivetrain(CANBus bus, ModuleConstants[] moduleConstants, Mass robotMass, MomentOfInertia robotMoi){
+    public FinishedDrivetrain(CANBus bus, ModuleConstants[] moduleConstants, Mass robotMass, MomentOfInertia robotMoi, SwerveConstants swerveConstants){
         this(bus,
-            new SwerveConstants(), //TODO add !!!!
+            swerveConstants,
             new JoystickConstants(3.0, 0.1, 2.0, 2.0),
             moduleConstants,
             new Pair<>(Inches.of(8.0), MetersPerSecond.of(0.5)),
@@ -281,7 +281,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
             new Pair<>(RadiansPerSecond.of(10.0), RadiansPerSecondPerSecond.of(15.0)),
             new TuningConstants(8.0, 0.0, 0.1),
             1.3,
-            Meters.of(0.049418825935407446),
+            swerveConstants.WHEEL_CIRCUMFERENCE.div(2 * Math.PI),
             new Pair<>(0.1, 0.15),
             new TuningConstants(8.0, 0.0, 0.05),
             VecBuilder.fill(1.0, 2.0, 5.2)

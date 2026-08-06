@@ -219,8 +219,7 @@ public class AprilTagPhotonCamera {
             detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                     robotToCam);
 
-            // reject the pose if we are over x meters off the ground, or over 1m under the
-            // ground. //TODO change comment, not one meter under
+            // reject the pose if we are over a certain amount of meters off the ground, or over a certain amount below the ground
             if (estimatedRobotPose.getZ() > constants.MAX_POSE_REJECT_HEIGHT.in(Meters)
                     || estimatedRobotPose.getZ() < constants.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;
