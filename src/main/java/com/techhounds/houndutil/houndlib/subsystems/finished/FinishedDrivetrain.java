@@ -2,6 +2,8 @@ package com.techhounds.houndutil.houndlib.subsystems.finished;
 
 import static edu.wpi.first.units.Units.Amps;
 import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.DegreesPerSecond;
+import static edu.wpi.first.units.Units.Inches;
 import static edu.wpi.first.units.Units.Meters;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.MetersPerSecondPerSecond;
@@ -40,6 +42,7 @@ import com.techhounds.houndutil.houndlib.swerve.KrakenSwerveDrive;
 
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Pair;
+import edu.wpi.first.math.VecBuilder;
 import edu.wpi.first.math.Vector;
 import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -180,7 +183,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     private final ProfiledPIDController rotationController;
     private final ProfiledPIDController driveController;
 
-    private final KrakenCoaxialSwerveModule modules[];
+    private final KrakenCoaxialSwerveModule[] modules;
     public final KrakenSwerveDrive swerve;
 
     private final Pigeon2 pigeon;
@@ -258,6 +261,31 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         pigeonConfig.MountPose.withMountPoseYaw(pigeonPitchYawRoll.get(1));
         pigeonConfig.MountPose.withMountPoseRoll(pigeonPitchYawRoll.get(2));
         pigeon.getConfigurator().apply(pigeonConfig);
+    }
+
+    public FinishedDrivetrain(CANBus bus, ModuleConstants[] moduleConstants, Mass robotMass, MomentOfInertia robotMoi){
+        this(bus,
+            new SwerveConstants(),
+            new JoystickConstants(3.0, 0.1, 2.0, 2.0),
+            moduleConstants,
+            new Pair<>(Inches.of(8.0), MetersPerSecond.of(0.5)),
+            new Pair<>(Degrees.of(2.5), DegreesPerSecond.of(0.5)),
+            1,
+            Seconds.of(0.3),
+            robotMass,
+            robotMoi,
+            false,
+            false,
+            false,
+            new Pair<>(Inches.of(24.75), Inches.of(19.25)),
+            new Pair<>(RadiansPerSecond.of(10.0), RadiansPerSecondPerSecond.of(15.0)),
+            new TuningConstants(8.0, 0.0, 0.1),
+            1.3,
+            Meters.of(0.049418825935407446),
+            new Pair<>(0.1, 0.15),
+            new TuningConstants(8.0, 0.0, 0.05),
+            VecBuilder.fill(1.0, 2.0, 5.2)
+        );
     }
 
     /** Draw the robot on a Field2d every 20ms */
