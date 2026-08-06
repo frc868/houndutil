@@ -494,13 +494,12 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         }).withName("drivetrain.setDriveMode");
     }
 
-    // public Command resetGyroCommand() {
-    // return runOnce(() -> {
-    // swerve.resetGyro();
-
-    // initialized = true;
-    // });
-    // } //TODO cehck if there is a resetGyro somehow
+    public Command resetGyroCommand() {
+        return runOnce(() -> {
+            pigeon.setYaw(0);
+            initialized = true;
+        });
+    }
 
     public Command setDriveCurrentLimitCommand(Current currentLimit) {
         return Commands.runOnce(() -> {
