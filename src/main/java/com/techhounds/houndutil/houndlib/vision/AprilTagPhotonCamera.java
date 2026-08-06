@@ -78,7 +78,9 @@ public class AprilTagPhotonCamera {
         /** The layout of the AprilTags on the field. */
         public AprilTagFieldLayout TAG_LAYOUT;
 
-        public PhotonCameraConstants(int width, int height, double fov, double fps, double avgLatency, double stdDevLatency, AprilTagFieldLayout tagLayout){
+        public PhotonCameraConstants(int width, int height, double fov, double fps, double avgLatency,
+                double stdDevLatency, AprilTagFieldLayout tagLayout, Distance trigRejectDist, Distance minReject,
+                Distance maxReject) {
             this.WIDTH = width;
             this.HEIGHT = height;
             this.FOV = fov;
@@ -86,8 +88,13 @@ public class AprilTagPhotonCamera {
             this.AVG_LATENCY = avgLatency;
             this.STDDEV_LATENCY = stdDevLatency;
             this.TAG_LAYOUT = tagLayout;
+            this.TRIG_POSE_REJECT_DIST = trigRejectDist;
+            this.MIN_POSE_REJECT_HEIGHT = minReject;
+            this.MAX_POSE_REJECT_HEIGHT = maxReject;
         }
-        public PhotonCameraConstants(){}
+
+        public PhotonCameraConstants() {
+        }
     }
 
     protected String name;
@@ -219,7 +226,8 @@ public class AprilTagPhotonCamera {
             detectedAprilTags = getPosesFromTargets(result.targets, estimatedRobotPose,
                     robotToCam);
 
-            // reject the pose if we are over a certain amount of meters off the ground, or over a certain amount below the ground
+            // reject the pose if we are over a certain amount of meters off the ground, or
+            // over a certain amount below the ground
             if (estimatedRobotPose.getZ() > constants.MAX_POSE_REJECT_HEIGHT.in(Meters)
                     || estimatedRobotPose.getZ() < constants.MIN_POSE_REJECT_HEIGHT.in(Meters)) {
                 hasPose = false;

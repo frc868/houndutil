@@ -188,7 +188,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
 
     private final Pigeon2 pigeon;
     private SwerveModulePosition[] lastModulePositions;
-    private ChassisSpeeds lastFieldRelativeChassisSpeeds; // TODO probably set these
+    private ChassisSpeeds lastFieldRelativeChassisSpeeds;
     private boolean initialized = RobotBase.isSimulation();
 
     /** Initialize the drivetrain */
@@ -261,6 +261,9 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         pigeonConfig.MountPose.withMountPoseYaw(pigeonPitchYawRoll.get(1));
         pigeonConfig.MountPose.withMountPoseRoll(pigeonPitchYawRoll.get(2));
         pigeon.getConfigurator().apply(pigeonConfig);
+
+        lastModulePositions = swerve.getModulePositions();
+        lastFieldRelativeChassisSpeeds = swerve.getChassisSpeeds();
     }
 
     public FinishedDrivetrain(CANBus bus, ModuleConstants[] moduleConstants, Mass robotMass, MomentOfInertia robotMoi, SwerveConstants swerveConstants){
