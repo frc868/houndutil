@@ -13,6 +13,7 @@ import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.techhounds.houndutil.houndlib.TuningConstants;
 import com.techhounds.houndutil.houndlog.LogProfiles;
 import com.techhounds.houndutil.houndlog.LoggingManager;
 import com.techhounds.houndutil.houndlog.loggers.LogGroup;
@@ -69,9 +70,9 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     private final DCMotor SIM_MOTOR_PLANT;
     private final MomentOfInertia MOI;
     
-    private final double[] K;
+    private final TuningConstants K;
 
-    private AngularVelocity goalVelocity = RotationsPerSecond.zero();
+    public AngularVelocity goalVelocity = RotationsPerSecond.zero();
     private final TalonFXConfiguration config = new TalonFXConfiguration();
     private final TalonFX[] motors;
     private final FlywheelSim[] sim;
@@ -232,7 +233,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
      */
     public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
-            double[] tuningConstants) {
+            TuningConstants tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
         NAME = name;
@@ -243,11 +244,6 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         SIM_MOTOR_PLANT = simMotorPlant;
         MOI = moi;
         K = tuningConstants;
-
-        if (tuningConstants.length != 7) {
-            // TODO check how this can be printed to driverstation or something
-            System.out.println("\033[1m" + "WARNING: tuningConstants should have a length of 7. (Issued from FinishedFlywheel.java for subsystem: " + NAME + ")" + "\033[0m");
-        }
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
@@ -275,7 +271,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K[0]).withKI(K[1]).withKD(K[2]).withKG(K[3]).withKA(K[4]).withKS(K[5]).withKV(K[6]);
+        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA()).withKS(K.getkS()).withKV(K.getkV());
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_CONSTANTS[i].INVERT;
