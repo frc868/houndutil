@@ -10,6 +10,7 @@ import static edu.wpi.first.units.Units.Rotations;
 import static edu.wpi.first.units.Units.Seconds;
 
 import com.ctre.phoenix6.BaseStatusSignal;
+import com.ctre.phoenix6.CANBus;
 import com.ctre.phoenix6.StatusSignal;
 import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MagnetSensorConfigs;
@@ -255,7 +256,7 @@ public class KrakenCoaxialSwerveModule {
             int driveMotorId,
             int steerMotorId,
             int canCoderId,
-            String canBus,
+            CANBus canBus,
             boolean driveMotorInverted,
             boolean steerMotorInverted,
             boolean steerCanCoderInverted,
@@ -344,9 +345,25 @@ public class KrakenCoaxialSwerveModule {
         // register all signals with the SignalManager so that any downstream callers
         // get updated signals
         SignalManager.register(
-                canBus,
+                canBus.getName(),
                 drivePosition, driveVelocity, driveAcceleration, driveMotorVoltage,
                 steerPosition, steerVelocity, steerAcceleration, steerMotorVoltage);
+    }
+
+    /**
+     * @deprecated bro use the CANBus object instead of a String
+     */
+    public KrakenCoaxialSwerveModule(int driveMotorId,
+            int steerMotorId,
+            int canCoderId,
+            String canBus,
+            boolean driveMotorInverted,
+            boolean steerMotorInverted,
+            boolean steerCanCoderInverted,
+            Angle steerCanCoderOffset,
+            SwerveConstants swerveConstants) {
+        this(driveMotorId, steerMotorId, canCoderId, new CANBus(canBus), driveMotorInverted, steerMotorInverted,
+                steerCanCoderInverted, steerCanCoderOffset, swerveConstants);
     }
 
     public double getDriveMotorPosition() {
@@ -500,17 +517,17 @@ public class KrakenCoaxialSwerveModule {
         return new KrakenCoaxialSwerveModule[] {
                 new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[0].DRIVE_MOTOR_ID,
                         d.MODULE_CONSTANTS[0].STEER_MOTOR_ID, d.MODULE_CONSTANTS[0].STEER_ENCODER_ID,
-                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.CAN_BUS, d.DRIVE_MOTORS_INVERTED,
                         d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[0].ENCODER_OFFSET,
                         d.SWERVE_CONSTANTS),
                 new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[1].DRIVE_MOTOR_ID,
                         d.MODULE_CONSTANTS[1].STEER_MOTOR_ID, d.MODULE_CONSTANTS[1].STEER_ENCODER_ID,
-                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.CAN_BUS, d.DRIVE_MOTORS_INVERTED,
                         d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[1].ENCODER_OFFSET,
                         d.SWERVE_CONSTANTS),
                 new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[2].DRIVE_MOTOR_ID,
                         d.MODULE_CONSTANTS[2].STEER_MOTOR_ID, d.MODULE_CONSTANTS[2].STEER_ENCODER_ID,
-                        d.CAN_BUS.getName(), d.DRIVE_MOTORS_INVERTED,
+                        d.CAN_BUS, d.DRIVE_MOTORS_INVERTED,
                         d.STEER_MOTORS_INVERTED, d.STEER_ENCODERS_INVERTED, d.MODULE_CONSTANTS[2].ENCODER_OFFSET,
                         d.SWERVE_CONSTANTS),
                 new KrakenCoaxialSwerveModule(d.MODULE_CONSTANTS[3].DRIVE_MOTOR_ID,
