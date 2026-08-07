@@ -29,9 +29,9 @@ import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public abstract class FinishedVision extends SubsystemBase {
-    // Before reading this note that SD means standard deviation
+    // Before reading this note that STD means standard deviation
 
-    public class StdDevs {
+    public static class StdDevs {
         public final Matrix<N3, N1> SINGLE;
         public final Matrix<N3, N1> MULTI;
         public final Matrix<N3, N1> TELEOP_MULTI;
@@ -224,7 +224,7 @@ public abstract class FinishedVision extends SubsystemBase {
 
     // only for checking if poses are right in AdvantageScope
     public Pose3d[] getCameraPosesAgain() {
-        return new Pose3d[] {
+        return new Pose3d[] { //TODO make it work for N cameras
                 new Pose3d().transformBy(ROBOT_TO_CAMS[0]),
                 new Pose3d().transformBy(ROBOT_TO_CAMS[1]),
                 new Pose3d().transformBy(ROBOT_TO_CAMS[2]),
