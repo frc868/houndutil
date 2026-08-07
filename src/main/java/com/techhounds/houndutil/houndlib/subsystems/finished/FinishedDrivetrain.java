@@ -364,7 +364,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     }
 
     public Command controlledRotateCommand(Supplier<Angle> angle) {
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             if (!isControlledRotationEnabled) {
                 rotationController.reset(swerve.getRotation().getRadians());
             }
@@ -377,7 +377,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     }
 
     public Command disableControlledRotateCommand() {
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             isControlledRotationEnabled = false;
         }).withName("drivetrain.disableControlledRotateCommand");
     }
@@ -405,7 +405,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     }
 
     public Command driveToPoseCommand(Supplier<Pose2d> poseSupplier) {
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             Translation2d currentPosition = swerve.getPrecisePose().getTranslation();
             Translation2d targetPosition = poseSupplier.get().getTranslation();
 
@@ -494,7 +494,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     }
 
     public Command setDriveModeCommand(DriveMode driveMode) {
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             this.driveMode = driveMode;
         }).withName("drivetrain.setDriveMode");
     }
@@ -507,7 +507,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     }
 
     public Command setDriveCurrentLimitCommand(Current currentLimit) {
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             swerve.setDriveCurrentLimits((int) currentLimit.in(Amps));
         }).withName("drivetrain.setDriveCurrentLimit");
     }
@@ -562,7 +562,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
         SlewRateLimiter xSpeedLimiter = new SlewRateLimiter(JOYSTICK_CONSTANTS.INPUT_RATE_LIMIT);
         SlewRateLimiter ySpeedLimiter = new SlewRateLimiter(JOYSTICK_CONSTANTS.INPUT_RATE_LIMIT);
 
-        return Commands.runOnce(() -> {
+        return runOnce(() -> {
             Translation2d currentPos = swerve.getPrecisePose().getTranslation();
             Pose2d closestPoseOnLine = Utils.getClosestPoseOnLine(swerve.getPrecisePose(), poseSupplier.get());
             Translation2d closestPos = closestPoseOnLine.getTranslation();
