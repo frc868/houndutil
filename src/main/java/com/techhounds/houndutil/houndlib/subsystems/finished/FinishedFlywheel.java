@@ -69,7 +69,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
 
     private final DCMotor SIM_MOTOR_PLANT;
     private final MomentOfInertia MOI;
-    
+
     private final TuningConstants K;
 
     public AngularVelocity goalVelocity = RotationsPerSecond.zero();
@@ -91,12 +91,14 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            if(motor != null){
+            if (motor != null) {
                 total = total + motor.getVelocity().getValue().in(RotationsPerSecond);
                 i++;
             }
         }
-        if(i == 0){return RotationsPerSecond.zero();}
+        if (i == 0) {
+            return RotationsPerSecond.zero();
+        }
 
         total /= i;
 
@@ -177,9 +179,10 @@ public abstract class FinishedFlywheel extends SubsystemBase {
 
             for (int i = 0; i < motors.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-                
+
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().times(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
+                motors[i].getSimState()
+                        .setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         } else {
             for (int i = 0; i < sim.length; i++) {
@@ -189,7 +192,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
 
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().times(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().times(GEAR_RATIO).times(a));
+                motors[i].getSimState()
+                        .setRotorAcceleration(sim[i].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         }
     }
@@ -226,10 +230,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
      *                        sim, otherwise x should be equal to the amount of
      *                        motors.
      * @param moi             The moment of inertia of the flywheel.
-     * @param tuningConstants An array of <b>exactly seven</b> {@code double}
-     *                        objects representing the PID and feedforward constants
-     *                        in the following order:
-     *                        {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
+     * @param tuningConstants A {@code TuningConstants} object representing the PID
+     *                        and feedforward constants
      */
     public FinishedFlywheel(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
@@ -271,7 +273,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA()).withKS(K.getkS()).withKV(K.getkV());
+        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA())
+                .withKS(K.getkS()).withKV(K.getkV());
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_CONSTANTS[i].INVERT;

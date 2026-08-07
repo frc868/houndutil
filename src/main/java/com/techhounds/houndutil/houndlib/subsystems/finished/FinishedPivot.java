@@ -282,10 +282,8 @@ public abstract class FinishedPivot extends SubsystemBase {
      *                        sim, otherwise x should be equal to the amount of
      *                        motors.
      * @param moi             The moment of inertia of the flywheel.
-     * @param tuningConstants An array of <b>exactly seven</b> {@code double}
-     *                        objects representing the PID and feedforward constants
-     *                        in the following order:
-     *                        {@code &#123;kP, kI, kD, kG, kA, kS, kV&#125;}.
+     * @param tuningConstants A {@code TuningConstants} object representing the PID
+     *                        and feedforward constants
      */
     public FinishedPivot(TalonConstants[] talonConstants, boolean areFollowers, String name,
             Current currentLimit,
