@@ -38,6 +38,7 @@ import com.techhounds.houndutil.houndlib.Utils;
 import com.techhounds.houndutil.houndlib.subsystems.BaseSwerveDrive.DriveMode;
 import com.techhounds.houndutil.houndlib.swerve.KrakenCoaxialSwerveModule;
 import com.techhounds.houndutil.houndlib.swerve.KrakenCoaxialSwerveModule.SwerveConstants;
+import com.techhounds.houndutil.houndlog.annotations.Log;
 import com.techhounds.houndutil.houndlib.swerve.KrakenSwerveDrive;
 
 import edu.wpi.first.math.MathUtil;
@@ -184,6 +185,7 @@ public abstract class FinishedDrivetrain extends SubsystemBase {
     private final ProfiledPIDController driveController;
 
     private final KrakenCoaxialSwerveModule[] modules;
+    
     public final KrakenSwerveDrive swerve;
 
     private final Pigeon2 pigeon;
