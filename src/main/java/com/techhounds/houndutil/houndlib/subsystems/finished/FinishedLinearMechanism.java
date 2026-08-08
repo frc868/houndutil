@@ -84,6 +84,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     private final LinearAcceleration MAX_ACCELERATION;
     private final Distance MIN_POSITION;
     private final Distance MAX_POSITION;
+    private final Distance ZERO_POSITION;
     private final Distance TOLERANCE;
 
     private final TuningConstants K;
@@ -95,14 +96,14 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     private final TalonFX[] motors;
     private final ArrayList<LinearSystemSim<N2, N1, N2>> sim;
     private final StrictFollower followerRequest;
-    private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    private final DynamicMotionMagicVoltage positionRequest;
+    protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    protected final DynamicMotionMagicVoltage positionRequest;
 
     public boolean initialized = RobotBase.isSimulation();
 
     public void resetPosition() {
         for (int i = 1; i < motors.length; i++) {
-            motors[i].setPosition(Rotations.of(MIN_POSITION.in(Meters)
+            motors[i].setPosition(Rotations.of(ZERO_POSITION.in(Meters)
                     / WHEEL_CIRCUMFERENCE.in(Meters)));
         }
 
@@ -306,7 +307,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, Mass mass,
             Distance wheelRadius,
             LinearVelocity maxVelocity, LinearAcceleration maxAcceleration, Distance minPosition, Distance maxPosition,
-            Distance tolerance,
+            Distance zeroPosition, Distance tolerance,
             TuningConstants tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -322,6 +323,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         MAX_ACCELERATION = maxAcceleration;
         MIN_POSITION = minPosition;
         MAX_POSITION = maxPosition;
+        ZERO_POSITION = zeroPosition;
         TOLERANCE = tolerance;
         K = tuningConstants;
 
@@ -392,7 +394,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getPosition())));
     }
 
-    private void setMotorsControl(ControlRequest control) {
+    protected void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {

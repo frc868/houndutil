@@ -61,7 +61,7 @@ public abstract class FinishedIntake extends SubsystemBase {
     private final TalonFX[] motors;
     private final FlywheelSim[] sim;
     private final StrictFollower followerRequest;
-    private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
     /**
      * Creates a command that runs the rollers of the intake at a specific voltage.
@@ -192,7 +192,7 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
-    private void setMotorsControl(ControlRequest control) {
+    protected void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {

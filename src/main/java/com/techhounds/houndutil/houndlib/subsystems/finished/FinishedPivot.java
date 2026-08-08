@@ -81,6 +81,7 @@ public abstract class FinishedPivot extends SubsystemBase {
     private final AngularAcceleration MAX_ACCELERATION;
     private final Angle MIN_POSITION;
     private final Angle MAX_POSITION;
+    private final Angle ZERO_POSITION;
     private final Angle TOLERANCE;
     private final boolean SIMULATE_GRAVITY;
 
@@ -91,14 +92,14 @@ public abstract class FinishedPivot extends SubsystemBase {
     private final TalonFX[] motors;
     private final ArrayList<SingleJointedArmSim> sim;
     private final StrictFollower followerRequest;
-    private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    private final DynamicMotionMagicVoltage positionRequest;
+    protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    protected final DynamicMotionMagicVoltage positionRequest;
 
     public boolean initialized = RobotBase.isSimulation();
 
     public void resetPosition() {
         for (int i = 1; i < motors.length; i++) {
-            motors[i].setPosition(MIN_POSITION);
+            motors[i].setPosition(ZERO_POSITION);
         }
 
         initialized = true;
@@ -297,7 +298,7 @@ public abstract class FinishedPivot extends SubsystemBase {
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi,
             Distance armLength,
             AngularVelocity maxVelocity, AngularAcceleration maxAcceleration, Angle minPosition, Angle maxPosition,
-            Angle tolerance, boolean simulateGravity,
+            Angle zeroPosition, Angle tolerance, boolean simulateGravity,
             TuningConstants tuningConstants) {
         TALON_CONSTANTS = talonConstants;
         ARE_FOLLOWERS = areFollowers;
@@ -313,6 +314,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         MAX_ACCELERATION = maxAcceleration;
         MIN_POSITION = minPosition;
         MAX_POSITION = maxPosition;
+        ZERO_POSITION = maxPosition;
         TOLERANCE = tolerance;
         SIMULATE_GRAVITY = simulateGravity;
         K = tuningConstants;
@@ -376,7 +378,7 @@ public abstract class FinishedPivot extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getPosition())));
     }
 
-    private void setMotorsControl(ControlRequest control) {
+    protected void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {

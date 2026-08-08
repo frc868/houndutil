@@ -77,8 +77,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     private final TalonFX[] motors;
     private final FlywheelSim[] sim;
     private final StrictFollower followerRequest;
-    private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
-    private final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0);
+    protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
+    protected final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0);
 
     /**
      * Gets the velocity of the flywheel. 0 should indicate it being stopped, and
@@ -303,7 +303,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getVelocity())));
     }
 
-    private void setMotorsControl(ControlRequest control) {
+    protected void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {
