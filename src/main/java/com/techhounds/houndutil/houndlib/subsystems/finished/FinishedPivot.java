@@ -240,24 +240,20 @@ public abstract class FinishedPivot extends SubsystemBase {
             sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(0).getAngleRads() / (2 * Math.PI) * GEAR_RATIO * a);
+                        sim.get(0).getAngleRads() / (2 * Math.PI) * GEAR_RATIO);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(0).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(0).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO);
             }
         } else {
             for (int i = 0; i < sim.size(); i++) {
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
                 sim.get(i).setInput(motors[i].getSimState().getMotorVoltage());
                 sim.get(i).update(0.020);
 
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(i).getAngleRads() / (2 * Math.PI) * GEAR_RATIO * a);
+                        sim.get(i).getAngleRads() / (2 * Math.PI) * GEAR_RATIO);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(i).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(i).getVelocityRadPerSec() / (2 * Math.PI) * GEAR_RATIO);
             }
         }
     }

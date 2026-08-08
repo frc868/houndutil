@@ -246,16 +246,14 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
             sim.get(0).update(0.020);
 
             for (int i = 0; i < motors.length; i++) {
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-
                 motors[i].getSimState().setRawRotorPosition(
-                        sim.get(0).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        sim.get(0).getOutput(0) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
                 motors[i].getSimState()
-                        .setRotorVelocity(sim.get(0).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO * a);
+                        .setRotorVelocity(sim.get(0).getOutput(1) / WHEEL_CIRCUMFERENCE.in(Meters) * GEAR_RATIO);
             }
         } else {
             for (int i = 0; i < sim.size(); i++) {
-                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
+                int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : 1;
 
                 sim.get(i).setInput(motors[i].getSimState().getMotorVoltage());
                 sim.get(i).update(0.020);
