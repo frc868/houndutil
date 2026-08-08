@@ -68,6 +68,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
  */
 public abstract class FinishedLinearMechanism extends SubsystemBase {
 
+    // TODO everything is in a forwards direction, maybe should be vertical
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
     private final String NAME;
@@ -97,7 +98,20 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
     private final DynamicMotionMagicVoltage positionRequest;
 
-    // TODO add "resetPosition()" allegedly
+    public boolean initialized = RobotBase.isSimulation();
+
+    public void resetPosition() {
+        for (int i = 1; i < motors.length; i++) {
+            motors[i].setPosition(Rotations.of(MIN_POSITION.in(Meters)
+                    / WHEEL_CIRCUMFERENCE.in(Meters)));
+        }
+
+        initialized = true;
+    }
+
+    public Command resetPositionCommand() {
+        return runOnce(() -> resetPosition()).withName(NAME + ".resetPosition");
+    }
 
     /**
      * Gets the position of the mechanism. 0 should be at the lowest movement point,
@@ -109,13 +123,15 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         double total = 0.0;
         int i = 0;
         for (TalonFX motor : motors) {
-            if(motor != null){
+            if (motor != null) {
                 total = total + motor.getPosition().getValue().in(Rotations)
                         * WHEEL_CIRCUMFERENCE.in(Meters);
                 i++;
             }
         }
-        if(i == 0){return Meters.zero();}
+        if (i == 0) {
+            return Meters.zero();
+        }
 
         total /= i;
 
@@ -162,7 +178,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
      * @param delta a supplier of a delta to move
      * @return the command
      */
-    public Command movePositionDeltaCommand(Supplier<Distance> delta){
+    public Command movePositionDeltaCommand(Supplier<Distance> delta) {
         return Commands.runOnce(() -> {
             goalPosition = getPosition().plus(delta.get());
         }).andThen(moveToCurrentGoalCommand())
@@ -325,7 +341,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
         sim = new ArrayList<LinearSystemSim<N2, N1, N2>>();
-                             
+
         createSims();
         configureMotors();
         logMotors();
@@ -348,7 +364,8 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA()).withKS(K.getkS()).withKV(K.getkV());
+        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA())
+                .withKS(K.getkS()).withKV(K.getkV());
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
             config.MotorOutput.Inverted = TALON_CONSTANTS[i].INVERT;
@@ -395,7 +412,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         return runOnce(() -> stop());
     }
 
-    public boolean atGoal(){
+    public boolean atGoal() {
         return getPosition().isNear(goalPosition, TOLERANCE);
     }
 }

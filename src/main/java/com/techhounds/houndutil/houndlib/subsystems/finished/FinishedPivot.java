@@ -95,7 +95,19 @@ public abstract class FinishedPivot extends SubsystemBase {
     private final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
     private final DynamicMotionMagicVoltage positionRequest;
 
-    // TODO add "resetPosition()" allegedly
+    public boolean initialized = RobotBase.isSimulation();
+
+    public void resetPosition() {
+        for (int i = 1; i < motors.length; i++) {
+            motors[i].setPosition(MIN_POSITION);
+        }
+
+        initialized = true;
+    }
+
+    public Command resetPositionCommand() {
+        return runOnce(() -> resetPosition()).withName(NAME + ".resetPosition");
+    }
 
     /**
      * Gets the position of the mechanism. 0 should be at the lowest movement point,
