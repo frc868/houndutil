@@ -38,7 +38,6 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
 import edu.wpi.first.wpilibj2.command.Commands;
 
-//TODO fix this when done
 /**
  * A linear mechanism. To use, after creating your subsystem file and class,
  * type
@@ -49,20 +48,43 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * linear mechanism's constructor, and the FinishedLinearMechanism will handle
  * the logic.
  * <p>
- * If you want to add custom commands, make sure to utilize the commands built
- * into the mechanism.
+ * If you want to add custom commands and/or methods, make sure to utilize the
+ * methods built
+ * into the linear mechanism.
  * <p>
- * <h3>Built in commands:</h3>
+ * <h3>Built in methods:</h3>
  * <p>
- * {@code stopCommand()} stops the system
+ * {@code stopCommand()} return a {@code Command} to stop the system
  * <p>
- * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} runs the flywheel at
- * a given angular velocity
+ * {@code resetPosition()} tells mechanism it is zeroed and sets {@code initialized = true}
  * <p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)} runs the flywheel at a
- * given speed [-1,1]
+ * {@code resetPositionCommand()} return a {@code Command} to reset the position
+ * of the
+ * motors and marks the
+ * system as {@code initialized = true}
  * <p>
- * {@code coastMotorsCommand()} sets the motors to Coast until interrupted
+ * {@code getPosition()} return the position of the linear mechanism <b>in the
+ * given direction</b>
+ * <p>
+ * {@code moveToCurrentGoalCommand()} return a {@code Command} to move to
+ * the current target position
+ * <p>
+ * {@code movePositionDeltaCommand(Supplier<Angle>)} return a {@code Command} to move to
+ * a delta added to the current position
+ * <p>
+ * {@code moveToArbitraryPositionCommand(Supplier<Distance>)} return a
+ * {@code Command} to move to a given distance
+ * <p>
+ * {@code coastMotorsCommand()} return a {@code Command} to set the motors to
+ * Coast until interrupted
+ * <p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)} return a {@code Command}
+ * to run the mechanism at a
+ * given speed [-1,1] for testing mostly
+ * <p>
+ * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
+ * (generally unnecessary for you to call because it is built into the other
+ * methods)
  * 
  * 
  */
@@ -187,12 +209,11 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
     }
 
     /**
-     * Explicit function to set the voltage of the motors attached to the elevator,
-     * should handle safeties and clamping here.
+     * Set the voltage with clamps between -12 and 12 volts.
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
-    public void setVoltage(Voltage voltage) {
+    private void setVoltage(Voltage voltage) {
         setMotorsControl(voltageRequest
                 .withOutput(Utils.applySoftStops(Volts.of(MathUtil.clamp(voltage.in(Volts), -12, 12)), getPosition(),
                         MIN_POSITION, MAX_POSITION)));

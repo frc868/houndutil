@@ -33,15 +33,20 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * All you need to do in order to make an Intake is call super() in the
  * intakes's constructor, and the FinishedIntake will handle the logic.
  * <p>
- * If you want to add custom commands, make sure to utilize the commands built
+ * If you want to add custom commands and/or methods, make sure to utilize the
+ * methods built
  * into the intake.
  * <p>
- * <h3>Built in commands:</h3>
+ * <h3>Built in methods:</h3>
  * <p>
- * {@code stopCommand()} stops the system
+ * {@code stopCommand()} return a {@code Command} to stop the system
  * <p>
- * {@code runRollersCommand(Voltage)} runs the motors at a voltage
- * 
+ * {@code runRollersCommand(Voltage)} return a {@code Command} to run the
+ * rollers at a given voltage
+ * <p>
+ * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
+ * (generally unnecessary for you to call because it is built into the other
+ * methods)
  * 
  */
 public abstract class FinishedIntake extends SubsystemBase {
@@ -53,7 +58,7 @@ public abstract class FinishedIntake extends SubsystemBase {
     private final double GEAR_RATIO;
     private final NeutralModeValue NEUTRAL;
     private final CANBus CANBUS;
-    
+
     private final DCMotor SIM_MOTOR_PLANT;
     private final MomentOfInertia MOI;
 
@@ -83,9 +88,10 @@ public abstract class FinishedIntake extends SubsystemBase {
 
             for (int i = 0; i < motors.length; i++) {
                 int a = TALON_CONSTANTS[i].INVERT == InvertedValue.CounterClockwise_Positive ? 1 : -1;
-                
+
                 motors[i].getSimState().setRotorVelocity(sim[0].getAngularVelocity().times(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
+                motors[i].getSimState()
+                        .setRotorAcceleration(sim[0].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         } else {
             for (int i = 0; i < sim.length; i++) {
@@ -95,7 +101,8 @@ public abstract class FinishedIntake extends SubsystemBase {
                 sim[i].update(0.020);
 
                 motors[i].getSimState().setRotorVelocity(sim[i].getAngularVelocity().times(GEAR_RATIO).times(a));
-                motors[i].getSimState().setRotorAcceleration(sim[i].getAngularAcceleration().times(GEAR_RATIO).times(a));
+                motors[i].getSimState()
+                        .setRotorAcceleration(sim[i].getAngularAcceleration().times(GEAR_RATIO).times(a));
             }
         }
     }
@@ -105,32 +112,33 @@ public abstract class FinishedIntake extends SubsystemBase {
      * the subsystem. If {@code areFollowers} is set to {@code true}, the first
      * motor in the array will be the master controller.
      * 
-     * @param areFollowers A {@code boolean} that describes whether the motors are
-     *                     in a follower configuration or are controlled
-     *                     independently. If they are mechanically linked, they
-     *                     should be followers (denoted by returning {@code true}).
-     * @param name         A {@code String} object containing the name of the
-     *                     subsystem. This will mainly be used for the purpose of
-     *                     logging.
-     * @param currentLimit A {@code Current} object that represents the limit of
-     *                     electrical current allowed per motor.
-     * @param gearRatio    A {@code double} object that holds the gear ratio, where
-     *                     greater than 1 is a reduction.
-     * @param neutral      A {@code NeutralModeValue} object that describes the
-     *                     system's behavior when no control is being applied. Being
-     *                     set to {@code Coast} means it will keep moving, and
-     *                     {@code Brake} will attempt to stop the system in a
-     *                     no-control state.
-     * @param canBus       A {@code CANBus} object that holds the CanBus the
-     *                     subsystem is connected to.
-     * @param simMotorPlant   A DCMotor plant using
-     *                        {@code DCMotor.getKrakenX60Foc(x)} or
-     *                        {@code DCMotor.getKrakenX40Foc(x)}. Note
-     *                        that if {@code areFollowers} is set to {@code false},
-     *                        x should be 1 motor because each motor will get a
-     *                        sim, otherwise x should be equal to the amount of
-     *                        motors.
-     * @param moi             The moment of inertia of the flywheel.
+     * @param areFollowers  A {@code boolean} that describes whether the motors are
+     *                      in a follower configuration or are controlled
+     *                      independently. If they are mechanically linked, they
+     *                      should be followers (denoted by returning {@code true}).
+     * @param name          A {@code String} object containing the name of the
+     *                      subsystem. This will mainly be used for the purpose of
+     *                      logging.
+     * @param currentLimit  A {@code Current} object that represents the limit of
+     *                      electrical current allowed per motor.
+     * @param gearRatio     A {@code double} object that holds the gear ratio, where
+     *                      greater than 1 is a reduction.
+     * @param neutral       A {@code NeutralModeValue} object that describes the
+     *                      system's behavior when no control is being applied.
+     *                      Being
+     *                      set to {@code Coast} means it will keep moving, and
+     *                      {@code Brake} will attempt to stop the system in a
+     *                      no-control state.
+     * @param canBus        A {@code CANBus} object that holds the CanBus the
+     *                      subsystem is connected to.
+     * @param simMotorPlant A DCMotor plant using
+     *                      {@code DCMotor.getKrakenX60Foc(x)} or
+     *                      {@code DCMotor.getKrakenX40Foc(x)}. Note
+     *                      that if {@code areFollowers} is set to {@code false},
+     *                      x should be 1 motor because each motor will get a
+     *                      sim, otherwise x should be equal to the amount of
+     *                      motors.
+     * @param moi           The moment of inertia of the flywheel.
      */
     public FinishedIntake(TalonConstants[] talonConstants, boolean areFollowers, String name, Current currentLimit,
             double gearRatio, NeutralModeValue neutral, CANBus canBus, DCMotor simMotorPlant, MomentOfInertia moi) {
@@ -156,11 +164,11 @@ public abstract class FinishedIntake extends SubsystemBase {
     private void createSims() {
         for (int i = 0; i < sim.length; i++) {
             sim[i] = sim[i] = new FlywheelSim(
-                LinearSystemId.createFlywheelSystem(
-                        SIM_MOTOR_PLANT,
-                        MOI.in(KilogramSquareMeters),
-                        GEAR_RATIO),
-                SIM_MOTOR_PLANT);
+                    LinearSystemId.createFlywheelSystem(
+                            SIM_MOTOR_PLANT,
+                            MOI.in(KilogramSquareMeters),
+                            GEAR_RATIO),
+                    SIM_MOTOR_PLANT);
         }
     }
 
@@ -209,4 +217,6 @@ public abstract class FinishedIntake extends SubsystemBase {
     public Command stopCommand() {
         return runOnce(() -> stop());
     }
+
+    // TODO maybe add a getVelocity() method but idk
 }

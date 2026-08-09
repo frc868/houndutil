@@ -40,22 +40,30 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * All you need to do in order to make a Flywheel is call super() in the
  * flywheel's constructor, and the FinishedFlywheel will handle the logic.
  * <p>
- * If you want to add custom commands, make sure to utilize the commands built
- * into the intake.
+ * If you want to add custom commands and/or methods, make sure to utilize the
+ * methods built
+ * into the flywheel.
  * <p>
- * <h3>Built in commands:</h3>
+ * <h3>Built in methods:</h3>
  * <p>
- * {@code stopCommand()} stops the system
+ * {@code stopCommand()} return a {@code Command} to stop the system
  * <p>
- * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} runs the flywheel at
+ * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} return a
+ * {@code Command} to run the flywheel at
  * a given angular velocity
  * <p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)} runs the flywheel at a
- * given speed [-1,1]
+ * {@code coastMotorsCommand()} return a {@code Command} to set the motors to
+ * Coast until interrupted
  * <p>
- * {@code coastMotorsCommand()} sets the motors to Coast until interrupted
- * 
- * 
+ * {@code setOverridenSpeedCommand(Supplier<Double>)} return a {@code Command}
+ * to run the flywheel at a
+ * given speed [-1,1] for testing mostly
+ * <p>
+ * {@code getVelocity()} return the velocity of the flywheel
+ * <p>
+ * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
+ * (generally unnecessary for you to call because it is built into the other
+ * methods)
  */
 public abstract class FinishedFlywheel extends SubsystemBase {
 
@@ -106,12 +114,11 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     }
 
     /**
-     * Explicit function to set the voltage of the motors attached to the elevator,
-     * should handle safeties and clamping here.
+     * Set the voltage with clamps between -12 and 12 volts.
      * 
      * @param voltage the voltage to apply to the motors, [-12, 12]
      */
-    public void setVoltage(Voltage voltage) {
+    private void setVoltage(Voltage voltage) {
         setMotorsControl(voltageRequest.withOutput(MathUtil.clamp(voltage.in(Volts), -12, 12)));
     }
 
