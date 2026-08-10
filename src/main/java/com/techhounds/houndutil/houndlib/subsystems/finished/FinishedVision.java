@@ -224,7 +224,7 @@ public abstract class FinishedVision extends SubsystemBase {
 
     // only for checking if poses are right in AdvantageScope
     public Pose3d[] getCameraPosesAgain() {
-        return new Pose3d[] { //TODO make it work for N cameras
+        return new Pose3d[] { // TODO make it work for N cameras
                 new Pose3d().transformBy(ROBOT_TO_CAMS[0]),
                 new Pose3d().transformBy(ROBOT_TO_CAMS[1]),
                 new Pose3d().transformBy(ROBOT_TO_CAMS[2]),

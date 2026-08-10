@@ -45,15 +45,21 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * into the flywheel.
  * <p>
  * <h3>Built in methods:</h3>
- * {@code stop()}<p>
- * {@code stopCommand()}<p>
- * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)}<p>
- * {@code coastMotorsCommand()}<p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)}<p>
- * {@code getVelocity()}<p>
+ * {@code stop()}
+ * <p>
+ * {@code stopCommand()}
+ * <p>
+ * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)}
+ * <p>
+ * {@code coastMotorsCommand()}
+ * <p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)}
+ * <p>
+ * {@code getVelocity()}
+ * <p>
  * {@code setMotorsControl(ControlRequest)}
  */
-public abstract class FinishedFlywheel extends SubsystemBase implements FinishedJavadocs<AngularVelocity>{
+public abstract class FinishedFlywheel extends SubsystemBase implements FinishedJavadocs<AngularVelocity> {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;

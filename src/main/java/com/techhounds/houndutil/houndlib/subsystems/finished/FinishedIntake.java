@@ -39,13 +39,16 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * into the intake.
  * <p>
  * <h3>Built in methods:</h3>
- * {@code stop()}<p>
- * {@code stopCommand()}<p>
- * {@code runRollersCommand(Voltage)}<p>
+ * {@code stop()}
+ * <p>
+ * {@code stopCommand()}
+ * <p>
+ * {@code runRollersCommand(Voltage)}
+ * <p>
  * {@code setMotorsControl(ControlRequest)}
  * 
  */
-public abstract class FinishedIntake extends SubsystemBase implements FinishedJavadocs <AngularVelocity> {
+public abstract class FinishedIntake extends SubsystemBase implements FinishedJavadocs<AngularVelocity> {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;

@@ -51,17 +51,29 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * into the pivot.
  * <p>
  * <h3>Built in methods:</h3>
- * {@code stop()}<p>
- * {@code stopCommand()}<p>
- * {@code resetPosition()}<p>
- * {@code resetPositionCommand()}<p>
- * {@code getPosition()}<p>
- * {@code moveToCurrentGoalCommand()}<p>
- * {@code movePositionDeltaCommand(Supplier<Angle>)}<p>
- * {@code moveToArbitraryPositionCommand(Supplier<Angle>)}<p>
- * {@code coastMotorsCommand()}<p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)}<p>
+ * {@code stop()}
+ * <p>
+ * {@code stopCommand()}
+ * <p>
+ * {@code resetPosition()}
+ * <p>
+ * {@code resetPositionCommand()}
+ * <p>
+ * {@code getPosition()}
+ * <p>
+ * {@code moveToCurrentGoalCommand()}
+ * <p>
+ * {@code movePositionDeltaCommand(Supplier<Angle>)}
+ * <p>
+ * {@code moveToArbitraryPositionCommand(Supplier<Angle>)}
+ * <p>
+ * {@code coastMotorsCommand()}
+ * <p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)}
+ * <p>
  * {@code setMotorsControl(ControlRequest)}
+ * <p>
+ * {@code atGoal()}
  * 
  */
 public abstract class FinishedPivot extends SubsystemBase implements FinishedJavadocs<Angle> {
@@ -274,7 +286,7 @@ public abstract class FinishedPivot extends SubsystemBase implements FinishedJav
         goalPosition = MIN_POSITION;
 
         positionRequest = new DynamicMotionMagicVoltage(goalPosition, MAX_VELOCITY,
-            MAX_ACCELERATION).withEnableFOC(true).withUseTimesync(true);
+                MAX_ACCELERATION).withEnableFOC(true).withUseTimesync(true);
 
         followerRequest = new StrictFollower(TALON_CONSTANTS[0].CAN_ID);
         motors = new TalonFX[TALON_CONSTANTS.length];
@@ -300,7 +312,8 @@ public abstract class FinishedPivot extends SubsystemBase implements FinishedJav
         config.Feedback.SensorToMechanismRatio = GEAR_RATIO;
         config.CurrentLimits.StatorCurrentLimit = CURRENT_LIMIT.in(Amps);
         config.MotorOutput.NeutralMode = NEUTRAL;
-        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA()).withKS(K.getkS()).withKV(K.getkV())
+        config.Slot0.withKP(K.getkP()).withKI(K.getkI()).withKD(K.getkD()).withKG(K.getkG()).withKA(K.getkA())
+                .withKS(K.getkS()).withKV(K.getkV())
                 .withGravityType(GravityTypeValue.Arm_Cosine);
         for (int i = 0; i < motors.length; i++) {
             motors[i] = new TalonFX(TALON_CONSTANTS[i].CAN_ID, CANBUS);
@@ -352,7 +365,7 @@ public abstract class FinishedPivot extends SubsystemBase implements FinishedJav
     }
 
     @Override
-    public boolean atGoal(){
+    public boolean atGoal() {
         return getPosition().isNear(goalPosition, TOLERANCE);
     }
 }

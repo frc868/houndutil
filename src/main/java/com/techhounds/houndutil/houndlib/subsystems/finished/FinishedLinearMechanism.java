@@ -74,7 +74,8 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * {@code setOverridenSpeedCommand(Supplier<Double>)}
  * <p>
  * {@code setMotorsControl(ControlRequest)}
- * 
+ * <p>
+ * {@code atGoal()}
  * 
  */
 public abstract class FinishedLinearMechanism extends SubsystemBase implements FinishedJavadocs <Distance> {

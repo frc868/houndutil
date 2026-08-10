@@ -9,7 +9,7 @@ import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Voltage;
 import edu.wpi.first.wpilibj2.command.Command;
 
-public interface FinishedJavadocs <T extends Measure<?>> {
+public interface FinishedJavadocs<T extends Measure<?>> {
     /**
      * stops the system
      */
@@ -160,5 +160,3 @@ public interface FinishedJavadocs <T extends Measure<?>> {
     }
 
 }
-
-
