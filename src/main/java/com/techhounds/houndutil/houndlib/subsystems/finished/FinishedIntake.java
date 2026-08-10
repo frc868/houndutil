@@ -16,6 +16,7 @@ import com.techhounds.houndutil.houndlog.loggers.LogGroup;
 
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.math.system.plant.LinearSystemId;
+import edu.wpi.first.units.measure.AngularVelocity;
 import edu.wpi.first.units.measure.Current;
 import edu.wpi.first.units.measure.MomentOfInertia;
 import edu.wpi.first.units.measure.Voltage;
@@ -38,18 +39,13 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
  * into the intake.
  * <p>
  * <h3>Built in methods:</h3>
- * <p>
- * {@code stopCommand()} return a {@code Command} to stop the system
- * <p>
- * {@code runRollersCommand(Voltage)} return a {@code Command} to run the
- * rollers at a given voltage
- * <p>
- * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
- * (generally unnecessary for you to call because it is built into the other
- * methods)
+ * {@code stop()}<p>
+ * {@code stopCommand()}<p>
+ * {@code runRollersCommand(Voltage)}<p>
+ * {@code setMotorsControl(ControlRequest)}
  * 
  */
-public abstract class FinishedIntake extends SubsystemBase {
+public abstract class FinishedIntake extends SubsystemBase implements FinishedJavadocs <AngularVelocity> {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
@@ -68,12 +64,7 @@ public abstract class FinishedIntake extends SubsystemBase {
     private final StrictFollower followerRequest;
     protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
 
-    /**
-     * Creates a command that runs the rollers of the intake at a specific voltage.
-     * A negative voltage moves it in the opposite direction.
-     * 
-     * @return the command
-     */
+    @Override
     public Command runRollersCommand(Voltage voltage) {
         return runEnd(
                 () -> setMotorsControl(voltageRequest.withOutput(voltage)),
@@ -200,7 +191,8 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
-    protected void setMotorsControl(ControlRequest control) {
+    @Override
+    public void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {
@@ -208,12 +200,14 @@ public abstract class FinishedIntake extends SubsystemBase {
         }
     }
 
+    @Override
     public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
 
+    @Override
     public Command stopCommand() {
         return runOnce(() -> stop());
     }

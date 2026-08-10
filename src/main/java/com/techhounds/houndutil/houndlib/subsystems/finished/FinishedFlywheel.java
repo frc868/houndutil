@@ -45,27 +45,15 @@ import edu.wpi.first.wpilibj2.command.Command.InterruptionBehavior;
  * into the flywheel.
  * <p>
  * <h3>Built in methods:</h3>
- * <p>
- * {@code stopCommand()} return a {@code Command} to stop the system
- * <p>
- * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)} return a
- * {@code Command} to run the flywheel at
- * a given angular velocity
- * <p>
- * {@code coastMotorsCommand()} return a {@code Command} to set the motors to
- * Coast until interrupted
- * <p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)} return a {@code Command}
- * to run the flywheel at a
- * given speed [-1,1] for testing mostly
- * <p>
- * {@code getVelocity()} return the velocity of the flywheel
- * <p>
- * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
- * (generally unnecessary for you to call because it is built into the other
- * methods)
+ * {@code stop()}<p>
+ * {@code stopCommand()}<p>
+ * {@code spinAtVelocityCommand(Supplier<AngularVelocity>)}<p>
+ * {@code coastMotorsCommand()}<p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)}<p>
+ * {@code getVelocity()}<p>
+ * {@code setMotorsControl(ControlRequest)}
  */
-public abstract class FinishedFlywheel extends SubsystemBase {
+public abstract class FinishedFlywheel extends SubsystemBase implements FinishedJavadocs<AngularVelocity>{
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
@@ -88,13 +76,7 @@ public abstract class FinishedFlywheel extends SubsystemBase {
     protected final VoltageOut voltageRequest = new VoltageOut(0.0).withEnableFOC(true).withUseTimesync(true);
     protected final VelocityTorqueCurrentFOC velocityRequest = new VelocityTorqueCurrentFOC(0);
 
-    /**
-     * Gets the velocity of the flywheel. 0 should indicate it being stopped, and
-     * the velocity should increase in the forward direction (i.e. the velocity
-     * should be positive in the "correct" direction).
-     * 
-     * @return the velocity of the flywheel
-     */
+    @Override
     public AngularVelocity getVelocity() {
         double total = 0.0;
         int i = 0;
@@ -113,23 +95,11 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         return RotationsPerSecond.of(total);
     }
 
-    /**
-     * Set the voltage with clamps between -12 and 12 volts.
-     * 
-     * @param voltage the voltage to apply to the motors, [-12, 12]
-     */
     private void setVoltage(Voltage voltage) {
         setMotorsControl(voltageRequest.withOutput(MathUtil.clamp(voltage.in(Volts), -12, 12)));
     }
 
-    /**
-     * Creates a command that continuously spins the flywheel at a specific velocity
-     * until cancelled. Note that this is *not* intended to self-cancel after
-     * reaching its setpoint and defer to a default command.
-     * 
-     * @param goalVelocitySupplier a supplier of a velocity to spin at
-     * @return the command
-     */
+    @Override
     public Command spinAtVelocityCommand(Supplier<AngularVelocity> goalVelocitySupplier) {
         return runEnd(() -> {
             goalVelocity = goalVelocitySupplier.get();
@@ -137,31 +107,14 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         }, () -> stop()).withName(NAME + ".spinAtVelocity");
     }
 
-    /**
-     * Creates a command that manually sets the speed of the mechanism. Useful for
-     * overriding PID control.
-     * 
-     * @apiNote use {@code setVoltage()} internally in order to maintain safeties
-     *          and clamping
-     * 
-     * @param speed the speed [-1,1]
-     * @return
-     */
+    @Override
     public Command setOverridenSpeedCommand(Supplier<Double> speed) {
         return runEnd(
                 () -> setVoltage(Volts.of(speed.get() * 12)),
                 () -> stop()).withName(NAME + ".setOverridenSpeedCommand");
     }
 
-    /**
-     * Creates a command stops the motor and sets it to coast mode, to allow for
-     * moving the mechanism manually.
-     * 
-     * @apiNote use
-     *          {@code .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)}
-     *          for safety
-     * @return the command
-     */
+    @Override
     public Command coastMotorsCommand() {
         return startEnd(
                 () -> {
@@ -310,7 +263,8 @@ public abstract class FinishedFlywheel extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getVelocity())));
     }
 
-    protected void setMotorsControl(ControlRequest control) {
+    @Override
+    public void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {
@@ -318,12 +272,14 @@ public abstract class FinishedFlywheel extends SubsystemBase {
         }
     }
 
+    @Override
     public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
 
+    @Override
     public Command stopCommand() {
         return runOnce(() -> stop());
     }

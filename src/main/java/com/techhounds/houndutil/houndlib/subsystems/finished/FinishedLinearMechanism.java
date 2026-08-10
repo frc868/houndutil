@@ -53,42 +53,31 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * into the linear mechanism.
  * <p>
  * <h3>Built in methods:</h3>
+ * {@code stop()}
  * <p>
- * {@code stopCommand()} return a {@code Command} to stop the system
+ * {@code stopCommand()}
  * <p>
- * {@code resetPosition()} tells mechanism it is zeroed and sets {@code initialized = true}
+ * {@code resetPosition()}
  * <p>
- * {@code resetPositionCommand()} return a {@code Command} to reset the position
- * of the
- * motors and marks the
- * system as {@code initialized = true}
+ * {@code resetPositionCommand()}
  * <p>
- * {@code getPosition()} return the position of the linear mechanism <b>in the
- * given direction</b>
+ * {@code getPosition()}
  * <p>
- * {@code moveToCurrentGoalCommand()} return a {@code Command} to move to
- * the current target position
+ * {@code moveToCurrentGoalCommand()}
  * <p>
- * {@code movePositionDeltaCommand(Supplier<Angle>)} return a {@code Command} to move to
- * a delta added to the current position
+ * {@code movePositionDeltaCommand(Supplier<Distance>)}
  * <p>
- * {@code moveToArbitraryPositionCommand(Supplier<Distance>)} return a
- * {@code Command} to move to a given distance
+ * {@code moveToArbitraryPositionCommand(Supplier<Distance>)}
  * <p>
- * {@code coastMotorsCommand()} return a {@code Command} to set the motors to
- * Coast until interrupted
+ * {@code coastMotorsCommand()}
  * <p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)} return a {@code Command}
- * to run the mechanism at a
- * given speed [-1,1] for testing mostly
+ * {@code setOverridenSpeedCommand(Supplier<Double>)}
  * <p>
- * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
- * (generally unnecessary for you to call because it is built into the other
- * methods)
+ * {@code setMotorsControl(ControlRequest)}
  * 
  * 
  */
-public abstract class FinishedLinearMechanism extends SubsystemBase {
+public abstract class FinishedLinearMechanism extends SubsystemBase implements FinishedJavadocs <Distance> {
 
     // TODO everything is in a forwards direction, maybe should be vertical
     private final TalonConstants[] TALON_CONSTANTS;
@@ -123,6 +112,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
 
     public boolean initialized = RobotBase.isSimulation();
 
+    @Override
     public void resetPosition() {
         for (int i = 1; i < motors.length; i++) {
             motors[i].setPosition(Rotations.of(ZERO_POSITION.in(Meters)
@@ -132,16 +122,12 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         initialized = true;
     }
 
+    @Override
     public Command resetPositionCommand() {
         return runOnce(() -> resetPosition()).withName(NAME + ".resetPosition");
     }
 
-    /**
-     * Gets the position of the mechanism. 0 should be at the lowest movement point,
-     * and the position should increase as the mechanism moves up.
-     * 
-     * @return the position of the mechanism, in meters
-     */
+    @Override
     public Distance getPosition() {
         double total = 0.0;
         int i = 0;
@@ -161,12 +147,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         return Meters.of(total);
     }
 
-    /**
-     * Creates a command that continuously applies voltage to the motor controllers
-     * to move them to the currently set goal.
-     * 
-     * @return the command
-     */
+    @Override
     public Command moveToCurrentGoalCommand() {
         return run(() -> {
             setMotorsControl(positionRequest.withPosition(
@@ -175,15 +156,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         }).withName(NAME + ".moveToCurrentGoal");
     }
 
-    /**
-     * Creates a command that sets the current goal position to the setpoint.
-     * 
-     * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
-     *          duplication
-     * 
-     * @param goalPositionSupplier a supplier of a position to move to
-     * @return the command
-     */
+    @Override
     public Command moveToArbitraryPositionCommand(Supplier<Distance> goalPositionSupplier) {
         return Commands.runOnce(() -> {
             goalPosition = goalPositionSupplier.get();
@@ -191,16 +164,7 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                 .withName(NAME + ".moveToPosition");
     }
 
-    /**
-     * Creates a command that sets the current goal position to the setpoint plus
-     * the delta (if a delta of 0.1 is set, the linear mechanism should move up
-     * 10cm), and
-     * cancels once the mechanism has reached that goal.
-     * 
-     * 
-     * @param delta a supplier of a delta to move
-     * @return the command
-     */
+    @Override
     public Command movePositionDeltaCommand(Supplier<Distance> delta) {
         return Commands.runOnce(() -> {
             goalPosition = getPosition().plus(delta.get());
@@ -208,11 +172,6 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                 .withName(NAME + ".moveToPositionDelta");
     }
 
-    /**
-     * Set the voltage with clamps between -12 and 12 volts.
-     * 
-     * @param voltage the voltage to apply to the motors, [-12, 12]
-     */
     private void setVoltage(Voltage voltage) {
         setMotorsControl(voltageRequest
                 .withOutput(Utils.applySoftStops(Volts.of(MathUtil.clamp(voltage.in(Volts), -12, 12)), getPosition(),
@@ -220,31 +179,14 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
 
     }
 
-    /**
-     * Creates a command that manually sets the speed of the mechanism. Useful for
-     * overriding PID control.
-     * 
-     * @apiNote use {@code setVoltage()} internally in order to maintain safeties
-     *          and clamping
-     * 
-     * @param speed the speed [-1,1]
-     * @return
-     */
+    @Override
     public Command setOverridenSpeedCommand(Supplier<Double> speed) {
         return runEnd(
                 () -> setVoltage(Volts.of(speed.get() * 12)),
                 () -> stop()).withName(NAME + ".setOverridenSpeedCommand");
     }
 
-    /**
-     * Creates a command stops the motor and sets it to coast mode, to allow for
-     * moving the mechanism manually.
-     * 
-     * @apiNote use
-     *          {@code .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)}
-     *          for safety
-     * @return the command
-     */
+    @Override
     public Command coastMotorsCommand() {
         return startEnd(
                 () -> {
@@ -415,7 +357,8 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getPosition())));
     }
 
-    protected void setMotorsControl(ControlRequest control) {
+    @Override
+    public void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {
@@ -423,16 +366,19 @@ public abstract class FinishedLinearMechanism extends SubsystemBase {
         }
     }
 
+    @Override
     public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
 
+    @Override
     public Command stopCommand() {
         return runOnce(() -> stop());
     }
 
+    @Override
     public boolean atGoal() {
         return getPosition().isNear(goalPosition, TOLERANCE);
     }

@@ -51,41 +51,20 @@ import edu.wpi.first.wpilibj2.command.Commands;
  * into the pivot.
  * <p>
  * <h3>Built in methods:</h3>
- * <p>
- * {@code stopCommand()} return a {@code Command} to stop the system
- * <p>
- * {@code resetPosition()} tells mechanism it is zeroed and sets {@code initialized = true}
- * <p>
- * {@code resetPositionCommand()} return a {@code Command} to reset the position
- * of the
- * motors and marks the
- * system as {@code initialized = true}
- * <p>
- * {@code getPosition()} return the angle of the pivot
- * <p>
- * {@code moveToCurrentGoalCommand()} return a {@code Command} to move to
- * the current target angle
- * <p>
- * {@code movePositionDeltaCommand(Supplier<Angle>)} return a {@code Command} to move to
- * a delta added to the current angle
- * <p>
- * {@code moveToArbitraryPositionCommand(Supplier<Angle>)} return a
- * {@code Command} to move to a given angle
- * <p>
- * {@code coastMotorsCommand()} return a {@code Command} to set the motors to
- * Coast until interrupted
- * <p>
- * {@code setOverridenSpeedCommand(Supplier<Double>)} return a {@code Command}
- * to run the pivot at a
- * given speed [-1,1] for testing mostly
- * <p>
- * {@code setMotorsControl(ControlRequest)} set the controller of all the motors
- * (generally unnecessary for you to call because it is built into the other
- * methods)
- * 
+ * {@code stop()}<p>
+ * {@code stopCommand()}<p>
+ * {@code resetPosition()}<p>
+ * {@code resetPositionCommand()}<p>
+ * {@code getPosition()}<p>
+ * {@code moveToCurrentGoalCommand()}<p>
+ * {@code movePositionDeltaCommand(Supplier<Angle>)}<p>
+ * {@code moveToArbitraryPositionCommand(Supplier<Angle>)}<p>
+ * {@code coastMotorsCommand()}<p>
+ * {@code setOverridenSpeedCommand(Supplier<Double>)}<p>
+ * {@code setMotorsControl(ControlRequest)}
  * 
  */
-public abstract class FinishedPivot extends SubsystemBase {
+public abstract class FinishedPivot extends SubsystemBase implements FinishedJavadocs<Angle> {
 
     private final TalonConstants[] TALON_CONSTANTS;
     private final boolean ARE_FOLLOWERS;
@@ -118,6 +97,7 @@ public abstract class FinishedPivot extends SubsystemBase {
 
     public boolean initialized = RobotBase.isSimulation();
 
+    @Override
     public void resetPosition() {
         for (int i = 1; i < motors.length; i++) {
             motors[i].setPosition(ZERO_POSITION);
@@ -126,16 +106,12 @@ public abstract class FinishedPivot extends SubsystemBase {
         initialized = true;
     }
 
+    @Override
     public Command resetPositionCommand() {
         return runOnce(() -> resetPosition()).withName(NAME + ".resetPosition");
     }
 
-    /**
-     * Gets the position of the mechanism. 0 should be at the lowest movement point,
-     * and the position should increase as the mechanism moves up.
-     * 
-     * @return the position of the mechanism, in meters
-     */
+    @Override
     public Angle getPosition() {
         double total = 0.0;
         int i = 0;
@@ -154,12 +130,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         return Degrees.of(total);
     }
 
-    /**
-     * Creates a command that continuously applies voltage to the motor controllers
-     * to move them to the currently set goal.
-     * 
-     * @return the command
-     */
+    @Override
     public Command moveToCurrentGoalCommand() {
         return run(() -> {
             setMotorsControl(positionRequest.withPosition(
@@ -167,15 +138,7 @@ public abstract class FinishedPivot extends SubsystemBase {
         }).withName(NAME + ".moveToCurrentGoal");
     }
 
-    /**
-     * Creates a command that sets the current goal position to the setpoint.
-     * 
-     * @apiNote use {@code moveToCurrentGoalCommand()} internally to avoid code
-     *          duplication
-     * 
-     * @param goalPositionSupplier a supplier of a position to move to
-     * @return the command
-     */
+    @Override
     public Command moveToArbitraryPositionCommand(Supplier<Angle> goalPositionSupplier) {
         return Commands.runOnce(() -> {
             goalPosition = goalPositionSupplier.get();
@@ -183,16 +146,7 @@ public abstract class FinishedPivot extends SubsystemBase {
                 .withName(NAME + ".moveToPosition");
     }
 
-    /**
-     * Creates a command that sets the current goal position to the setpoint plus
-     * the delta (if a delta of 0.1 is set, the linear mechanism should move up
-     * 10cm), and
-     * cancels once the mechanism has reached that goal.
-     * 
-     * 
-     * @param delta a supplier of a delta to move
-     * @return the command
-     */
+    @Override
     public Command movePositionDeltaCommand(Supplier<Angle> delta) {
         return Commands.runOnce(() -> {
             goalPosition = getPosition().plus(delta.get());
@@ -200,11 +154,6 @@ public abstract class FinishedPivot extends SubsystemBase {
                 .withName(NAME + ".moveToPositionDelta");
     }
 
-    /**
-     * Set the voltage with clamps between -12 and 12 volts.
-     * 
-     * @param voltage the voltage to apply to the motors, [-12, 12]
-     */
     private void setVoltage(Voltage voltage) {
         setMotorsControl(voltageRequest
                 .withOutput(Utils.applySoftStops(Volts.of(MathUtil.clamp(voltage.in(Volts), -12, 12)), getPosition(),
@@ -212,31 +161,14 @@ public abstract class FinishedPivot extends SubsystemBase {
 
     }
 
-    /**
-     * Creates a command that manually sets the speed of the mechanism. Useful for
-     * overriding PID control.
-     * 
-     * @apiNote use {@code setVoltage()} internally in order to maintain safeties
-     *          and clamping
-     * 
-     * @param speed the speed [-1,1]
-     * @return
-     */
+    @Override
     public Command setOverridenSpeedCommand(Supplier<Double> speed) {
         return runEnd(
                 () -> setVoltage(Volts.of(speed.get() * 12)),
                 () -> stop()).withName(NAME + ".setOverridenSpeedCommand");
     }
 
-    /**
-     * Creates a command stops the motor and sets it to coast mode, to allow for
-     * moving the mechanism manually.
-     * 
-     * @apiNote use
-     *          {@code .withInterruptBehavior(InterruptionBehavior.kCancelIncoming)}
-     *          for safety
-     * @return the command
-     */
+    @Override
     public Command coastMotorsCommand() {
         return startEnd(
                 () -> {
@@ -398,7 +330,8 @@ public abstract class FinishedPivot extends SubsystemBase {
                         LogProfiles.logMeasure(() -> getPosition())));
     }
 
-    protected void setMotorsControl(ControlRequest control) {
+    @Override
+    public void setMotorsControl(ControlRequest control) {
         motors[0].setControl(control);
 
         for (int i = 1; i < motors.length; i++) {
@@ -406,16 +339,19 @@ public abstract class FinishedPivot extends SubsystemBase {
         }
     }
 
+    @Override
     public void stop() {
         for (int i = 0; i < motors.length; i++) {
             motors[i].stopMotor();
         }
     }
 
+    @Override
     public Command stopCommand() {
         return runOnce(() -> stop());
     }
 
+    @Override
     public boolean atGoal(){
         return getPosition().isNear(goalPosition, TOLERANCE);
     }
