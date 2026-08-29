@@ -1,6 +1,7 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+    id "maven-publish"
 }
 
 java {
@@ -104,4 +105,39 @@ wpi.java.configureTestTasks(test)
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+// ---------------------------------------------------------------------------
+// Maven publishing.
+//
+// Publishes a plain jar of just houndutil's compiled classes (never the robot
+// 'fat jar' above). WPILib/vendor dependencies are intentionally NOT bundled or
+// declared transitively: the consuming robot already brings them via its own
+// vendordeps. Version comes from -PpublishVersion (defaults to a snapshot).
+// ---------------------------------------------------------------------------
+
+tasks.register("libraryJar", Jar) {
+    archiveClassifier = "lib"
+    from sourceSets.main.output
+}
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            groupId = "com.techhounds"
+            artifactId = "houndutil"
+            version = project.findProperty("publishVersion") ?: "2026.0.0-SNAPSHOT"
+            artifact(tasks.named("libraryJar"))
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/frc868/houndutil")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
