@@ -34,7 +34,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Publish to GitHub Packages
-        run: ./gradlew publish -PpublishVersion=${{ steps.version.outputs.version }}
+        run: ./gradlew publish -Pversion=${{ steps.version.outputs.version }}
         env:
           GITHUB_ACTOR: ${{ github.actor }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
