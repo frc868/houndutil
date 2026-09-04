@@ -1,7 +1,15 @@
 plugins {
     id "java"
     id "edu.wpi.first.GradleRIO" version "2026.2.1"
+    id "maven-publish"
 }
+
+group = "com.techhounds"
+
+// Defaults to a snapshot; override with -Pversion=... (CI publish / releases).
+// Without -Pversion, findProperty returns Gradle's "unspecified" sentinel.
+def requestedVersion = project.findProperty("version")
+version = (requestedVersion == "unspecified") ? "2026.0.0-SNAPSHOT" : requestedVersion
 
 java {
     sourceCompatibility = JavaVersion.VERSION_17
@@ -84,24 +92,42 @@ test {
 wpi.sim.addGui().defaultEnabled = true
 wpi.sim.addDriverstation()
 
-// Setting up my Jar File. In this case, adding all libraries into the main jar ('fat jar')
-// in order to make them all available at runtime. Also adding the manifest so WPILib
-// knows where to look for our Robot Class.
-jar {
-    from { configurations.runtimeClasspath.collect { it.isDirectory() ? it : zipTree(it) } }
-    from('src') { into 'backup/src' }
-    from('vendordeps') { into 'backup/vendordeps' }
-    from('build.gradle') { into 'backup' }
-    manifest edu.wpi.first.gradlerio.GradleRIOPlugin.javaManifest(ROBOT_MAIN_CLASS)
-    duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Configure jar and deploy tasks
-deployArtifact.jarTask = jar
-wpi.java.configureExecutableTasks(jar)
+// houndutil is a library, not a deployable robot project: keep the default
+// plain jar (compiled classes only) so it stays identical whether consumed by a
+// composite build (default configuration) or from a published Maven artifact.
 wpi.java.configureTestTasks(test)
 
 // Configure string concat to always inline compile
 tasks.withType(JavaCompile) {
     options.compilerArgs.add '-XDstringConcat=inline'
+}
+
+// ---------------------------------------------------------------------------
+// Maven publishing.
+//
+// Publishes houndutil's plain jar (compiled classes only). WPILib/vendor
+// dependencies are intentionally NOT bundled or declared transitively: the
+// consuming robot already brings them via its own vendordeps. Version comes
+// from the `version` property (defaults to a snapshot).
+// ---------------------------------------------------------------------------
+
+publishing {
+    publications {
+        maven(MavenPublication) {
+            // Publish just the plain jar (no transitive POM dependencies:
+            // the consuming robot brings WPILib/vendor libs via its own
+            // vendordeps, so versions stay single-sourced from there).
+            artifact(tasks.named("jar"))
+        }
+    }
+    repositories {
+        maven {
+            name = "GitHubPackages"
+            url = uri("https://maven.pkg.github.com/frc868/houndutil")
+            credentials {
+                username = project.findProperty("gpr.user") ?: System.getenv("GITHUB_ACTOR")
+                password = project.findProperty("gpr.key") ?: System.getenv("GITHUB_TOKEN")
+            }
+        }
+    }
 }
